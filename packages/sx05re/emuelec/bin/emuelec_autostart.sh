@@ -17,17 +17,19 @@ ln -sf ${CONFIG_DIR2} ${CONFIG_DIR}
 fi
 
 if [ "${EE_DEVICE}" == "Amlogic" ]; then
-  rm /storage/.config/asound.conf > /dev/null 2>&1
-  cp /storage/.config/asound.conf-amlogic /storage/.config/asound.conf
-
-    if [ "$(get_es_setting bool StopMusicOnScreenSaver)" != "false" ]; then 
-        sed -i "/<bool name=\"StopMusicOnScreenSaver.*/d" "${ES_CONF}"
-        sed -i "s|</config>|	<bool name=\"StopMusicOnScreenSaver\" value=\"false\" />\n</config>|g" "${ES_CONF}"
+    rm "/storage/.config/asound.conf" > /dev/null 2>&1
+    cp "/storage/.config/asound.conf-amlogic" "/storage/.config/asound.conf"
+    if [ "$(get_ee_setting bool StopMusicOnScreenSaver)" != "false" ]; then 
+        sed -i "/<bool name=\"StopMusicOnScreenSaver\"/d" "${ES_CONF}"
+        sed -i "s|</config>|    <bool name=\"StopMusicOnScreenSaver\" value=\"false\" />\n</config>|g" "${ES_CONF}"
     fi
-
+    
 elif [ "${EE_DEVICE}" == "Amlogic-ng" ]; then
-  rm /storage/.config/asound.conf > /dev/null 2>&1
-  cp /storage/.config/asound.conf-amlogic-ng /storage/.config/asound.conf
+    rm "/storage/.config/asound.conf" > /dev/null 2>&1
+    cp "/storage/.config/asound.conf-amlogic-ng" "/storage/.config/asound.conf"
+elif [ "${EE_DEVICE}" == "Amlogic-no" ]; then
+    rm "/storage/.config/asound.conf" > /dev/null 2>&1
+    cp "/storage/.config/asound.conf-amlogic-no" "/storage/.config/asound.conf"
 fi
 
 HOSTNAME=$(get_ee_setting system.hostname)
@@ -61,7 +63,6 @@ if [[ "${EE_DEVICE}" == "GameForce" ]] || [[ "${EE_DEVICE}" == "OdroidGoAdvance"
 [ -z "${OGAOC}" ] && OGAOC="Off"
     odroidgoa_utils.sh oga_oc "${OGAOC}"
 fi
-
 
 # Mounts /storage/roms
 MOUNT_HANDLER=$(get_ee_setting ee_mount.handler)
