@@ -57,7 +57,10 @@ PKG_DEPENDS_TARGET+=" ffmpeg \
                       diffutils \
                       fbfix \
                       munt \
-                      munt_alsadrv"
+                      munt_alsadrv \
+                      python-uinput \
+                      python-evdev \
+                      xow"
 
 if [ "${PROJECT}" == "Amlogic-ce" ]; then
                       PKG_DEPENDS_TARGET+=" CoreELEC-Debug-Scripts"
