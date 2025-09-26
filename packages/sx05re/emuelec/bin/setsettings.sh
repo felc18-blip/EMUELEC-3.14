@@ -248,7 +248,20 @@ case ${1} in
         [ "${2}" == "1" ] && ISBEZEL="true" || ISBEZEL="false"
     ;;
     "integerscaleoverscale")
-        [ "${2}" == "1" ] && echo 'video_scale_integer_overscale = "true"' >> ${RACONF} || echo 'video_scale_integer_overscale = "false"' >> ${RACONF}
+		case "${2}" in
+			"1")
+				echo 'video_scale_integer_scaling = "1"' >> "${RACONF}"
+				echo 'video_scale_integer_axis = "1"' >> "${RACONF}"
+			;;
+			"2")
+				echo 'video_scale_integer_scaling = "2"' >> "${RACONF}"
+				echo 'video_scale_integer_axis = "1"' >> "${RACONF}"
+			;;
+			*)
+				echo 'video_scale_integer_overscale = "0"' >> "${RACONF}"
+				echo 'video_scale_integer_axis = "0"' >> "${RACONF}"
+			;;
+esac
     ;;
     "rgascale")
                 [ "${2}" == "1" ] && echo 'video_ctx_scaling = "true"' >> ${RACONF} || echo 'video_ctx_scaling = "false"' >> ${RACONF}
