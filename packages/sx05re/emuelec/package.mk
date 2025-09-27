@@ -75,7 +75,7 @@ makeinstall_target() {
 
   # Added for compatibility with portmaster
   ln -sf /storage/roms ${INSTALL}/roms
-  ln -sf /storage/roms/ports/portmaster ${INSTALL}/portmaster
+  ln -sf /storage/roms/ports/PortMaster ${INSTALL}/PortMaster
   mkdir -p ${INSTALL}/usr/bin/ports
   touch ${INSTALL}/usr/bin/ports/.ports_here
 

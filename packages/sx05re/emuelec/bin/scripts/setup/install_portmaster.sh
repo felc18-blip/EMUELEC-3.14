@@ -32,6 +32,12 @@ unzip -o "${LINKDEST}" -d "/storage/roms/ports"
 cp "/storage/roms/ports/PortMaster/PortMaster.sh" "/emuelec/ports"
 rm -rf ${LINKTMP}
 
+# Temp fix libgl_EmuELEC.txt
+echo 'export LIBGL_ES=""' >> /storage/roms/ports/PortMaster/libgl_EmuELEC.txt
+
+
+#todo add the gamelist.xml
+
 echo "Done, restart ES"
 ee_console disable
 rm /tmp/display > /dev/null 2>&1
