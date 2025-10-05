@@ -575,7 +575,7 @@ if [ "${PLATFORM}" == "amstradgx4000" ]; then
 GX4000CONF="/storage/.config/retroarch/config/cap32/cap32.opt"
 [[ ! -f "${GX4000CONF}" ]] && touch "${GX4000CONF}"
     sed -i "/cap32_model =/d" "${GX4000CONF}"
-    echo "cap32_model = \"6128+\"" >> "${GX4000CONF}"
+    echo "cap32_model = \"6128+ (experimental)\"" >> "${GX4000CONF}"
 fi
 
 if [ "${CORE}" == "gambatte" ]; then
