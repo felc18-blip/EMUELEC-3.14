@@ -571,11 +571,23 @@ sed -i "/atari800_system =/d" ${ATARI800CONF}
 fi
 
 if [ "${PLATFORM}" == "amstradgx4000" ]; then
-# Make sure cap32_model is set to "6128+"
-GX4000CONF="/storage/.config/retroarch/config/cap32/cap32.opt"
-[[ ! -f "${GX4000CONF}" ]] && touch "${GX4000CONF}"
-    sed -i "/cap32_model =/d" "${GX4000CONF}"
-    echo "cap32_model = \"6128+ (experimental)\"" >> "${GX4000CONF}"
+# Make sure cap32_model is set to "6128+ (experimental)"
+CAP32CONF="/storage/.config/retroarch/config/cap32/cap32.opt"
+[[ ! -f "${CAP32CONF}" ]] && touch "${CAP32CONF}"
+    sed -i "/cap32_model =/d" "${CAP32CONF}"
+    echo "cap32_model = \"6128+ (experimental)\"" >> "${CAP32CONF}"
+    sed -i "/cap32_gfx_colors =/d" "${CAP32CONF}"
+    echo "cap32_gfx_colors = \"24bit\"" >> "${CAP32CONF}"
+fi
+
+if [ "${PLATFORM}" == "amstradcpc" ]; then
+# But amstradcpc wants cap32_model set to "6128"
+CAP32CONF="/storage/.config/retroarch/config/cap32/cap32.opt"
+[[ ! -f "${CAP32CONF}" ]] && touch "${CAP32CONF}"
+    sed -i "/cap32_model =/d" "${CAP32CONF}"
+    echo "cap32_model = \"6128\"" >> "${CAP32CONF}"
+    sed -i "/cap32_gfx_colors =/d" "${CAP32CONF}"
+    echo "cap32_gfx_colors = \"16bit\"" >> "${CAP32CONF}"
 fi
 
 if [ "${CORE}" == "gambatte" ]; then
