@@ -2355,7 +2355,8 @@
       "command": "default",
       "extensions": [
         ".chd",
-        ".iso"
+        ".iso",
+        ".cue"
       ],
       "emulators": [
         {
