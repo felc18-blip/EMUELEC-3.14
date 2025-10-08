@@ -2317,6 +2317,68 @@
       ]
     },
     {
+      "name": "sufami",
+      "fullname": "SuFami Turbo",
+      "manufacturer": "Bandai",
+      "release": "1996",
+      "hardware": "console",
+      "path": "/storage/roms/sufami",
+      "platform": "snes",
+      "theme": "sufami",
+      "command": "default",
+      "extensions": [
+        ".st",
+        ".fig",
+        ".bs",
+        ".smc",
+        ".sfc",
+        ".zip",
+        ".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "snes9x",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "satellaview",
+      "fullname": "Satellaview",
+      "manufacturer": "Nintendo",
+      "release": "1995",
+      "hardware": "console",
+      "path": "/storage/roms/satellaview",
+      "platform": "snes",
+      "theme": "satellaview",
+      "command": "default",
+      "extensions": [
+        ".st",
+        ".fig",
+        ".bs",
+        ".smc",
+        ".sfc",
+        ".zip",
+        ".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "snes9x",
+              "default": true
+            }
+          ]
+        }
+      ]
+     },
+    {
       "name": "virtualboy",
       "fullname": "Nintendo Virtual Boy",
       "manufacturer": "Nintendo",
