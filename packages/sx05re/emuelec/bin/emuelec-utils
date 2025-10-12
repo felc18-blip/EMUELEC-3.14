@@ -411,6 +411,11 @@ function unmount_all () {
     if /usr/bin/busybox mountpoint -q /storage/roms ; then
         umount /storage/roms > /dev/null 2>&1
     fi
+    
+    if /usr/bin/busybox mountpoint -q /storage/roms/ports_scripts ; then
+        umount /storage/roms/ports_scripts > /dev/null 2>&1
+    fi
+    
 }
 
 function createMultidisc() {

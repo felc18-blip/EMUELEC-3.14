@@ -171,8 +171,8 @@ OLDCFG="${ESDIR}/es_systems.cfg.${BUILDATE}.bak"
 CFG="${ESDIR}/es_systems.cfg"
 
 if [[ "${CVER}" != "${NVER}" ]]; then
-    mv "/storage/.config/emuelec/ports/gamelist.xml" "/storage/.config/emuelec/ports/gamelist.xml.${BUILDATE}.bak"
-    cp -rf "/usr/bin/ports/gamelist.xml" "/storage/.config/emuelec/ports/gamelist.xml"
+    #mv "/storage/.config/emuelec/ports/gamelist.xml" "/storage/.config/emuelec/ports/gamelist.xml.${BUILDATE}.bak"
+    #cp -rf "/usr/bin/ports/gamelist.xml" "/storage/.config/emuelec/ports/gamelist.xml"
     
     mv "${ESDIR}/es_features.cfg" "${ESDIR}/es_features.cfg.${BUILDATE}.bak"
     cp -rf "/usr/config/emulationstation/es_features.cfg" "${ESDIR}/es_features.cfg"
