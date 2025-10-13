@@ -28,6 +28,7 @@ pre_configure_target() {
                          --enable-release \
                          --enable-engine=xeen \
                          --enable-engine=mm \
+                         --enable-engine=adl,testbed,scumm,scumm_7_8,grim,monkey4,mohawk,myst,riven,sci32,agos2,sword2,drascula,sky,lure,queen,testbed,director,stark \
                          --prefix=/usr/local"
 }
 
