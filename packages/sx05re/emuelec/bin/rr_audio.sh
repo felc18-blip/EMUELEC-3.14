@@ -164,5 +164,6 @@ if [ "$EE_DEVICE" == "OdroidGoAdvance" ] || [ "$EE_DEVICE" == "GameForce" ]; the
 	# For some reason the audio is being reseted to 100 at boot, so we reaply the saved settings here
 	odroidgoa_utils.sh vol ${RR_AUDIO_VOLUME}
 else
-	amixer set 'DAC Digital' "${RR_AUDIO_VOLUME}%"
+	#amixer set 'DAC Digital' "${RR_AUDIO_VOLUME}%"
+	amixer set Master "${RR_AUDIO_VOLUME}%"
 fi
