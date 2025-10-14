@@ -1,11 +1,8 @@
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2025-present DiegroSan (https://github.com/Diegrosan)
-#
-#
 
-PKG_NAME="flycastsadojo"
-PKG_VERSION="f5dea9e" #6.53+
+PKG_NAME="flycast-dojo"
+PKG_VERSION="f5dea9ec98ec8c2847e0a39e9431eefd2b784345" #6.53+
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/blueminder/flycast-dojo"
 PKG_URL="${PKG_SITE}.git"

@@ -10,7 +10,7 @@ PKG_SECTION="emuelec"
 PKG_LONGDESC="EmuELEC Meta Package"
 PKG_TOOLCHAIN="manual"
 
-PKG_EXPERIMENTAL="nestopiaCV quasi88 xmil np2kai hypseus-singe yabasanshiroSA_1_11 yabasanshiroSA_1_5 fbneoSA same_cdi ikemen-go flycastsadojo"
+PKG_EXPERIMENTAL="nestopiaCV quasi88 xmil np2kai hypseus-singe yabasanshiroSA_1_11 yabasanshiroSA_1_5 fbneoSA same_cdi ikemen-go flycast-dojo" 
 PKG_EMUS="${LIBRETRO_CORES} advancemame PPSSPPSDL amiberry amiberry-lite hatarisa openbor dosbox-staging mupen64plus-nx mupen64plus-nx-alt scummvmsa stellasa solarus dosbox-pure pcsx_rearmed ecwolf potator freej2me duckstation flycastsa fmsx-libretro jzintv mupen64plussa"
 PKG_DEPENDS_TARGET+=" emuelec-tools ${PKG_EMUS} ${PKG_EXPERIMENTAL}"
 

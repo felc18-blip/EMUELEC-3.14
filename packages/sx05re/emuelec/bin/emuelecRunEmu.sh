@@ -198,7 +198,7 @@ case ${PLATFORM} in
                 if [ "${EMU}" = "flycastsa" ]; then
             set_kill_keys "flycast"
             RUNTHIS='${TBASH} flycast.sh "${ROMNAME}"'
-                elif [ "${EMU}" = "flycastsa_dojo" ]; then
+                elif [ "${EMU}" = "flycast_dojo" ]; then
             set_kill_keys "flycastdojo"
             RUNTHIS='flycastdojo.sh "${ROMNAME}"'
                 fi

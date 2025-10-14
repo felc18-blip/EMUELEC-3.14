@@ -2841,10 +2841,10 @@
           ]
         },
         {
-          "name": "flycastsa_dojo",
+          "name": "flycast_dojo",
           "cores": [
             {
-              "name": "flycastsa_dojo"
+              "name": "flycast_dojo"
             }
           ]
         },
@@ -2900,10 +2900,10 @@
           ]
         },
         {
-          "name": "flycastsa_dojo",
+          "name": "flycast_dojo",
           "cores": [
             {
-              "name": "flycastsa_dojo"
+              "name": "flycast_dojo"
             }
           ]
         },
@@ -3290,10 +3290,10 @@
           ]
         },
         {
-          "name": "flycastsa_dojo",
+          "name": "flycast_dojo",
           "cores": [
             {
-              "name": "flycastsa_dojo"
+              "name": "flycast_dojo"
             }
           ]
         },
