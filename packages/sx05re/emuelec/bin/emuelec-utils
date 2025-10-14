@@ -118,10 +118,10 @@ function audio() {
 	# but right now its mostly used on ES to change audio to alsa before launching or else ES hangs on GXL devices.
    if [[ "$1" == "alsa" ]]; then
 		set_audio alsa
-   elif [[ "$1" == "pulse" ]]; then
+   elif [[ "$1" == "pulse"* ]]; then
 		set_audio pulseaudio
    else
-		set_audio auto
+		set_audio default
    fi
 }
 
