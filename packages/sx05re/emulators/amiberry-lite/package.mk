@@ -42,7 +42,7 @@ makeinstall_target() {
   ln -s "/tmp/joypads" "${INSTALL}/usr/config/amiberry-lite/controller"
 
   # Copy binary, scripts & link libcapsimg
-  cp -a amiberry* ${INSTALL}/usr/bin/amiberry
+  cp -a amiberry* ${INSTALL}/usr/bin/amiberry-lite
   cp -a ${PKG_DIR}/scripts/*          ${INSTALL}/usr/bin
   ln -sf /usr/lib/libcapsimage.so.5.1 ${INSTALL}/usr/config/amiberry-lite/capsimg.so
   
