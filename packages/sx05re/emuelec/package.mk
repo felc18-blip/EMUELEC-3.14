@@ -64,6 +64,12 @@ if [ "${ARCH}" == "aarch64" ]; then
   fi
 fi
 
+# We make sure MAME is the last package from EE to be built.
+if [ "${DEVICE}" == "Amlogic-ng" ] || [ "${DEVICE}" == "Amlogic-no" ] || [ "${DEVICE}" == "RK356x" ] || [ "${DEVICE}" == "OdroidM1" ]; then
+	PKG_DEPENDS_TARGET+=" mame"
+fi
+
+
 makeinstall_target() {
 
 	mkdir -p ${INSTALL}/usr/bin

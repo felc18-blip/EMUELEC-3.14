@@ -4,7 +4,7 @@
 PKG_NAME="sdlterm"
 PKG_VERSION="v1"
 PKG_LICENSE="Public Domain"
-PKG_DEPENDS_TARGET="toolchain"
+PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_ttf"
 PKG_SHORTDESC="simple SDL2 program to read output of bash scripts"
 PKG_TOOLCHAIN="manual"
 
