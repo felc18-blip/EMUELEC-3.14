@@ -5,6 +5,14 @@
 
 . /etc/profile
 
+
+IKEMEN_ALSA_CONF=/storage/.config/asound-ikemen.conf
+ALSA_CONF=/storage/.config/asound.conf
+    
+    mv ${ALSA_CONF} ${ALSA_CONF}.tmp
+    cp ${IKEMEN_ALSA_CONF} ${ALSA_CONF}
+
+
 LOGSDIR="/emuelec/logs"
 LOGFILE="$LOGSDIR/ikemen.log"
 SHARED="/usr/share/ikemen_go"
@@ -191,4 +199,6 @@ log "$MESSAGE_008"
 
 exec nice -n -20 ./Ikemen_Go
 
-
+# restore asound.conf
+    rm ${ALSA_CONF}
+    mv ${ALSA_CONF}.tmp ${ALSA_CONF}

@@ -53,7 +53,11 @@ makeinstall_target() {
     
     mkdir -p "$INSTALL/usr/bin"
     mkdir -p "$INSTALL/usr/share/ikemen_go"
-
+	
+	# Copy alsa config
+	mkdir -p ${INSTALL}/usr/config
+	cp -rf ${PKG_DIR}/src/asound-ikemen.conf ${INSTALL}/usr/config/
+	
     cp -f "$PKG_DIR/src/Ikemen_Go.sh" "$INSTALL/usr/bin/Ikemen_Go.sh"
     cp "$PKG_BUILD/bin/Ikemen_Go_"* "$INSTALL/usr/bin/Ikemen_Go"
     
@@ -61,6 +65,7 @@ makeinstall_target() {
     cp -rf "$PKG_BUILD/data" "$INSTALL/usr/share/ikemen_go"
     cp -rf "$PKG_BUILD/external" "$INSTALL/usr/share/ikemen_go"
     cp -rf "$PKG_BUILD/font" "$INSTALL/usr/share/ikemen_go"
+    
 
     chmod +x "$INSTALL/usr/bin/Ikemen_Go.sh"
     chmod +x "$INSTALL/usr/bin/Ikemen_Go"
