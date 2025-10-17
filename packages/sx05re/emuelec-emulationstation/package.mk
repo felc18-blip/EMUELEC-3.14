@@ -2,7 +2,7 @@
 # Copyright (C) 2019-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="emuelec-emulationstation"
-PKG_VERSION="668db828f98af87c7c07264b1fedafef29f1bf11"
+PKG_VERSION="9b531b3872fc064e0e13b7677080673d629cfa97"
 PKG_GIT_CLONE_BRANCH="EmuELEC"
 PKG_REV="1"
 PKG_ARCH="any"
@@ -28,6 +28,10 @@ fi
 PKG_DEPENDS_TARGET="${PKG_DEPENDS_TARGET} Crystal"
 
 pre_configure_target() {
+
+# build directly in ${PKG_BUILD} to avoid Python3 errors
+  cd ${PKG_BUILD}
+  rm -rf .${TARGET_NAME}
 
 # adding audio port for s905w2 and derivatives
 sed -i '/Audiodevices\.push_back("0,1");/a\\t\tAudiodevices.push_back("0,2");\n\t\tAudiodevices.push_back("1,2");' ${PKG_BUILD}/es-app/src/guis/GuiMenu.cpp
