@@ -9,7 +9,7 @@
 # Configure ADVMAME players based on ES settings
 CONFIG_DIR="/storage/.config/ppsspp/PSP/SYSTEM"
 CONFIG=${CONFIG_DIR}/controls.ini
-CONFIG2=${CONFIG_DIR}/controls.ini
+#CONFIG2=${CONFIG_DIR}/controls.ini
 
 CONFIG_TMP=/tmp/jc/ppsspp.tmp
 
@@ -27,10 +27,10 @@ declare -A GC_PPSSPP_VALUES=(
   [b3]="10-191"
   [b4]="10-193"
   [b5]="10-192"
-  [b6]="10,196"
+  [b6]="10-196"
   [b7]="10-197"
-  [b8]="10,196" # back
-  [b9]="10,197" # start
+  [b8]="10-196" # back
+  [b9]="10-197" # start
   [b10]="" # usually home.
   [b11]="10-106" #leftstick
   [b12]="10-107" #rightstick
@@ -74,10 +74,10 @@ declare -A GC_PPSSPP_BUTTONS=(
   [dpright]="Right"
   [dpup]="Up"
   [dpdown]="Down"
-  [x]="Square"
-  [y]="Triangle"
-  [a]="Cross"
-  [b]="Circle"
+  [x]="Triangle"
+  [y]="Square"
+  [a]="Circle"
+  [b]="Cross"
   [back]="Select"
   [start]="Start"
   [leftshoulder]="L"
@@ -93,14 +93,15 @@ clean_pad() {
   [[ "${1}" != "1" ]] && return
   [[ -f "${CONFIG_TMP}" ]] && rm "${CONFIG_TMP}"
   [[ ! -f "${CONFIG}" ]] && return
-  while read -r line; do
-    [[ "${line}" =~ "Analog limiter ="* ]] && echo "${line}" >> ${CONFIG_TMP}
-    [[ "${line}" =~ "RapidFire ="* ]] && echo "${line}" >> ${CONFIG_TMP}
-    [[ "${line}" =~ "Unthrottle ="* ]] && echo "${line}" >> ${CONFIG_TMP}
-    [[ "${line}" =~ "SpeedToggle ="* ]] && echo "${line}" >> ${CONFIG_TMP}
-    [[ "${line}" =~ "Pause ="* ]] && echo "${line}" >> ${CONFIG_TMP}
-    [[ "${line}" =~ "Rewind ="* ]] && echo "${line}" >> ${CONFIG_TMP}
-  done < ${CONFIG}
+	grep -m 1 "Analog limiter =" ${CONFIG} >> ${CONFIG_TMP}
+	grep -m 1 "RapidFire =" ${CONFIG} >> ${CONFIG_TMP}
+	grep -m 1 "Unthrottle =" ${CONFIG} >> ${CONFIG_TMP}
+	grep -m 1 "SpeedToggle =" ${CONFIG} >> ${CONFIG_TMP}
+	grep -m 1 "Pause =" ${CONFIG} >> ${CONFIG_TMP}
+	grep -m 1 "Pause (no menu) =" ${CONFIG} >> ${CONFIG_TMP}
+	grep -m 1 "Rewind =" ${CONFIG} >> ${CONFIG_TMP}
+	grep -m 1 "Toggle Debugger =" ${CONFIG} >> ${CONFIG_TMP}
+	rm ${CONFIG}
 }
 
 # Sets pad depending on parameters.
@@ -143,17 +144,17 @@ set_pad() {
       # CREATE BUTTON MAPS (inlcuding hats).
       if [[ ! -z "${GC_INDEX}" ]]; then
         if [[ "${BTN_TYPE}" == "b"  || "${BTN_TYPE}" == "h" ]]; then
-          if [[ ! -z "${VAL}" ]]; then 
+          if [[ ! -z "${VAL}" ]]; then
             [[ ! -z "${KBVAL}" ]] && echo "${GC_INDEX} = ${KBVAL},${VAL}" >> ${CONFIG_TMP}
             [[ -z "${KBVAL}" ]] && echo "${GC_INDEX} = ${VAL}" >> ${CONFIG_TMP}
           fi
         fi
       fi
-      if [[ "${BTN_TYPE}" == "a" ]]; then
-        echo "BINDEX=${BUTTON_INDEX}"
-        [[ "${BUTTON_INDEX}" == "lefttrigger" ]] && L_VAL=${VAL} && echo "LVAL=${VAL}"
-        [[ "${BUTTON_INDEX}" == "righttrigger" ]] && R_VAL=${VAL} && echo "RVAL=${VAL}"
-      fi
+#      if [[ "${BTN_TYPE}" == "a" ]]; then
+#        echo "BINDEX=${BUTTON_INDEX}"
+#        [[ "${BUTTON_INDEX}" == "lefttrigger" ]] && L_VAL=${VAL} && echo "LVAL=${VAL}"
+#        [[ "${BUTTON_INDEX}" == "righttrigger" ]] && R_VAL=${VAL} && echo "RVAL=${VAL}"
+#      fi
 
       # Create Axis Maps
       case ${BUTTON_INDEX} in
@@ -171,11 +172,11 @@ set_pad() {
       esac
   done
 
-  [[ ! -z "${L_VAL}" ]] && sed -i -r "s|L = (.*)|L = \1,${L_VAL}|g" "${CONFIG_TMP}"
-  [[ ! -z "${R_VAL}" ]] && sed -i -r "s|R = (.*)|R = \1,${R_VAL}|g" "${CONFIG_TMP}"
+#  [[ ! -z "${L_VAL}" ]] && sed -i -r "s|L = (.*)|L = \1,${L_VAL}|g" "${CONFIG_TMP}"
+#  [[ ! -z "${R_VAL}" ]] && sed -i -r "s|R = (.*)|R = \1,${R_VAL}|g" "${CONFIG_TMP}"
 
-  echo "[Control Mapping]" > ${CONFIG2}
-  cat "${CONFIG_TMP}" | sort >> ${CONFIG2}
+  echo "[ControlMapping]" > ${CONFIG}
+  cat "${CONFIG_TMP}" | sort >> ${CONFIG}
   rm "${CONFIG_TMP}"
 }
 
