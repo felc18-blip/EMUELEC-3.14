@@ -3668,14 +3668,6 @@
               "default": true
             }
           ]
-        },
-        {
-          "name": "libretro",
-          "cores": [
-            {
-              "name": "ppsspp"
-            }
-          ]
         }
       ]
     },
@@ -3701,14 +3693,6 @@
             {
               "name": "PPSSPPSDL",
               "default": true
-            }
-          ]
-        },
-        {
-          "name": "libretro",
-          "cores": [
-            {
-              "name": "ppsspp"
             }
           ]
         }
