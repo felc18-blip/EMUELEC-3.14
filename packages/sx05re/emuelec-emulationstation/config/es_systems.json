@@ -987,7 +987,9 @@
         ".com",
         ".exe",
         ".sh",
-        ".zip"
+        ".zip",
+        ".iso",
+        ".cue"
       ],
       "emulators": [
         {
