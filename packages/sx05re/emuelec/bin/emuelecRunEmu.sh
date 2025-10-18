@@ -355,37 +355,12 @@ elif [ ${LIBRETRO} == "yes" ]; then
 # We are running a Libretro emulator set all the settings that we chose on ES
 
 case ${PLATFORM} in
-"fmtmarty")
-                if [ "$EMU" = "mame_libretro" ]; then
-            set_kill_keys "mame_libretro"
-            mame.sh
-                fi
-                ;;
-"pgm2")
-            if [ "$EMU" = "mame_libretro" ]; then
-            set_kill_keys "mame_libretro"
-            mame.sh
-                fi
-                ;;
-"apple2")
-            if [ "$EMU" = "mame_libretro" ]; then
-            set_kill_keys "mame_libretro"
-            mame.sh
-                fi
-                ;;
-"mame")
-                if [ "$EMU" = "mame_libretro" ]; then
-            set_kill_keys "mame_libretro"
-            mame.sh
-                fi
-                ;;
-"arcade")
-                if [ "$EMU" = "mame_libretro" ]; then
-            set_kill_keys "mame_libretro"
-            mame.sh
-                fi
-                ;;
-                esac
+"arcade"|"mame"|"fmtmarty"|"pgm2"|"apple2")
+	if [ "$EMU" = "mame_libretro" ]; then
+		mame.sh
+    fi
+    ;;
+esac
 
 if [[ ${PLATFORM} == "ports" ]]; then
         PORTCORE="${arguments##*-C}"  # read from -C onwards
