@@ -153,17 +153,51 @@ if [ -z "${SPLASH}" ]; then
    PLATFORM_GAMELIST="${PLATFORMDIR}/gamelist.xml"
 	
 	if [ -s "${PLATFORM_GAMELIST}" ]; then
-	write_log "Gamelist.xml found: ${PLATFORM_GAMELIST}"
-	
-		SCRAPED_IMAGE=$(xmlstarlet sel -t -v "//game[contains(path, '${BASEROMNAME}')]/image" "${PLATFORM_GAMELIST}")
-		SCRAPED_VIDEO=$(xmlstarlet sel -t -v "//game[contains(path, '${BASEROMNAME}')]/video" "${PLATFORM_GAMELIST}")
-	
-		SCRAPED_IMAGE=$(make_absolute_path "${SCRAPED_IMAGE}" "${PLATFORMDIR}")
-		SCRAPED_VIDEO=$(make_absolute_path "${SCRAPED_VIDEO}" "${PLATFORMDIR}")
-	
-		write_log "${SCRAPED_IMAGE} found image on ${PLATFORM_GAMELIST}"
-		write_log "${SCRAPED_VIDEO} found video on ${PLATFORM_GAMELIST}"
-	
+		write_log "Gamelist.xml found: ${PLATFORM_GAMELIST}"
+		
+	EE_SPLASH_SCRAPED_PATH="$(get_ee_setting ee_scrapedsplashpath)"	
+	case "${EE_SPLASH_SCRAPED_PATH}" in
+		image|thumbnail|video|marquee|fanart)
+		write_log "Scraped media: ${EE_SPLASH_SCRAPED_PATH}"
+			SCRAPED_VIDEO=$(xmlstarlet sel -t -v "//game[contains(path, '${BASEROMNAME}')]/${EE_SPLASH_SCRAPED_PATH}" "${PLATFORM_GAMELIST}")
+			SCRAPED_VIDEO=$(make_absolute_path "${SCRAPED_VIDEO}" "${PLATFORMDIR}")
+			;;
+		random)
+			options=(image thumbnail video marquee fanart)
+			random_index=$(( RANDOM % ${#options[@]} ))
+
+			# Create ordered list: random selection first, then remaining options
+			ordered_options=("${options[$random_index]}")
+				for option in "${options[@]}"; do
+					if [[ "$option" != "${options[$random_index]}" ]]; then
+						ordered_options+=("$option")
+					fi
+				done
+
+				write_log "Trying options in order: ${ordered_options[*]}"
+
+			SCRAPED_VIDEO=""
+				for value in "${ordered_options[@]}"; do
+					write_log "Trying: ${value}"
+    
+    					SCRAPED_VIDEO=$(xmlstarlet sel -t -v "//game[contains(path, '${BASEROMNAME}')]/${value}" "${PLATFORM_GAMELIST}")
+						SCRAPED_VIDEO=$(make_absolute_path "${SCRAPED_VIDEO}" "${PLATFORMDIR}")
+						if [[ -f "${SCRAPED_VIDEO}" ]]; then
+							write_log "Found existing file: ${value} -> ${SCRAPED_VIDEO}"
+						break
+						fi
+				done
+			;;
+			*)
+			SCRAPED_VIDEO=$(xmlstarlet sel -t -v "//game[contains(path, '${BASEROMNAME}')]/video" "${PLATFORM_GAMELIST}")
+			SCRAPED_VIDEO=$(make_absolute_path "${SCRAPED_VIDEO}" "${PLATFORMDIR}")
+		
+			if [ -z "${SCRAPED_VIDEO}" ] && [ "${SCRAPED_VIDEO}" != "${PLATFORMDIR}" ]; then
+				SCRAPED_IMAGE=$(xmlstarlet sel -t -v "//game[contains(path, '${BASEROMNAME}')]/image" "${PLATFORM_GAMELIST}")
+				SCRAPED_IMAGE=$(make_absolute_path "${SCRAPED_IMAGE}" "${PLATFORMDIR}")
+			fi
+			;;
+	esac
 		[[ -f "${SCRAPED_IMAGE}" ]] && SPLASH="${SCRAPED_IMAGE}"
 		# We don't care if image was found as videos take priority, so if a video is found we set that instead to SPLASH
 		[[ -f "${SCRAPED_VIDEO}" ]] && SPLASH="${SCRAPED_VIDEO}"
@@ -180,7 +214,7 @@ fi
  [[ ! -f "${SPLASH}" ]] && SPLASH="${GAMELOADINGSPLASH}"
 fi
 
-write_log "will show SPLAS: ${SPLASH}"
+write_log "will show SPLASH: ${SPLASH}"
 
 # OGA/GameForce -> mpv
 SS_DEVICE=0
@@ -191,6 +225,11 @@ if [[ "${EE_DEVICE}" == "OdroidGoAdvance" ]] || [[ "${EE_DEVICE}" == "GameForce"
   PLAYER_VID="mpv"
   PLAYER_IMG="mpv"
   have_mpv=1
+fi
+
+if [[ "${EE_DEVICE}" == "OdroidM1" ]]; then
+	PLAYER_IMG="mpv"
+	have_mpv=1
 fi
 
 declare -a RES=( ${MODE} )
