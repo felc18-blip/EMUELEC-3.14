@@ -15,6 +15,7 @@
 . /etc/profile
 
 ENABLE_LOGGING=0
+[[ "$(get_es_setting string LogLevel)" == "debug" ]] && ENABLE_LOGGING=1
 SPLASH_LOG="/emuelec/logs/splash.log"
 
 ACTION_TYPE="${1}"
@@ -159,41 +160,41 @@ if [ -z "${SPLASH}" ]; then
 	case "${EE_SPLASH_SCRAPED_PATH}" in
 		image|thumbnail|video|marquee|fanart)
 		write_log "Scraped media: ${EE_SPLASH_SCRAPED_PATH}"
-			SCRAPED_VIDEO=$(xmlstarlet sel -t -v "//game[contains(path, '${BASEROMNAME}')]/${EE_SPLASH_SCRAPED_PATH}" "${PLATFORM_GAMELIST}")
+			SCRAPED_VIDEO=$(xmlstarlet sel -t -v "//game[contains(path, \"${BASEROMNAME}\")]/${EE_SPLASH_SCRAPED_PATH}" "${PLATFORM_GAMELIST}")
 			SCRAPED_VIDEO=$(make_absolute_path "${SCRAPED_VIDEO}" "${PLATFORMDIR}")
 			;;
 		random)
-			options=(image thumbnail video marquee fanart)
-			random_index=$(( RANDOM % ${#options[@]} ))
+			options=(image thumbnail video marquee fanart) # allowed options to search 
+			random_index=("${options[@]}")
 
-			# Create ordered list: random selection first, then remaining options
-			ordered_options=("${options[$random_index]}")
-				for option in "${options[@]}"; do
-					if [[ "$option" != "${options[$random_index]}" ]]; then
-						ordered_options+=("$option")
-					fi
-				done
+			# While we still have options left and haven't found a file, keep trying 
+			while [[ ${#random_index[@]} -gt 0 ]]; do
+				random_index=$(( RANDOM % ${#random_index[@]} ))
+				value="${random_index[$random_index]}"
 
-				write_log "Trying options in order: ${ordered_options[*]}"
+				write_log "[Random] Trying xml path: ${value}"
 
-			SCRAPED_VIDEO=""
-				for value in "${ordered_options[@]}"; do
-					write_log "Trying: ${value}"
-    
-    					SCRAPED_VIDEO=$(xmlstarlet sel -t -v "//game[contains(path, '${BASEROMNAME}')]/${value}" "${PLATFORM_GAMELIST}")
-						SCRAPED_VIDEO=$(make_absolute_path "${SCRAPED_VIDEO}" "${PLATFORMDIR}")
-						if [[ -f "${SCRAPED_VIDEO}" ]]; then
-							write_log "Found existing file: ${value} -> ${SCRAPED_VIDEO}"
-						break
-						fi
-				done
+				SCRAPED_VIDEO=$(xmlstarlet sel -t -v "//game[contains(path, \"${BASEROMNAME}\")]/${value}" "${PLATFORM_GAMELIST}")
+				SCRAPED_VIDEO=$(make_absolute_path "${SCRAPED_VIDEO}" "${PLATFORMDIR}")
+
+				# If media exists, we're done and we break out of the loop
+				if [[ -f "${SCRAPED_VIDEO}" ]]; then
+					write_log "Found media: ${value} = ${SCRAPED_VIDEO}"
+					break
+				fi
+
+				# Remove this option from the list
+				unset 'random_index[random_index]'
+				# Rebuild the array (important to eliminate gaps in the index)
+				random_index=("${random_index[@]}")
+			done
 			;;
 			*)
-			SCRAPED_VIDEO=$(xmlstarlet sel -t -v "//game[contains(path, '${BASEROMNAME}')]/video" "${PLATFORM_GAMELIST}")
+			SCRAPED_VIDEO=$(xmlstarlet sel -t -v "//game[contains(path, \"${BASEROMNAME}\")]/video" "${PLATFORM_GAMELIST}")
 			SCRAPED_VIDEO=$(make_absolute_path "${SCRAPED_VIDEO}" "${PLATFORMDIR}")
 		
 			if [ -z "${SCRAPED_VIDEO}" ] && [ "${SCRAPED_VIDEO}" != "${PLATFORMDIR}" ]; then
-				SCRAPED_IMAGE=$(xmlstarlet sel -t -v "//game[contains(path, '${BASEROMNAME}')]/image" "${PLATFORM_GAMELIST}")
+				SCRAPED_IMAGE=$(xmlstarlet sel -t -v "//game[contains(path, \"${BASEROMNAME}\")]/image" "${PLATFORM_GAMELIST}")
 				SCRAPED_IMAGE=$(make_absolute_path "${SCRAPED_IMAGE}" "${PLATFORMDIR}")
 			fi
 			;;
