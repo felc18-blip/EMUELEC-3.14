@@ -2,7 +2,7 @@
 # Copyright (C) 2019-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="emuelec-emulationstation"
-PKG_VERSION="31206a373f52ead1746630f3c71b5991d2f1f5ea"
+PKG_VERSION="966c711c14b6c77550a633bcfd7ef2bfbd068ab5"
 PKG_GIT_CLONE_BRANCH="EmuELEC"
 PKG_REV="1"
 PKG_ARCH="any"
@@ -32,9 +32,6 @@ pre_configure_target() {
 # build directly in ${PKG_BUILD} to avoid Python3 errors
   cd ${PKG_BUILD}
   rm -rf .${TARGET_NAME}
-
-# adding audio port for s905w2 and derivatives
-sed -i '/Audiodevices\.push_back("0,1");/a\\t\tAudiodevices.push_back("0,2");\n\t\tAudiodevices.push_back("1,2");' ${PKG_BUILD}/es-app/src/guis/GuiMenu.cpp
 
 PKG_CMAKE_OPTS_TARGET=" -DENABLE_EMUELEC=1 -DDISABLE_KODI=1 -DENABLE_FILEMANAGER=1 -DGLES2=1 -DENABLE_TTS=1"
 
