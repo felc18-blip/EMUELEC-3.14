@@ -362,6 +362,10 @@ case ${PLATFORM} in
     ;;
 esac
 
+if [ "$EMU" = "mednafen_supafaust_libretro" ]; then
+		emuelec-utils small-cores enable
+fi
+
 if [[ ${PLATFORM} == "ports" ]]; then
         PORTCORE="${arguments##*-C}"  # read from -C onwards
         EMU="${PORTCORE%% *}_libretro"  # until a space is found
@@ -591,6 +595,10 @@ fi
 [[ "${CLOUD_SYNC}" == "1" ]] && wait ${CLOUD_PID}
 
 end_game
+
+if [ "$EMU" = "mednafen_supafaust_libretro" ]; then
+		emuelec-utils small-cores disable
+fi
 
 if [[ "${ret_error}" != "0" ]]; then
     echo "exit ${ret_error}" >> ${EMUELECLOG}
