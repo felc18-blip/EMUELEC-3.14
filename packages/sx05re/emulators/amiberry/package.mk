@@ -45,7 +45,7 @@ makeinstall_target() {
   cp -a amiberry* ${INSTALL}/usr/bin/amiberry
   cp -a ${PKG_DIR}/scripts/*          ${INSTALL}/usr/bin
   ln -sf /usr/lib/libcapsimage.so ${INSTALL}/usr/config/amiberry/plugins/capsimg.so
-  ln -sf /usr/lib/libcapsimage.so ${INSTALL}/usr/config/amiberry/plugins/libcapsimg.so
+  ln -sf /usr/lib/libcapsimage.so ${INSTALL}/usr/config/amiberry/plugins/libcapsimage.so
   
   UAE="${INSTALL}/usr/config/amiberry/conf/*.uae"
   for i in ${UAE}; do echo -e "gfx_center_vertical=smart\ngfx_center_horizontal=smart" >> ${i}; done
