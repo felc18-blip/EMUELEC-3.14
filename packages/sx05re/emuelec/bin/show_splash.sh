@@ -169,8 +169,8 @@ if [ -z "${SPLASH}" ]; then
 
 			# While we still have options left and haven't found a file, keep trying 
 			while [[ ${#random_index[@]} -gt 0 ]]; do
-				random_index=$(( RANDOM % ${#random_index[@]} ))
-				value="${random_index[$random_index]}"
+				idx=$(( RANDOM % ${#random_index[@]} ))
+				value="${random_index[$idx]}"
 
 				write_log "[Random] Trying xml path: ${value}"
 
@@ -184,7 +184,7 @@ if [ -z "${SPLASH}" ]; then
 				fi
 
 				# Remove this option from the list
-				unset 'random_index[random_index]'
+				unset 'random_index[idx]'
 				# Rebuild the array (important to eliminate gaps in the index)
 				random_index=("${random_index[@]}")
 			done
