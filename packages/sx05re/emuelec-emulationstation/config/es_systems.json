@@ -840,7 +840,6 @@
           "cores": [
             {
               "name": "AMIBERRY-LITE",
-              "default": true,
               "incompatible": [".m3u"]
             },
             {
@@ -853,7 +852,8 @@
           "name": "libretro",
           "cores": [
             {
-              "name": "puae"
+              "name": "puae",
+              "default": true
             },
             {
               "name": "puae2021"
@@ -889,7 +889,7 @@
           "cores": [
             {
               "name": "AMIBERRY-LITE",
-              "default": true
+              "incompatible": [".m3u"]
             },
             {
               "name": "AMIBERRY",              
@@ -901,7 +901,8 @@
           "name": "libretro",
           "cores": [
             {
-              "name": "puae"
+              "name": "puae",
+              "default": true
             },
             {
               "name": "puae2021"
