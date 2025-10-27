@@ -15,22 +15,16 @@ PKG_TOOLCHAIN="manual"
 
 configure_target() {
   mkdir -p ${PKG_BUILD}
-  cp -rf ${PKG_DIR}/dir/* ${PKG_BUILD}/
+  cp -rf ${PKG_DIR}/src/* ${PKG_BUILD}/
 }
 
 make_target() {
-
  ${CC} -s -O3 -o sdl_gamepadmap sdl_gamepadmap.c -lSDL2 -lSDL2_ttf -ljson-c -lm
-
 }
 
 makeinstall_target() {
-    
     mkdir -p "$INSTALL/usr/bin"
-	
-    cp -f "$PKG_BUILD/sdl_gamepadmap" "$INSTALL/usr/bin/sdl_gamepadmap"
-    
-	chmod +x "$INSTALL/usr/bin/sdl_gamepadmap"
-
+	cp -f "$PKG_BUILD/sdl_gamepadmap" "$INSTALL/usr/bin/sdl_gamepadmap"
+    chmod +x "$INSTALL/usr/bin/sdl_gamepadmap"
 }
 

@@ -5,13 +5,11 @@
 
 . /etc/profile
 
-
 IKEMEN_ALSA_CONF=/storage/.config/asound-ikemen.conf
 ALSA_CONF=/storage/.config/asound.conf
     
     mv ${ALSA_CONF} ${ALSA_CONF}.tmp
     cp ${IKEMEN_ALSA_CONF} ${ALSA_CONF}
-
 
 LOGSDIR="/emuelec/logs"
 LOGFILE="$LOGSDIR/ikemen.log"
@@ -170,12 +168,6 @@ log "$MESSAGE_005 $IKEMEN"
 # Create symbolic links
 ln -sf "$IKEMEN"/* "$CONFIGDIR/"
 
-# Link appropriate Ikemen_Go binary
-BINARY=$(which Ikemen_Go);
-ln -sf "${BINARY}" "$CONFIGDIR/Ikemen_Go"
-
-export SDL_GAMECONTROLLERDB="${SDL_GAMECONTROLLERCONFIG_FILE}"  2>/dev/null || log "$MESSAGE_009"
-
 GAMEMAP=$(get_ee_setting ee_ikemen.enabled)
 if [[ ${GAMEMAP} != 0 ]]; then
 gamepadmap "${IKEMEN}/save/config.json"  2>/dev/null || log "$MESSAGE_010"
@@ -188,18 +180,12 @@ else
     exit 1
 fi
 
-if [ ! -x "$CONFIGDIR/Ikemen_Go" ]; then
-    log "$MESSAGE_016"
-    exit 1
-fi
-
 cd "$CONFIGDIR" || exit 1
 
 # Verifying included the game assets
 log "$MESSAGE_008"
-./Ikemen_Go -audit >> "$LOGFILE" 2>&1
-
-exec nice -n -20 ./Ikemen_Go
+Ikemen_Go -audit >> "$LOGFILE" 2>&1
+exec nice -n -20 Ikemen_Go
 
 # restore asound.conf
     rm ${ALSA_CONF}

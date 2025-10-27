@@ -75,16 +75,16 @@ index 409b41790..8bdc12b95 100644
 +}
 +
 +func LoadGameControllerDB() {
-+	envPath := os.Getenv("SDL_GAMECONTROLLERDB")
++	envPath := os.Getenv("SDL_GAMECONTROLLERCONFIG_FILE")
 +	
 +	if envPath == "" {
-+		fmt.Printf("[LoadGameControllerDB] SDL_GAMECONTROLLERDB environment variable not set\n")
++		fmt.Printf("[LoadGameControllerDB] SDL_GAMECONTROLLERCONFIG_FILE environment variable not set\n")
 +		fmt.Printf("[LoadGameControllerDB] Using built-in mappings as fallback\n")
 +		return
 +	}
 +	
 +	fmt.Printf("[LoadGameControllerDB] Searching for gamecontrollerdb.txt in:\n")
-+	fmt.Printf("[LoadGameControllerDB]   - %s (SDL_GAMECONTROLLERDB env variable)\n", envPath)
++	fmt.Printf("[LoadGameControllerDB]   - %s (SDL_GAMECONTROLLERCONFIG_FILE env variable)\n", envPath)
 +	
 +	if _, err := os.Stat(envPath); err != nil {
 +		fmt.Printf("[LoadGameControllerDB] File not found: %s\n", envPath)
