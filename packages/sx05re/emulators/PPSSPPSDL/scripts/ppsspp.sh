@@ -30,7 +30,7 @@ for dir in Cheats PPSSPP_STATE SAVEDATA TEXTURES; do
     fi
 done
 
-if [ -s "${ROMSPPSSPPFOLDER}/Cheats/cheat.db" ];then 
+if [ ! -s "${ROMSPPSSPPFOLDER}/Cheats/cheat.db" ];then 
 	mkdir -p "${ROMSPPSSPPFOLDER}/Cheats/"
 	cp -rf /usr/config/ppsspp/PSP/SYSTEM/Cheats/. "${ROMSPPSSPPFOLDER}/Cheats/" 
 
