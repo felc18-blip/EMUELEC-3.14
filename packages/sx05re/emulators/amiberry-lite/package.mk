@@ -44,7 +44,6 @@ makeinstall_target() {
 
   # Copy binary, scripts & link libcapsimg
   cp -a amiberry* ${INSTALL}/usr/bin/amiberry-lite
-  cp -a ${PKG_DIR}/scripts/*          ${INSTALL}/usr/bin
     
   UAE="${INSTALL}/usr/config/amiberry-lite/conf/*.uae"
   for i in ${UAE}; do echo -e "gfx_center_vertical=smart\ngfx_center_horizontal=smart" >> ${i}; done
