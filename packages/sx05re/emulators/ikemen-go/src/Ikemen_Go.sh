@@ -104,7 +104,7 @@ mkdir -p "$CONFIGDIRHOME"
 mkdir -p "$LOGSDIR"
 rm -f "$LOGFILE"
 
-killall gptokeyb 2>/dev/null
+#killall gptokeyb 2>/dev/null
 
 [ -z "$1" ] && { log "$MESSAGE_001"; exit 1; }
 
