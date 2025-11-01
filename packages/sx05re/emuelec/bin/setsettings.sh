@@ -20,6 +20,7 @@ RACORECONF="/storage/.config/retroarch/retroarch-core-options.cfg"
 PLATFORM=${1,,}
 CORE=${3,,}
 ROM="${2##*/}"
+ROM="$(printf '%s' "${ROM}" | sed 's/\([][]\)/\\\1/g')"
 SETF=0
 SHADERSET=0
 AUTOLOAD="false"

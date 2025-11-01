@@ -18,11 +18,20 @@ ENABLE_LOGGING=0
 [[ "$(get_es_setting string LogLevel)" == "debug" ]] && ENABLE_LOGGING=1
 SPLASH_LOG="/emuelec/logs/splash.log"
 
+
+function write_log() {
+	[[ "${ENABLE_LOGGING}" == 1 ]] && echo "${1}" >> "${SPLASH_LOG}"
+}
+
 ACTION_TYPE="${1}"
+
+# Initialize log for each run
+[[ "${ACTION_TYPE}" != "exit" ]] && echo "Splash log for Platorm ${PLATFORM} and game ${ROMNAME}" > ${SPLASH_LOG}
+
 PLATFORM="${2}"
-ROMNAME="${3}"
-BASEROMNAME=${ROMNAME##*/}
-BASEROMNAME_NOEXT=${BASEROMNAME%.*}
+ROMNAME="$(printf '%s' "${3}" | sed 's/\([][]\)/\\\1/g')"
+BASEROMNAME="${ROMNAME##*/}"
+BASEROMNAME_NOEXT="${BASEROMNAME%.*}"
 
 GAMELOADINGSPLASH="/storage/.config/splash/loading-game.png"
 BLANKSPLASH="/storage/.config/splash/blank.png"
@@ -57,9 +66,6 @@ FIND_COMBINED_EXT=$( echo ${COMBINED_EXT[@]} | sed 's/ /\\|/g')
 
 mkdir -p /tmp/splash
 
-function write_log() {
-	[[ "${ENABLE_LOGGING}" == 1 ]] && echo "${1}" >> "${SPLASH_LOG}"
-}
 
 make_absolute_path() {
     local PATH="${1}"
@@ -68,7 +74,6 @@ make_absolute_path() {
 }
 
 function get_file_ext() {
-
 	if [ "${ENABLE_LOGGING}" == 1 ]; then
 		local start_time=$(date +%s%3N)
 		local end_time=
@@ -99,10 +104,6 @@ function get_file_ext() {
 		write_log "get_file_ext execution time in ms: $duration_ms" 
 	fi
 }
-
-# Initialize log for each run
-[[ "${ACTION_TYPE}" != "exit" ]] && echo "Splash log for Platorm ${PLATFORM} and game ${ROMNAME}" > ${SPLASH_LOG}
-
 
 if [ "${ACTION_TYPE}" = "intro" ] || [ "${ACTION_TYPE}" = "exit" ]; then
  SPLASH="${DEFAULTSPLASH}"
