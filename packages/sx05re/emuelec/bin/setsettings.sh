@@ -343,7 +343,13 @@ esac
 
                     # retroachievements_automatic_screenshot
                     get_setting "retroachievements.screenshot"
-                    [ "${EES}" == "1" ] && echo 'cheevos_auto_screenshot = "true"' >> ${RACONF} || echo 'cheevos_auto_screenshot = "false"' >> ${RACONF}
+                    if [ "${EES}" == "1" ]; then 
+						echo 'cheevos_auto_screenshot = "true"' >> ${RACONF}
+						set_ra_setting screenshot_directory "/roms/screenshots"
+						mkdir -p "/roms/screenshots"
+                    elif
+						echo 'cheevos_auto_screenshot = "false"' >> ${RACONF}
+                    fi
                 else
                     echo 'cheevos_enable = "false"' >> ${RACONF}
                     echo 'cheevos_username = ""' >> ${RACONF}
