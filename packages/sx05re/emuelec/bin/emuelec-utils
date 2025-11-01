@@ -388,6 +388,9 @@ function timezones() {
 }
 
 function small-cores() {
+	SCF=$(get_ee_setting ee_scf)
+	[ "${SCF}" != "1" ] && return 0
+ 	
 # Switch the small cores on the N2 on and off, we mostly have them off as the small cores are slower.
     if grep -q "g12b" /proc/device-tree/compatible; then
         case "$1" in
