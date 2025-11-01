@@ -84,7 +84,7 @@ EMULATOR="${arguments##*--emulator=}"  # read from --emulator= onwards
 EMULATOR="${EMULATOR%% *}"  # until a space is found
 
 ROMNAME="${1}"
-BASEROMNAME=${ROMNAME##*/}
+BASEROMNAME="${ROMNAME##*/}"
 GAMEFOLDER="${ROMNAME//${BASEROMNAME}}"
 
 KILLTHIS="none"
@@ -498,7 +498,7 @@ if [ "${USELOG}" == "1" ]; then # No need to do all this if log is disabled
     eval echo ${RUNTHIS} >> ${EMUELECLOG}
 fi
 
-gptokeyb 1 ${KILLTHIS} ${VIRTUAL_KB} -killsignal ${KILLSIGNAL} &
+[[ "${KILLTHIS}" != "none" ]] && gptokeyb 1 ${KILLTHIS} ${VIRTUAL_KB} -killsignal ${KILLSIGNAL} &
 
 [[ "${CLOUD_SYNC}" == "1" ]] && wait ${CLOUD_PID}
 
@@ -589,6 +589,9 @@ fi
 
 # Temp fix for libretro scummvm always erroing out on exit
 [[ "${EMU}" == *"scummvm_libretro"* ]] && ret_error=0
+
+# Temp fix for ikemen always erroing out on exit
+[[ "${EMU}" == *"ikemen"* ]] && ret_error=0
 
 [[ "${CLOUD_SYNC}" == "1" ]] && wait ${CLOUD_PID}
 
