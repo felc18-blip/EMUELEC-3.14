@@ -425,6 +425,9 @@
             },
             {
               "name": "mednafen_lynx"
+            },
+            {
+              "name": "gearlynx"
             }
           ]
         }
