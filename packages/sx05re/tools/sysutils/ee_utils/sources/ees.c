@@ -427,11 +427,17 @@ int cmd_ee_set(const char *setting_key, const char *setting_value,
             found = 1;
             char new_line[MAX_LINE];
             if (rom_name && rom_name[0] != '\0') {
+                /* ROM-specific: platform["rom"].key=value */
                 snprintf(new_line, sizeof(new_line), "%s[\"%s\"].%s=%s\n", 
                          platform_name, rom_name, setting_key, setting_value);
-            } else {
+            } else if (platform_name && platform_name[0] != '\0') {
+                /* Platform-specific: platform.key=value */
                 snprintf(new_line, sizeof(new_line), "%s.%s=%s\n", 
                          platform_name, setting_key, setting_value);
+            } else {
+                /* Standalone: key=value (no platform prefix) */
+                snprintf(new_line, sizeof(new_line), "%s=%s\n", 
+                         setting_key, setting_value);
             }
             lines[line_count++] = strdup(new_line);
         } else {
@@ -451,11 +457,17 @@ int cmd_ee_set(const char *setting_key, const char *setting_value,
         
         char new_line[MAX_LINE];
         if (rom_name && rom_name[0] != '\0') {
+            /* ROM-specific: platform["rom"].key=value */
             snprintf(new_line, sizeof(new_line), "%s[\"%s\"].%s=%s\n", 
                      platform_name, rom_name, setting_key, setting_value);
-        } else {
+        } else if (platform_name && platform_name[0] != '\0') {
+            /* Platform-specific: platform.key=value */
             snprintf(new_line, sizeof(new_line), "%s.%s=%s\n", 
                      platform_name, setting_key, setting_value);
+        } else {
+            /* Standalone: key=value (no platform prefix) */
+            snprintf(new_line, sizeof(new_line), "%s=%s\n", 
+                     setting_key, setting_value);
         }
         lines[line_count++] = strdup(new_line);
     }
@@ -647,6 +659,10 @@ int main(int argc, char *argv[]) {
     /* Execute command */
     if (use_ee_conf) {
         /* EmuELEC hierarchical config operations */
+        
+        /* Treat empty strings as NULL */
+        if (platform && platform[0] == '\0') platform = NULL;
+        if (rom && rom[0] == '\0') rom = NULL;
         
         /* For simple keys like "global.timezone", auto-extract platform if no -p specified */
         if (!platform) {
