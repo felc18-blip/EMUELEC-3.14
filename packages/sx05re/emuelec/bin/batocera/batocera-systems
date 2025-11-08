@@ -21,6 +21,7 @@ systems = {
 
     # Colecovision
 	"colecovision":  { "name": "Colecovision",	"biosFiles":  [ { "md5": "", "file": "bios/Machines/COL - Bit Corporation Dina/config.ini"                                                      },
+                                                                { "md5": "2c66f5911e5b42b8ebe113403548eee7 ", "file": "bios/colecovision.rom"                                                   },
                                                                 { "md5": "1de922acdd742d31349c2801e9768c35", "file": "bios/Machines/COL - Bit Corporation Dina/czz50-1.rom"                     },
                                                                 { "md5": "72b089dc55b7fe7ffb5028f365e8c045", "file": "bios/Machines/COL - Bit Corporation Dina/czz50-2.rom"                     },
                                                                 { "md5": "2c66f5911e5b42b8ebe113403548eee7", "file": "bios/Machines/COL - ColecoVision/coleco.rom"                              },
