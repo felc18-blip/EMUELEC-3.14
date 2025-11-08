@@ -102,6 +102,29 @@ static int is_relevant_device(const char *path) {
     return relevant;
 }
 
+static int is_motion_sensor_event(struct input_event *ev) {
+    // Filter out motion sensor axes commonly used by PS3/PS4/PS5 controllers
+    // These axes constantly send data even when controller is sitting still
+    if (ev->type == EV_ABS) {
+        switch (ev->code) {
+            // Accelerometer axes
+            case ABS_RX:  // Often used for accelerometer X
+            case ABS_RY:  // Often used for accelerometer Y  
+            case ABS_RZ:  // Often used for accelerometer Z
+            // Gyroscope axes (some controllers)
+            case ABS_TILT_X:
+            case ABS_TILT_Y:
+            // Other motion/orientation sensors
+            case ABS_DISTANCE:
+            case ABS_MISC:
+                return 1;  // This is likely motion sensor data
+            default:
+                return 0;  // Legitimate analog stick/trigger input
+        }
+    }
+    return 0;
+}
+
 static int open_input_devices(struct pollfd *pfds, int max_devices) {
     DIR *dir = opendir("/dev/input");
     if (!dir) {
@@ -255,15 +278,17 @@ int main(int argc, char *argv[]) {
                 if (pfds[i].revents & POLLIN) {
                     // Read and discard events - we only care that SOMETHING happened
                     while (read(pfds[i].fd, &ev, sizeof(ev)) > 0) {
-                        if (ev.type == EV_KEY || ev.type == EV_REL || ev.type == EV_ABS) {
+                        // Check if this is legitimate input (not motion sensor noise)
+                        if (ev.type == EV_KEY || ev.type == EV_REL) {
                             activity_detected = 1;
-                            // Uncomment for detailed activity logging in debug mode
-                            if (ioctl(pfds[i].fd, EVIOCGNAME(sizeof(device_name)), device_name) >= 0) {
-                                log_msg("INFO", "Activity detected on %s", device_name);
-                            } else {
-                                log_msg("INFO", "Activity detected on fd %d", pfds[i].fd);
-                            }
-
+                        } else if (ev.type == EV_ABS && !is_motion_sensor_event(&ev)) {
+                            activity_detected = 1;
+							// Uncomment for detailed activity logging in debug mode 
+                            if (ioctl(pfds[i].fd, EVIOCGNAME(sizeof(device_name)), device_name) >= 0) { 
+                                log_msg("INFO", "Activity detected on %s", device_name); 
+                            } else { 
+                                log_msg("INFO", "Activity detected on fd %d", pfds[i].fd); 
+                            }   
                         }
                     }
                 }
