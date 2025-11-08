@@ -610,6 +610,8 @@ inverted_ok_cancel=$(get_es_setting bool InvertButtons)
 [[ ${inverted_ok_cancel} == "true" ]] || inverted_ok_cancel="false"
 echo "menu_swap_ok_cancel_buttons = \"${inverted_ok_cancel}\"" >> ${RACONF}
 
+echo "cheevos_unsupported_notification = \"false\"" >> ${RACONF}
+
 # Merge the changes to: /storage/.config/retroarch/retroarch.cfg 
 ees -i ${RACONF}
 
