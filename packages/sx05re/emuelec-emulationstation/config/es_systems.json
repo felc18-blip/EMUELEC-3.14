@@ -1712,14 +1712,11 @@
           "name": "libretro",
           "cores": [
             {
-              "name": "desmume_32b",
+              "name": "melonds",
               "default": true
             },
             {
               "name": "desmume"
-            },
-            {
-              "name": "melonds"
             }
           ]
         }
