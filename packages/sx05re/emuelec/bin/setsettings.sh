@@ -101,9 +101,9 @@ case "${EE_LANG}" in
     *)           LANGEMUELEC="0" ;;
 esac
 
-echo "user_language = ${EE_LANG}" >> ${TMP_RACONF}
+echo "user_language = ${LANGEMUELEC}" >> ${TMP_RACONF}
 
-write_log "Set Language to ${EE_LANG}"
+write_log "Set Language to ${EE_LANG} Retroarch: ${LANGEMUELEC}"
 
 # For the new snapshot save state manager we need to set the path to be /storage/roms/savestates/[PLATFORM]
 mkdir -p "/storage/roms/savestates/${PLATFORM}"
@@ -157,11 +157,11 @@ EOF
 function set_setting() {
 # we set the setting on the configuration file
 
-write_log "Called ${1} with ${2}"
+write_log "Called \"${1}\" with \"${2}\""
 
 case ${1} in
     "ratio")
-    if [[ "${2}" == "false" ]]; then
+    if [[ -z "${2}" || "${2}" == "none" || "${2}" == "0" ]]; then
         # 22 is the "Core Provided" aspect ratio and its set by default if no other is selected
         echo 'aspect_ratio_index = "22"' >> ${RACONF}
     else
@@ -185,20 +185,21 @@ case ${1} in
         fi
     ;;
     "autosave")
-        if [ "${AUTOSAVE}" == "0" ]; then
+        if [[ -z "${AUTOSAVE}" || "${AUTOSAVE}" == "0" ]]; then
             echo 'savestate_auto_save = "false"' >> ${RACONF}
             echo 'savestate_auto_load = "false"' >> ${RACONF}
         else
+        write_log "Autosave ${AUTOSAVE}"
             echo 'savestate_auto_save = "true"' >> ${RACONF}
             echo 'savestate_auto_load = "true"' >> ${RACONF}
             AUTOLOAD="true"
         fi
     ;;
     "snapshot")
-        if [[ ! -z ${SNAPSHOT} ]]; then
+        if [[ ! -z "${SNAPSHOT}" ]]; then
             echo "state_slot = \"${SNAPSHOT}\"" >> ${RACONF}
         else
-            if [[ ${AUTOLOAD} == "false" ]]; then
+            if [[ "${AUTOLOAD}" == "false" ]]; then
                 echo 'savestate_auto_save = "false"' >> ${RACONF}
                 echo 'savestate_auto_load = "false"' >> ${RACONF}
             fi
@@ -229,7 +230,7 @@ esac
         write_bool "video_ctx_scaling" "${2}"
     ;;
     "shaderset")
-        if [ "${2}" == "false" ] || [ "${2}" == "none" ] || [ "${2}" == "0" ]; then
+        if [[ -z "${2}" || "${2}" == "none" || "${2}" == "0" ]]; then
             echo 'video_shader_enable = "false"' >> ${RACONF}
             echo 'video_shader = ""' >> ${RACONF}
         else
@@ -239,37 +240,34 @@ esac
         fi
     ;;
     "runahead")
-    if array_contains "${PLATFORM}" "${NORUNAHEAD[@]}"; then
-            return
-        fi
-
-        if [ "${2}" == "false" ] || [ "${2}" == "none" ] || [ "${2}" == "0" ]; then
+    if ! array_contains "${PLATFORM}" "${NORUNAHEAD[@]}"; then
+        if [[ -z "${2}" || "${2}" == "none" || "${2}" == "0" ]]; then
             echo 'run_ahead_enabled = "false"' >> ${RACONF}
             echo 'run_ahead_frames = "1"' >> ${RACONF}
         else
             echo 'run_ahead_enabled = "true"' >> ${RACONF}
             echo "run_ahead_frames = \"${2}\"" >> ${RACONF}
         fi
+	fi
     ;;
     "secondinstance")
-        if array_contains "${PLATFORM}" "${NORUNAHEAD[@]}"; then
-            return
-        fi
+        if ! array_contains "${PLATFORM}" "${NORUNAHEAD[@]}"; then
         write_bool "run_ahead_secondary_instance" "${2}"
+        fi
     ;;
     "video_frame_delay_auto")
         write_bool "video_frame_delay_auto" "${2}"
     ;;
     "ai_service_enabled")
-        if [ "${2}" == "false" ] || [ "${2}" == "none" ] || [ "${2}" == "0" ]; then
+        if [[ -z "${2}" || "${2}" == "none" || "${2}" == "0" ]]; then
             echo 'ai_service_enable = "false"' >> ${RACONF}
         else
             echo 'ai_service_enable = "true"' >> ${RACONF}
             AI_LANG=$(get_setting "ai_target_lang")
             AI_URL=$(get_setting "ai_service_url")
-            [[ "${AI_LANG}" == "false" ]] && AI_LANG="0"
+            [[ -z "${AI_LANG}" ]] && AI_LANG="0"
             echo "ai_service_source_lang = \"${AI_LANG}\"" >> ${RACONF}
-            if [ "${AI_URL}" == "false" ] || [ "${AI_URL}" == "auto" ] || [ "${AI_URL}" == "none" ]; then
+            if [[ -z "${AI_URL}" || "${AI_URL}" == "auto" || "${AI_URL}" == "none" ]]; then
                 echo "ai_service_url = \"http://ztranslate.net/service?api_key=BATOCERA&mode=Fast&output=png&target_lang=${AI_LANG}\"" >> ${RACONF}
             else
                 echo "ai_service_url = \"${AI_URL}&mode=Fast&output=png&target_lang=${AI_LANG}\"" >> ${RACONF}
@@ -277,11 +275,7 @@ esac
         fi
     ;;
     "retroachievements")
-        if ! array_contains "${PLATFORM}" "${RETROARCHIVEMENTS[@]}"; then
-            return
-        fi
-        
-        if [ "${2}" == "1" ]; then
+        if [[ $(array_contains "${PLATFORM}" "${RETROARCHIVEMENTS[@]}") && "${2}" == "1" ]]; then
             # Batch read all retroachievements settings at once
             local RA_USER=$(get_setting "retroachievements.username")
             local RA_PASS=$(get_setting "retroachievements.password")
@@ -325,7 +319,7 @@ EOF
         fi
     ;;
     "netplay")
-        if [ "${2}" == "false" ] || [ "${2}" == "none" ] || [ "${2}" == "0" ]; then
+        if [[ -z "${2}" || "${2}" == "none" || "${2}" == "0" ]]; then
             echo 'netplay = "false"' >> ${RACONF}
         else
             echo 'netplay = "true"' >> ${RACONF}
@@ -398,7 +392,7 @@ EOF
         echo 'video_oga_vertical_enable = "true"' >> ${RACONF}
    
             local VERT_ASP=$(get_setting "vert_aspect")
-            if [ "${VERT_ASP}" == "false" ] || [ "${VERT_ASP}" == "none" ] || [ "${VERT_ASP}" == "0" ] || [ "${VERT_ASP}" == "1" ]; then
+            if [[ -z "${VERT_ASP}"  || "${VERT_ASP}" == "none" || "${VERT_ASP}" == "0" || "${VERT_ASP}" == "1" ]]; then
                 echo 'aspect_ratio_index = "1"' >> ${RACONF}
                 IRBEZEL="1"
             else
@@ -522,7 +516,7 @@ GAMBATTECONF="/storage/.config/retroarch/config/Gambatte/Gambatte.opt"
     
     write_log "Gambatte Colorization: ${COLORIZE}"
     
-    if [ "${COLORIZE}" == "false" ] || [ "${COLORIZE}" == "auto" ] || [ "${COLORIZE}" == "none" ]; then
+    if [[ -z "${COLORIZE}" || "${COLORIZE}" == "auto"  ||  "${COLORIZE}" == "none" ]]; then
         cat > "${GAMBATTECONF}" << EOF
 gambatte_gb_colorization = "disabled"
 gambatte_gb_internal_palette = ""
@@ -590,9 +584,9 @@ done
 read -r EE_DEVICE < /ee_arch
 MENU_DRV=$(get_setting "retroarch.menu_driver")
 
-write_log "Menu driver $MENU_DRV for $EE_DEVICE"
+write_log "Menu driver ${MENU_DRV} for ${EE_DEVICE}"
 
-if [ "${MENU_DRV}" == "false" ] || [ "${MENU_DRV}" == "auto" ] || [ "${MENU_DRV}" == "none" ] || [ "${MENU_DRV}" == "0" ]; then
+if [[ -z "${MENU_DRV}"  ||  "${MENU_DRV}" == "auto"  ||  "${MENU_DRV}" == "none"  ||  "${MENU_DRV}" == "0" ]]; then
     if [ "${EE_DEVICE}" == "OdroidGoAdvance" ] || [ "${EE_DEVICE}" == "GameForce" ]; then
         MENU_DRV="xmb"
     else
@@ -606,7 +600,7 @@ echo "menu_driver = \"${MENU_DRV}\"" >> ${RACONF}
 
 # Show bezel if enabled
 BEZEL_SET=$(get_setting "bezel")
-if [ "${BEZEL_SET}" == "false" ] || [ "${BEZEL_SET}" == "none" ] || [ "${BEZEL_SET}" == "0" ]; then
+if [[ -z "${BEZEL_SET}" || "${BEZEL_SET}" == "none"  ||  "${BEZEL_SET}" == "0" ]]; then
     ${TBASH} bezels.sh "none" "default" "${ISBEZEL}" "${IRBEZEL}"
 else
     ${TBASH} bezels.sh "${PLATFORM}" "${ROM}" "${ISBEZEL}" "${IRBEZEL}"
@@ -618,5 +612,10 @@ echo "menu_swap_ok_cancel_buttons = \"${inverted_ok_cancel}\"" >> ${RACONF}
 
 # Merge the changes to: /storage/.config/retroarch/retroarch.cfg 
 ees -i ${RACONF}
-rm ${RACONF}
 
+if [[ "${LOGGING}" == "1" ]]; then
+write_log "- merged settings to retroarch.cfg -"
+cat "${RACONF}" >> "${LOG}"
+fi
+ 
+rm ${RACONF}
