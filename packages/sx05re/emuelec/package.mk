@@ -126,6 +126,8 @@ post_install() {
   ln -sf emuelec.target ${INSTALL}/usr/lib/systemd/system/default.target
   enable_service emuelec-autostart.service
   enable_service emuelec-disable_small_cores.service
+  enable_service emuelec-reboot.service
+  enable_service emuelec-shutdown.service
 
 
   # Remove scripts from OdroidGoAdvance build
