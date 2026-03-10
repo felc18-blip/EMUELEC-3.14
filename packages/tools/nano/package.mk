@@ -11,7 +11,8 @@ PKG_URL="https://www.nano-editor.org/dist/v${PKG_VERSION%%.*}/${PKG_NAME}-${PKG_
 PKG_DEPENDS_TARGET="toolchain ncurses"
 PKG_LONGDESC="Nano is an enhanced clone of the Pico text editor."
 
-PKG_CONFIGURE_OPTS_TARGET="--disable-utf8 \
+PKG_CONFIGURE_OPTS_TARGET="--with-curses \
+                           --enable-utf8 \
                            --disable-nls \
                            --disable-libmagic \
                            --disable-wrapping"

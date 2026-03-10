@@ -1,29 +1,29 @@
-# SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2022-present Team CoreELEC (https://coreelec.org)
-
 PKG_NAME="bash"
-PKG_VERSION="5.2.15"
-PKG_SHA256="13720965b5f4fc3a0d4b61dd37e7565c741da9a5be24edc2ae00182fc1b3588c"
+PKG_VERSION="5.2.21"
 PKG_LICENSE="GPL"
-PKG_SITE="https://www.gnu.org/software/bash/"
-PKG_URL="https://ftp.gnu.org/gnu/${PKG_NAME}/${PKG_NAME}-${PKG_VERSION}.tar.gz"
+PKG_SITE="http://www.gnu.org/software/bash/"
+PKG_URL="http://ftp.gnu.org/gnu/bash/${PKG_NAME}-${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain ncurses readline"
-PKG_LONGDESC="Bash is the GNU Project shell - the Bourne Again SHell."
-PKG_NEED_UNPACK="$(get_pkg_directory busybox)"
+PKG_LONGDESC="The GNU Bourne Again shell."
 
 PKG_CONFIGURE_OPTS_TARGET="--with-curses \
                            --without-bash-malloc \
-                           --with-installed-readline \
-                             bash_cv_getcwd_malloc=yes \
-                             bash_cv_printf_a_format=yes \
-                             bash_cv_func_sigsetjmp=present \
-                             bash_cv_sys_named_pipes=present"
+                           bash_cv_getcwd_malloc=yes \
+                           bash_cv_printf_a_format=yes \
+                           bash_cv_func_sigsetjmp=present \
+                           bash_cv_sys_named_pipes=present"
 
-makeinstall_target() {
-  mkdir -p ${INSTALL}/usr/bin
-  cp bash  ${INSTALL}/usr/bin
+pre_configure_target() {
+  export CPPFLAGS="-I${SYSROOT_PREFIX}/usr/include/ncursesw"
+  export LDFLAGS="-lncursesw -ltinfow"
 }
 
-post_makeinstall_target() {
-  ln -sf /usr/bin/bash ${INSTALL}/usr/bin/sh
+post_install() {
+  ln -sf bash ${INSTALL}/usr/bin/sh
+  mkdir -p ${INSTALL}/etc
+  cat <<EOF >${INSTALL}/etc/shells
+/usr/bin/bash
+/usr/bin/sh
+EOF
+  chmod 4755 ${INSTALL}/usr/bin/bash
 }

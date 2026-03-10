@@ -44,9 +44,15 @@ PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_COMMON} \
 PKG_CONFIGURE_OPTS_HOST="${PKG_CONFIGURE_OPTS_COMMON} \
                          --target=${TARGET_NAME}"
 
+# Adicione isso antes do pre_configure_target
+PKG_CONF_ENV="LDFLAGS='-lncursesw -ltinfo'"
+
 pre_configure_target() {
-  CC_FOR_BUILD="${HOST_CC}"
-  CFLAGS_FOR_BUILD="${HOST_CFLAGS}"
+  export CC_FOR_BUILD="${HOST_CC}"
+  export CFLAGS_FOR_BUILD="${HOST_CFLAGS}"
+  # Forçamos o cache para pular o teste que está travando
+  export ac_cv_func_strerror=yes
+  export libiberty_cv_declare_errno=yes
 }
 
 makeinstall_target() {

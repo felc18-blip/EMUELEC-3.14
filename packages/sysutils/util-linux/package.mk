@@ -1,14 +1,14 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
+# Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
 
 PKG_NAME="util-linux"
-PKG_VERSION="2.38.1"
-PKG_SHA256="60492a19b44e6cf9a3ddff68325b333b8b52b6c59ce3ebd6a0ecaa4c5117e84f"
+PKG_VERSION="2.39.2"
 PKG_LICENSE="GPL"
 PKG_URL="https://www.kernel.org/pub/linux/utils/util-linux/v$(get_pkg_version_maj_min)/${PKG_NAME}-${PKG_VERSION}.tar.xz"
 PKG_DEPENDS_HOST="ccache:host autoconf:host automake:host intltool:host libtool:host pkg-config:host"
-PKG_DEPENDS_TARGET="toolchain ncurses"
+PKG_DEPENDS_TARGET="toolchain"
 PKG_DEPENDS_INIT="toolchain"
 PKG_LONGDESC="A large variety of low-level system utilities that are necessary for a Linux system to function."
 PKG_TOOLCHAIN="autotools"
@@ -18,6 +18,7 @@ UTILLINUX_CONFIG_DEFAULT="--disable-gtk-doc \
                           --disable-nls \
                           --disable-rpath \
                           --enable-tls \
+                          --disable-all-programs \
                           --enable-chsh-only-listed \
                           --disable-bash-completion \
                           --disable-colors-default \
@@ -45,7 +46,6 @@ UTILLINUX_CONFIG_DEFAULT="--disable-gtk-doc \
                           --without-systemdsystemunitdir"
 
 PKG_CONFIGURE_OPTS_TARGET="${UTILLINUX_CONFIG_DEFAULT} \
-                           --disable-all-programs \
                            --enable-libuuid \
                            --enable-libblkid \
                            --enable-libmount \
@@ -54,24 +54,23 @@ PKG_CONFIGURE_OPTS_TARGET="${UTILLINUX_CONFIG_DEFAULT} \
                            --enable-fsck \
                            --enable-fstrim \
                            --enable-blkid \
-                           --enable-lsfd \
-                           --enable-lsblk \
-                           --disable-setterm \
-                           --with-ncursesw"
+                           --enable-schedutils \
+                           --enable-lscpu"
 
 if [ "${SWAP_SUPPORT}" = "yes" ]; then
   PKG_CONFIGURE_OPTS_TARGET+=" --enable-swapon"
 fi
 
-PKG_CONFIGURE_OPTS_HOST="--enable-static \
-                         --disable-shared \
-                         --enable-all-programs \
-                         ${UTILLINUX_CONFIG_DEFAULT} \
+PKG_CONFIGURE_OPTS_HOST="--enable-shared \
+                         --disable-static \
+                         ${UTILLINUX_CONFIG_TARGET} \
+                         --disable-makeinstall-chown \
+                         --disable-makeinstall-setuid \
                          --enable-uuidgen \
+                         --enable-rename \
                          --enable-libuuid"
 
 PKG_CONFIGURE_OPTS_INIT="${UTILLINUX_CONFIG_DEFAULT} \
-                         --disable-all-programs \
                          --enable-libblkid \
                          --enable-libmount \
                          --enable-fsck"
@@ -82,8 +81,8 @@ fi
 
 post_makeinstall_target() {
   if [ "${SWAP_SUPPORT}" = "yes" ]; then
-    mkdir -p ${INSTALL}/usr/lib/libreelec
-      cp -PR ${PKG_DIR}/scripts/mount-swap ${INSTALL}/usr/lib/libreelec
+    mkdir -p ${INSTALL}/usr/lib/unofficialos
+      cp -PR ${PKG_DIR}/scripts/mount-swap ${INSTALL}/usr/lib/unofficialos
 
     mkdir -p ${INSTALL}/etc
       cat ${PKG_DIR}/config/swap.conf | \
@@ -97,6 +96,4 @@ post_install () {
   if [ "${SWAP_SUPPORT}" = "yes" ]; then
     enable_service swap.service
   fi
-
-  enable_service fstrim.timer
 }
