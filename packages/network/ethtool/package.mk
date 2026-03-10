@@ -9,6 +9,11 @@ PKG_DEPENDS_TARGET="toolchain libmnl"
 PKG_LONGDESC="Ethtool is used for querying settings of an ethernet device and changing them."
 
 case "$LINUX" in
+  amlogic-3.14)
+    PKG_VERSION="5.4"
+    PKG_SHA256="22f81e4927d6eb6a13a259d705248a96005fce2005e15257f639f5a1c8c52b6b"
+    PKG_URL="https://www.kernel.org/pub/software/network/ethtool/${PKG_NAME}-${PKG_VERSION}.tar.xz"
+    ;;
   rockchip-4.4|odroid-go-a-4.4|gameforce-4.4)
     PKG_VERSION="6.0"
     PKG_SHA256="d5446c93de570ce68f3b1ea69dbfa12fcfd67fc19897f655d3f18231e2b818d6"

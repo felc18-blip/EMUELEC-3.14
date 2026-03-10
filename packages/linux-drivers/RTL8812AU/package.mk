@@ -13,15 +13,25 @@ PKG_IS_KERNEL_PKG="yes"
 
 pre_make_target() {
   unset LDFLAGS
+
+  # remover flag ftrace
+  sed -i 's/-pg//g' Makefile
+
+  # patch compat kernel 3.14 radiotap
+  sed -i 's/IEEE80211_RADIOTAP_CODING_LDPC_USER0/IEEE80211_RADIOTAP_MCS_FEC_LDPC/g' core/rtw_xmit.c
 }
 
 make_target() {
-export KCFLAGS+=" -Wno-array-bounds -Wno-stringop-overflow -Wno-restrict -Wno-address -Wno-stringop-overread"
+  export KCFLAGS+=" -Wno-array-bounds -Wno-stringop-overflow -Wno-restrict -Wno-address -Wno-stringop-overread -Wno-address-of-packed-member"
+  export EXTRA_CFLAGS="-Wno-error -Wno-address-of-packed-member -fno-pie"
+
   make V=1 \
        ARCH=${TARGET_KERNEL_ARCH} \
        KSRC=$(kernel_path) \
        CROSS_COMPILE=${TARGET_KERNEL_PREFIX} \
-       CONFIG_POWER_SAVING=n
+       CONFIG_POWER_SAVING=n \
+       CONFIG_TRACEPOINTS=n \
+       KCFLAGS="${KCFLAGS/-pg/}"
 }
 
 makeinstall_target() {
