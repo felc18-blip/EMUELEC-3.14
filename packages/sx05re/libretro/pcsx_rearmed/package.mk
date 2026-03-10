@@ -13,10 +13,13 @@ PKG_DEPENDS_TARGET="toolchain alsa"
 PKG_SHORTDESC="ARM optimized PCSX fork"
 PKG_TOOLCHAIN="make"
 PKG_BUILD_FLAGS="+speed -gold"
-
 make_target() {
 cd ${PKG_BUILD}
+
 export ALLOW_LIGHTREC_ON_ARM=1
+export CFLAGS="$CFLAGS -DZ7_ST -DNO_CPU_FEATURES"
+export CXXFLAGS="$CXXFLAGS -DZ7_ST -DNO_CPU_FEATURES"
+
 if [ "${ARCH}" == "arm" ]; then
 	if [ "${DEVICE}" == "Amlogic-old" ]; then
 		make -f Makefile.libretro GIT_VERSION=${PKG_VERSION} platform=rpi3

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2021-present Shanti Gilbert (https://github.com/shantigilbert)
-# Copyright (C) 2022-present 7Ji (https://github.com/7Ji)
+# Copyright (C) 2021-present Shanti Gilbert
+# Copyright (C) 2022-present 7Ji
 
 PKG_NAME="lib32-pcsx_rearmed"
 PKG_VERSION="$(get_pkg_version pcsx_rearmed)"
@@ -24,7 +24,17 @@ unpack() {
 
 make_target() {
   cd ${PKG_BUILD}
+
   export ALLOW_LIGHTREC_ON_ARM=1
+
+  # Fix build error with old kernel headers (HWCAP2 missing)
+  if [ -f deps/libchdr/deps/lzma-24.05/src/CpuArch.c ]; then
+    sed -i 's/MY_HWCAP_CHECK_FUNC (CRC32)/\/\/MY_HWCAP_CHECK_FUNC (CRC32)/' deps/libchdr/deps/lzma-24.05/src/CpuArch.c
+    sed -i 's/MY_HWCAP_CHECK_FUNC (SHA1)/\/\/MY_HWCAP_CHECK_FUNC (SHA1)/' deps/libchdr/deps/lzma-24.05/src/CpuArch.c
+    sed -i 's/MY_HWCAP_CHECK_FUNC (SHA2)/\/\/MY_HWCAP_CHECK_FUNC (SHA2)/' deps/libchdr/deps/lzma-24.05/src/CpuArch.c
+    sed -i 's/MY_HWCAP_CHECK_FUNC (AES)/\/\/MY_HWCAP_CHECK_FUNC (AES)/' deps/libchdr/deps/lzma-24.05/src/CpuArch.c
+  fi
+
   if [ "${DEVICE}" = "Amlogic-old" ]; then
     make -f Makefile.libretro GIT_VERSION=${PKG_VERSION} platform=rpi3
   else

@@ -2,12 +2,11 @@
 # EmuELEC / LibreELEC package for JAXE libretro core
 
 PKG_NAME="jaxe"
-PKG_VERSION="4825aad24716f67924cd949354aae490a14b4d2d"
+PKG_VERSION="e8e90e3d683bb560df5882f0ad62ed28f96a541a"
 PKG_ARCH="any"
 PKG_LICENSE="MIT"
 PKG_SITE="https://github.com/kurtjd/jaxe"
 PKG_URL="${PKG_SITE}.git"
-PKG_GIT_CLONE_BRANCH="main"
 PKG_GIT_CLONE_DEPTH="1"
 
 PKG_DEPENDS_TARGET="toolchain"

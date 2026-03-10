@@ -15,6 +15,11 @@ PKG_SHORTDESC="Arduous libretro core (Arduboy)"
 PKG_LONGDESC="Arduous is a libretro emulator core for the Arduboy."
 PKG_TOOLCHAIN="cmake"
 
+post_unpack() {
+  cd ${PKG_BUILD}
+  git submodule update --init --recursive
+}
+
 makeinstall_target() {
   mkdir -p "${INSTALL}/usr/lib/libretro"
 
