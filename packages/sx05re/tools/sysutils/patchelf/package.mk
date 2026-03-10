@@ -12,5 +12,13 @@ PKG_LONGDESC="A small utility to modify the dynamic linker and RPATH of ELF exec
 PKG_TOOLCHAIN="configure"
 
 pre_configure_target() {
-./bootstrap.sh
+  # Entra na pasta de build
+  cd ${PKG_BUILD}
+  
+  # Só roda o bootstrap se ele realmente existir e for necessário
+  if [ -f "./bootstrap.sh" ]; then
+    ./bootstrap.sh
+  elif [ -f "./autogen.sh" ]; then
+    ./autogen.sh
+  fi
 }

@@ -1,20 +1,30 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2021-present Shanti Gilbert (https://github.com/shantigilbert)
+# Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
 
 PKG_NAME="TvTextViewer"
-PKG_VERSION="f3d2ecd7276a2fb44c0dbbd163b837feb8dc4aa1"
+PKG_VERSION="fcbda2d1708e9e2c650abc589ea8e7f1fe1d04d8"
 PKG_LICENSE="MIT"
-PKG_SITE="https://github.com/lethal-guitar/TvTextViewer"
+PKG_SITE="https://github.com/RetroGFX/TvTextViewer"
 PKG_URL="${PKG_SITE}.git"
 PKG_DEPENDS_TARGET="toolchain SDL2"
 PKG_SHORTDESC="Full-screen text viewer tool with gamepad controls"
 PKG_TOOLCHAIN="make"
+GET_HANDLER_SUPPORT="git"
+
+if [ ! "${OPENGL}" = "no" ]; then
+  PKG_DEPENDS_TARGET+=" ${OPENGL} glu"
+fi
+
+if [ "${OPENGLES_SUPPORT}" = yes ]; then
+  PKG_DEPENDS_TARGET+=" ${OPENGLES}"
+fi
 
 pre_configure_target() {
-sed -i "s|\`sdl2-config|\`${SYSROOT_PREFIX}/usr/bin/sdl2-config|g" Makefile
+  sed -i "s|sdl2-config|${SYSROOT_PREFIX}/usr/bin/sdl2-config|g" Makefile
 }
 
 makeinstall_target(){
-mkdir -p ${INSTALL}/usr/bin
-cp text_viewer ${INSTALL}/usr/bin
+  mkdir -p ${INSTALL}/usr/bin
+  cp text_viewer ${INSTALL}/usr/bin
 }

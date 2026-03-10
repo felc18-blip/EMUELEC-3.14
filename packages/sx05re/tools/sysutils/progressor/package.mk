@@ -10,6 +10,10 @@ PKG_DEPENDS_TARGET="toolchain SDL2"
 PKG_SHORTDESC="Simple ImGui application to display patching progress and queries."
 PKG_TOOLCHAIN="cmake"
 
+pre_configure_target() {
+  cd ${PKG_BUILD}
+  git submodule update --init --recursive
+}
 makeinstall_target(){
 mkdir -p ${INSTALL}/usr/bin
 cp progressor ${INSTALL}/usr/bin

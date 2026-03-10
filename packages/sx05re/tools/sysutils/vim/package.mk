@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
+# Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
 
 PKG_NAME="vim"
-PKG_VERSION="9.0.1417"
-PKG_SHA256="02c67859046f7c0206afb909061763cf40747c6bf40c22bb6efaf9c06be41591"
+PKG_VERSION="9.0.2103"
 PKG_LICENSE="VIM"
 PKG_SITE="http://www.vim.org/"
 PKG_URL="https://github.com/vim/vim/archive/v${PKG_VERSION}.tar.gz"
@@ -28,7 +28,7 @@ PKG_CONFIGURE_OPTS_TARGET="vim_cv_getcwd_broken=no \
                            --enable-gui=no \
                            --with-compiledby=EmuELEC \
                            --with-features=huge \
-                           --with-tlib=ncurses \
+                           --with-tlib=ncursesw \
                            --without-x"
 
 PKG_MAKEINSTALL_OPTS_TARGET=VIMRTDIR=
@@ -36,8 +36,9 @@ PKG_MAKEINSTALL_OPTS_TARGET=VIMRTDIR=
 pre_configure_target() {
   cd ..
   rm -rf .${TARGET_NAME}
-}
 
+  export LDFLAGS="${LDFLAGS} -ltinfow"
+}
 make_target() {
   :
 }

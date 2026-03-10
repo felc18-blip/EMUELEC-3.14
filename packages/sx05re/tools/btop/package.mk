@@ -2,6 +2,7 @@
 # Copyright (C) 2025-present Team CoreELEC (https://coreelec.org)
 
 PKG_NAME="btop"
+PKG_ARCH="x86_64"
 PKG_VERSION="1.4.0"
 PKG_SHA256="ac0d2371bf69d5136de7e9470c6fb286cbee2e16b4c7a6d2cd48a14796e86650"
 PKG_LICENSE="Apache-2.0"

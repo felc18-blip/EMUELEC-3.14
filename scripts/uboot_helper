@@ -404,6 +404,8 @@ devices = \
     },
   },
   'Amlogic-ce': {
+    'Amlogic-old': {
+    },
     'Amlogic-ng': {
     },
     'Amlogic-ng-dv': {

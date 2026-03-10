@@ -1,62 +1,59 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2019-present Shanti Gilbert (https://github.com/shantigilbert)
+# Copyright (C) 2019-present Shanti Gilbert
 
 PKG_NAME="emuelec-emulationstation"
 PKG_VERSION="4826365da13164770f824a27f6bf6be0a9074040"
 PKG_GIT_CLONE_BRANCH="EmuELEC"
+PKG_GIT_CLONE_SUBMODULES="yes"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/EmuELEC/emuelec-emulationstation"
 PKG_URL="${PKG_SITE}.git"
-PKG_DEPENDS_TARGET="toolchain SDL2 freetype freeimage vlc rapidjson ${OPENGLES} SDL2_mixer fping p7zip espeak"
+
+PKG_DEPENDS_TARGET="toolchain SDL2 freetype freeimage vlc rapidjson ${OPENGLES} SDL2_mixer fping p7zip espeak Crystal"
+
 PKG_SECTION="emuelec"
 PKG_SHORTDESC="Emulationstation emulator frontend"
 PKG_BUILD_FLAGS="-gold"
 GET_HANDLER_SUPPORT="git"
 
-
-if [[ ${DEVICE} == "OdroidGoAdvance"  ]] || [[ ${DEVICE} == "GameForce"  ]]; then 
-	PKG_PATCH_DIRS="Rockchip/HH"
+if [[ ${DEVICE} == "OdroidGoAdvance" ]] || [[ ${DEVICE} == "GameForce" ]]; then
+  PKG_PATCH_DIRS="Rockchip/HH"
 fi
 
-if [[ ${DEVICE} == "OdroidM1"  ]] || [[ ${DEVICE} == "RK356x"  ]]; then 
-	PKG_PATCH_DIRS="Rockchip"
+if [[ ${DEVICE} == "OdroidM1" ]] || [[ ${DEVICE} == "RK356x" ]]; then
+  PKG_PATCH_DIRS="Rockchip"
 fi
-
-# themes for Emulationstation
-PKG_DEPENDS_TARGET="${PKG_DEPENDS_TARGET} Crystal"
 
 pre_configure_target() {
 
-# build directly in ${PKG_BUILD} to avoid Python3 errors
   cd ${PKG_BUILD}
+
   rm -rf .${TARGET_NAME}
 
-PKG_CMAKE_OPTS_TARGET=" -DENABLE_EMUELEC=1 -DDISABLE_KODI=1 -DENABLE_FILEMANAGER=1 -DGLES2=1 -DENABLE_TTS=1"
+  git submodule update --init --recursive
 
-# Read api_keys.txt if it exist to add the required keys for cheevos, thegamesdb and screenscrapper. You need to get your own API keys. 
-# File should be in this format
-# -DSCREENSCRAPER_DEV_LOGIN=devid=<devusername>&devpassword=<devpassword> 
-# -DGAMESDB_APIKEY=<gamesdbapikey>
-# -DCHEEVOS_DEV_LOGIN=z=<yourusername>&y=<yourapikey>
-# and it should be placed next to this file
+  PKG_CMAKE_OPTS_TARGET=" \
+  -DENABLE_EMUELEC=1 \
+  -DDISABLE_KODI=1 \
+  -DENABLE_FILEMANAGER=1 \
+  -DGLES2=1 \
+  -DENABLE_TTS=1"
 
-if [ -f ${PKG_DIR}/api_keys.txt ]; then
-while IFS="" read -r p || [ -n "${p}" ]
-do
-  PKG_CMAKE_OPTS_TARGET+=" ${p}"
-done < ${PKG_DIR}/api_keys.txt
-fi
+  if [ -f ${PKG_DIR}/api_keys.txt ]; then
+    while IFS="" read -r p || [ -n "${p}" ]; do
+      PKG_CMAKE_OPTS_TARGET+=" ${p}"
+    done < ${PKG_DIR}/api_keys.txt
+  fi
 
-if [[ ${DEVICE} == "GameForce" ]]; then
-PKG_CMAKE_OPTS_TARGET+=" -DENABLE_GAMEFORCE=1"
-fi
+  if [[ ${DEVICE} == "GameForce" ]]; then
+    PKG_CMAKE_OPTS_TARGET+=" -DENABLE_GAMEFORCE=1"
+  fi
 
-if [[ ${DEVICE} == "OdroidGoAdvance"  ]]; then
-PKG_CMAKE_OPTS_TARGET+=" -DODROIDGOA=1"
-fi
-
+  if [[ ${DEVICE} == "OdroidGoAdvance" ]]; then
+    PKG_CMAKE_OPTS_TARGET+=" -DODROIDGOA=1"
+  fi
 }
 
 makeinstall_target() {

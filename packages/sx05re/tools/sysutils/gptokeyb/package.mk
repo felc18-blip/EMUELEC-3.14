@@ -2,26 +2,38 @@
 # Copyright (C) 2021-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="gptokeyb"
-PKG_VERSION="9cf438275c87ca3542b2ce34b1a043663d3be005"
+PKG_VERSION="0303b36b5376a9b25cf82a53ed4242509daf14e9"
 PKG_ARCH="any"
-PKG_LICENSE="GPLv2"
+PKG_LICENSE="GPLv3"
 PKG_SITE="https://github.com/EmuELEC/gptokeyb"
 PKG_URL="${PKG_SITE}.git"
-PKG_DEPENDS_TARGET="toolchain SDL2 libevdev"
-PKG_SECTION="emuelec"
-PKG_SHORTDESC="Gamepad to Keyboard/mouse/xbox360 emulator"
+PKG_DEPENDS_TARGET="toolchain libevdev SDL2"
 PKG_TOOLCHAIN="make"
+GET_HANDLER_SUPPORT="git"
 
 pre_configure_target() {
-sed -i "s|\`sdl2-config|\`${SYSROOT_PREFIX}/usr/bin/sdl2-config|g" Makefile
-sed -i "s|\-I/usr/include/libevdev-1.0|\-I${SYSROOT_PREFIX}/usr/include/libevdev-1.0|g" Makefile
+
+  # corrigir includes do libevdev
+  sed -i 's|libevdev-1.0/libevdev/libevdev-uinput.h|libevdev/libevdev-uinput.h|g' gptokeyb.cpp
+  sed -i 's|libevdev-1.0/libevdev/libevdev.h|libevdev/libevdev.h|g' gptokeyb.cpp
+
+  # corrigir sdl2-config
+  sed -i "s|sdl2-config|${SYSROOT_PREFIX}/usr/bin/sdl2-config|g" Makefile
+
+  # corrigir include path
+  sed -i "s|-I/usr/include/libevdev-1.0|-I${SYSROOT_PREFIX}/usr/include/libevdev-1.0|g" Makefile
 }
 
-makeinstall_target(){
-mkdir -p ${INSTALL}/usr/bin
-cp gptokeyb ${INSTALL}/usr/bin
+make_target() {
+  make CC=${CC} \
+       CFLAGS="${CFLAGS}" \
+       LDFLAGS="${LDFLAGS}"
+}
 
-mkdir -p ${INSTALL}/usr/config/emuelec/configs/gptokeyb
-cp -rf ${PKG_BUILD}/configs/*.gptk ${INSTALL}/usr/config/emuelec/configs/gptokeyb
+makeinstall_target() {
+  mkdir -p ${INSTALL}/usr/bin
+  cp gptokeyb ${INSTALL}/usr/bin
 
+  mkdir -p ${INSTALL}/usr/config/emuelec/configs/gptokeyb
+  cp -rf ${PKG_BUILD}/configs/*.gptk ${INSTALL}/usr/config/emuelec/configs/gptokeyb
 }
