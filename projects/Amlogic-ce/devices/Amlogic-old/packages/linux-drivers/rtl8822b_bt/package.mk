@@ -16,11 +16,17 @@ unpack() {
   tar --strip-components=2 -xf $SOURCES/$PKG_NAME/$PKG_NAME-$PKG_VERSION.tar.gz -C $PKG_BUILD rtl8822bs-aml-$PKG_VERSION/bluetooth
 }
 
+make_target() {
+  # Compila o binário a partir do fonte que o find achou
+  ${CC} ${CFLAGS} ${LDFLAGS} hciattach.c hciattach_rtk.c -o rtk_hciattach
+}
+
 makeinstall_target() {
   mkdir -p $INSTALL/usr/bin
-    cp -a $(get_build_dir rkbin)/firmware/bin/rtk_hciattach $INSTALL/usr/bin/8822b_hciattach
+  # Em vez de buscar no rkbin, copia o que acabamos de compilar
+  cp -a rtk_hciattach $INSTALL/usr/bin/8822b_hciattach
 
   mkdir -p $INSTALL/$(get_full_firmware_dir)/rtlbt
-    cp -a $PKG_BUILD/rtl8822b_config.bin $INSTALL/$(get_full_firmware_dir)/rtlbt/rtl8822b_config
-    cp -a $PKG_BUILD/rtl8822b_fw.bin $INSTALL/$(get_full_firmware_dir)/rtlbt/rtl8822b_fw
+  cp -a $PKG_BUILD/rtl8822b_config.bin $INSTALL/$(get_full_firmware_dir)/rtlbt/rtl8822b_config
+  cp -a $PKG_BUILD/rtl8822b_fw.bin $INSTALL/$(get_full_firmware_dir)/rtlbt/rtl8822b_fw
 }

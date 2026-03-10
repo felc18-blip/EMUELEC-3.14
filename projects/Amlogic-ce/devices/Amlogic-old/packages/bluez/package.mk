@@ -20,6 +20,10 @@ fi
 
 BLUEZ_CONFIG="$BLUEZ_CONFIG --enable-monitor --enable-test"
 
+# SINTAXE CORRIGIDA: Sem aspas simples para evitar erro de EOF, e com ltinfow para a readline
+PKG_MAKE_OPTS_TARGET="LIBS=-lncursesw"
+PKG_MAKE_OPTS_TARGET="LIBS=-ltinfow"
+
 PKG_CONFIGURE_OPTS_TARGET="--disable-dependency-tracking \
                            --disable-silent-rules \
                            --enable-library \
@@ -37,11 +41,11 @@ PKG_CONFIGURE_OPTS_TARGET="--disable-dependency-tracking \
                            storagedir=/storage/.cache/bluetooth"
 
 pre_configure_target() {
-# bluez fails to build in subdirs
   cd $PKG_BUILD
-    rm -rf .$TARGET_NAME
-
-  export LIBS="-lncurses -ltinfo"
+  rm -rf .$TARGET_NAME
+  export LDFLAGS=""
+  export LIBS=""
+  export ac_cv_prog_cc_works=yes
 }
 
 post_makeinstall_target() {
@@ -50,20 +54,14 @@ post_makeinstall_target() {
   rm -rf $INSTALL/usr/bin/bluemoon
   rm -rf $INSTALL/usr/bin/ciptool
   rm -rf $INSTALL/usr/share/dbus-1
-
   mkdir -p $INSTALL/etc/bluetooth
     cp src/main.conf $INSTALL/etc/bluetooth
     sed -i $INSTALL/etc/bluetooth/main.conf \
         -e "s|^#\[Policy\]|\[Policy\]|g" \
         -e "s|^#AutoEnable.*|AutoEnable=true|g"
-
   mkdir -p $INSTALL/usr/share/services
     cp -P $PKG_DIR/default.d/*.conf $INSTALL/usr/share/services
-
-  # bluez looks in /etc/firmware/
     ln -sf /usr/lib/firmware $INSTALL/etc/firmware
-    
-  # pulseaudio checks for bluez via pkgconfig but lib is not actually needed
     sed -i 's/-lbluetooth//g' ${PKG_BUILD}/lib/bluez.pc
     cp -P ${PKG_BUILD}/lib/bluez.pc ${SYSROOT_PREFIX}/usr/lib/pkgconfig
 }
