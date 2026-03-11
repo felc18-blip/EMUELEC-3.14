@@ -11,6 +11,12 @@
 case "${1}" in
 "before")
 
+# BlackRetroOS - Forçar Performance Máxima para evitar lentidão nos loadings
+if [ -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ]; then
+    echo "performance" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+    echo "CPU Governor configurado para: performance"
+fi
+
 # Any commands that you want to run before the frontend begins should go here
 
 # example BT config, use only as a last resort
