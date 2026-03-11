@@ -11,7 +11,7 @@ PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/EmuELEC/emuelec-emulationstation"
 PKG_URL="${PKG_SITE}.git"
 
-PKG_DEPENDS_TARGET="toolchain SDL2 freetype freeimage vlc rapidjson ${OPENGLES} SDL2_mixer fping p7zip espeak Crystal"
+PKG_DEPENDS_TARGET="toolchain SDL2 freetype freeimage vlc rapidjson ${OPENGLES} SDL2_mixer fping p7zip espeak es-theme-art-book-next"
 
 PKG_SECTION="emuelec"
 PKG_SHORTDESC="Emulationstation emulator frontend"
@@ -106,7 +106,7 @@ makeinstall_target() {
     if  [[ "${DEVICE}" == "GameForce" ]]; then
     	mkdir -p ${INSTALL}/usr/config/emulationstation/themesettings
         sed -i "s|<\/config>|	<string name=\"subset.ratio\" value=\"43\" />\n<\/config>|g" "${INSTALL}/usr/config/emulationstation/es_settings.cfg"
-        echo "subset.ratio=43" > ${INSTALL}/usr/config/emulationstation/themesettings/Crystal.cfg
+        echo "subset.ratio=43" > ${INSTALL}/usr/config/emulationstation/themesettings/es-theme-art-book-next.cfg
     fi
 
 # Remove unused cores

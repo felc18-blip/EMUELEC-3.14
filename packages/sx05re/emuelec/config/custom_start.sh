@@ -3,51 +3,38 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2019-present Shanti Gilbert (https://github.com/shantigilbert)
 
-# Source predefined functions and variables
+# BlackRetroOS - Performance & ZRAM Hook
 . /etc/profile
-
-# Place any scripts you need to run at boot on this file
 
 case "${1}" in
 "before")
+    # 1. CPU em modo Performance
+    if [ -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ]; then
+        echo "performance" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+    fi
 
-# BlackRetroOS - Forçar Performance Máxima para evitar lentidão nos loadings
-if [ -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ]; then
-    echo "performance" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-    echo "CPU Governor configurado para: performance"
-fi
+    # 2. Ativar ZRAM (256MB)
+    modprobe zram num_devices=1 2>/dev/null
+    (
+        sleep 1
+        if [ -b /dev/zram0 ]; then
+            swapoff /dev/zram0 2>/dev/null
+            echo 1 > /sys/block/zram0/reset 2>/dev/null
+            echo lz4 > /sys/block/zram0/comp_algorithm 2>/dev/null || echo lzo > /sys/block/zram0/comp_algorithm
+            echo 268435456 > /sys/block/zram0/disksize
+            mkswap /dev/zram0 >/dev/null 2>&1
+            swapon -p 100 /dev/zram0 2>/dev/null
+            echo 100 > /proc/sys/vm/swappiness
+        fi
+    ) &
 
-# Any commands that you want to run before the frontend begins should go here
+    # 3. Limite de arquivos para o Mono (PortMaster)
+    ulimit -n 4096
+    ;;
 
-# example BT config, use only as a last resort
-# Bluetooth, Make sure you change your BT MAC address, you need to do this by SSH the first time
-# by running 
-
-# hcitool scan
-# bluetoothctl pair yourmac
-# bluetoothctl trust yourmac 
-
-# If you want to use bluetooth, uncomment every line after this one 
-
-# BTMAC="E4:17:D8:8B:F1:80"
-# (
-# echo "agent on" | bluetoothctl
-# echo "default-agent" | bluetoothctl
-# echo "power on" | bluetoothctl
-# echo "discoverable on" | bluetoothctl
-# echo "pairable on" | bluetoothctl
-# echo "scan on" | bluetoothctl
-# echo "trust ${BTMAC}" | bluetoothctl
-# echo "connect ${BTMAC}" | bluetoothctl
-# )&
-
-	exit 0
-	;;
-*)
-# Any commands that you want to run after the frontend has started goes here
-
-    exit 0
-	;;
+"after")
+    # Aqui você pode colocar comandos para rodar após o boot
+    ;;
 esac
-## nothing was called so exit
+
 exit 0

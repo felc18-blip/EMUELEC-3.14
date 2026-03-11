@@ -1,51 +1,75 @@
 #!/bin/sh
 # SPDX-License-Identifier: GPL-2.0
+# Modificado para o BlackRetro Elite - S905L
 
 . /etc/profile
 
-SOURCE_DIR="/usr/config/ppsspp-sa"
-CONF_DIR="/storage/.config/ppsspp-sa"
-ROMSPPSSPPFOLDER=/storage/roms/savestates/ppsspp-sa/PSP
-mkdir -p "${ROMSPPSSPPFOLDER}"
-
-PPSSPP_INI="/PSP/SYSTEM/ppsspp.ini"
-
-if [ ! -d "${CONF_DIR}" ]
-then
-  cp -rf ${SOURCE_DIR} ${CONF_DIR}
-fi
-
-# Garantir symlinks
-for dir in Cheats PPSSPP_STATE SAVEDATA TEXTURES; do
-    mkdir -p "${ROMSPPSSPPFOLDER}/${dir}"
-
-    if [ ! -L ${CONF_DIR}/PSP/${dir} ]; then
-        cp -rf ${CONF_DIR}/PSP/${dir}/. ${ROMSPPSSPPFOLDER}/${dir}/ 2>/dev/null
-        rm -rf ${CONF_DIR}/PSP/${dir}
-        ln -sf ${ROMSPPSSPPFOLDER}/${dir} ${CONF_DIR}/PSP/${dir}
-    fi
+# Força todos os núcleos ao máximo (Essencial para o S905L)
+for i in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+    echo performance > "$i"
 done
 
-# Garantir cheat.db
-if [ ! -s "${ROMSPPSSPPFOLDER}/Cheats/cheat.db" ]; then
-    mkdir -p "${ROMSPPSSPPFOLDER}/Cheats/"
-    cp -rf ${SOURCE_DIR}/PSP/SYSTEM/Cheats/. "${ROMSPPSSPPFOLDER}/Cheats/" 2>/dev/null
+SOURCE_DIR="/usr/config/ppsspp-sa"
+CONF_DIR="/storage/.config/ppsspp-sa"
+PPSSPP_INI="/PSP/SYSTEM/ppsspp.ini"
+
+# Garante a pasta de configuração no storage
+if [ ! -d "${CONF_DIR}" ]; then
+    mkdir -p "/storage/.config"
+    cp -rf ${SOURCE_DIR} ${CONF_DIR}
 fi
 
-# Performance cores
-CORES=$(get_ee_setting cores psp "${1##*/}")
-if [ "${CORES}" = "little" ]; then
-  EMUPERF="${SLOW_CORES}"
-elif [ "${CORES}" = "big" ]; then
-  EMUPERF="${FAST_CORES}"
+# --- Configurações do Emulation Station ---
+GAME=$(echo "${1}"| sed "s#^/.*/##")
+FSKIP=$(get_setting frame_skip psp "${GAME}")
+FPS=$(get_setting show_fps psp "${GAME}")
+IRES=$(get_setting internal_resolution psp "${GAME}")
+GRENDERER=$(get_setting graphics_backend psp "${GAME}")
+SKIPB=$(get_setting skip_buffer_effects psp "${GAME}")
+VSYNC=$(get_setting vsync psp "${GAME}")
+
+# Frame Skip
+if [ "${FSKIP}" = "auto" ]; then
+    sed -i '/AutoFrameSkip =/c\AutoFrameSkip = True' ${CONF_DIR}/${PPSSPP_INI}
 else
-  unset EMUPERF
+    sed -i "/^FrameSkip =/c\FrameSkip = ${FSKIP:-0}" ${CONF_DIR}/${PPSSPP_INI}
+    sed -i '/^FrameSkipType =/c\FrameSkipType = 0' ${CONF_DIR}/${PPSSPP_INI}
+    sed -i '/^AutoFrameSkip =/c\AutoFrameSkip = False' ${CONF_DIR}/${PPSSPP_INI}
 fi
 
+# Graphics Backend (0 = OpenGL, 3 = Vulkan)
+if [ "${GRENDERER}" = "vulkan" ]; then
+    sed -i '/^GraphicsBackend =/c\GraphicsBackend = 3 (VULKAN)' ${CONF_DIR}/${PPSSPP_INI}
+else
+    sed -i '/^GraphicsBackend =/c\GraphicsBackend = 0 (OPENGL)' ${CONF_DIR}/${PPSSPP_INI}
+fi
+
+# Internal Resolution
+sed -i "/^InternalResolution/c\InternalResolution = ${IRES:-1}" ${CONF_DIR}/${PPSSPP_INI}
+
+# Show FPS (2 = Show FPS)
+if [ "${FPS}" = "1" ]; then
+    sed -i '/^iShowStatusFlags =/c\iShowStatusFlags = 2' ${CONF_DIR}/${PPSSPP_INI}
+else
+    sed -i '/^iShowStatusFlags =/c\iShowStatusFlags = 0' ${CONF_DIR}/${PPSSPP_INI}
+fi
+
+# Skip Buffer Effects
+if [ "${SKIPB}" = "1" ]; then
+    sed -i '/^SkipBufferEffects =/c\SkipBufferEffects = True' ${CONF_DIR}/${PPSSPP_INI}
+else
+    sed -i '/^SkipBufferEffects =/c\SkipBufferEffects = False' ${CONF_DIR}/${PPSSPP_INI}
+fi
+
+# VSYNC
+if [ "${VSYNC}" = "1" ]; then
+    sed -i '/^VSyncInterval =/c\VSyncInterval = True' ${CONF_DIR}/${PPSSPP_INI}
+else
+    sed -i '/^VSyncInterval =/c\VSyncInterval = False' ${CONF_DIR}/${PPSSPP_INI}
+fi
+
+# Execução do Emulador
 ARG=${1//[\\]/}
-
-export SDL_AUDIODRIVER=alsa
-
 set_kill set "-9 ppsspp-sa"
 
-${EMUPERF} ppsspp-sa --fullscreen --pause-menu-exit "${ARG}"
+ppsspp-sa --pause-menu-exit "${ARG}"
