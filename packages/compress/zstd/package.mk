@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0
 # Copyright (C) 2017-present Team LibreELEC (https://libreelec.tv)
+# Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
 
 PKG_NAME="zstd"
-PKG_VERSION="1.5.2"
-PKG_SHA256="3ea06164971edec7caa2045a1932d757c1815858e4c2b68c7ef812647535c23f"
+PKG_VERSION="1.5.5"
 PKG_LICENSE="BSD/GPLv2"
 PKG_SITE="http://www.zstd.net"
 PKG_URL="https://github.com/facebook/zstd/releases/download/v${PKG_VERSION}/${PKG_NAME}-${PKG_VERSION}.tar.zst"
@@ -23,8 +23,8 @@ configure_host() {
   # custom cmake build to override the LOCAL_CC/CXX
   cp ${CMAKE_CONF} cmake-zstd.conf
 
-  echo "SET(CMAKE_C_COMPILER   $CC)"  >> cmake-zstd.conf
-  echo "SET(CMAKE_CXX_COMPILER $CXX)" >> cmake-zstd.conf
+  echo "SET(CMAKE_C_COMPILER   ${CC})"  >> cmake-zstd.conf
+  echo "SET(CMAKE_CXX_COMPILER ${CXX})" >> cmake-zstd.conf
 
   cmake -DCMAKE_TOOLCHAIN_FILE=cmake-zstd.conf \
         -DCMAKE_INSTALL_PREFIX=${TOOLCHAIN} \
