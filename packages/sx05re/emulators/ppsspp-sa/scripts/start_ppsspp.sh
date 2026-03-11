@@ -4,11 +4,6 @@
 
 . /etc/profile
 
-# Força todos os núcleos ao máximo (Essencial para o S905L)
-for i in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
-    echo performance > "$i"
-done
-
 SOURCE_DIR="/usr/config/ppsspp-sa"
 CONF_DIR="/storage/.config/ppsspp-sa"
 PPSSPP_INI="/PSP/SYSTEM/ppsspp.ini"
