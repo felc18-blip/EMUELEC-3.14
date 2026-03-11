@@ -1,74 +1,52 @@
-# EmuELEC  
-Retro emulation for Amlogic devices.
-Based on  [CoreELEC](https://github.com/CoreELEC/CoreELEC) and [Lakka](https://github.com/libretro/Lakka-LibreELEC) with tidbits from [Batocera](https://github.com/batocera-linux/batocera.linux). I just combine them with [Batocera-Emulationstation](https://github.com/batocera-linux/batocera-emulationstation) and some standalone emulators ([Advancemame](https://github.com/amadvance/advancemame), [PPSSPP](https://github.com/hrydgard/ppsspp), [Reicast](https://github.com/reicast/reicast-emulator), [Amiberry](https://github.com/midwan/amiberry) and others). 
+# EmuELEC (Modificado - 3.14 + 4.8 Old Edition) 🚀
+
+Emulação retrô para dispositivos Amlogic.
+Baseado no [CoreELEC](https://github.com/CoreELEC/CoreELEC) e [Lakka](https://github.com/libretro/Lakka-LibreELEC) com elementos do [Batocera](https://github.com/batocera-linux/batocera.linux). Esta versão combina a estabilidade do **EmuELEC 3.14** com scripts e emuladores da versão **4.8 Nexus**, otimizada especificamente para chipsets **S905L** (Kernel 3.14 Legacy).
 
 ---
 [![GitHub Release](https://img.shields.io/github/release/EmuELEC/EmuELEC.svg)](https://github.com/EmuELEC/EmuELEC/releases/latest)
 [![GPL-2.0 Licensed](https://shields.io/badge/license-GPL2-blue)](https://github.com/EmuELEC/EmuELEC/blob/master/licenses/GPL2.txt)
 [![Discord](https://img.shields.io/badge/chat-on%20discord-7289da.svg?logo=discord)](https://discord.gg/jQWCFwTn5T)
 
-### ⚠️**IMPORTANT**⚠️
-#### EmuELEC is now aarch64 ONLY, compiling and using the ARM version after version 3.9 is no longer supported. Please have a look at the master_32bit branch if you want to build the 32-bit version.
+### ⚠️ **IMPORTANTE** ⚠️
+#### O EmuELEC agora é apenas **aarch64**. A compilação e o uso da versão ARM (32 bits) após a versão 3.9 não são mais suportados. Por favor, consulte a branch `master_32bit` se desejar compilar a versão de 32 bits.
 
 ---
-## Development
 
-### Build prerequisites
+## 🧠 O Projeto: Kernel 3.14 Modificado
+Este projeto nasceu da necessidade de manter hardware "Legacy" (Amlogic S905L) rodando tecnologias modernas. 
 
-These instructions are only for Debian/Ubuntu based systems.
+**Para que serve este Kernel?**
+O Kernel 3.14 original da Amlogic possui drivers de vídeo estáveis, mas é tecnicamente limitado para padrões atuais. Nossa versão modificada serve como uma "ponte tecnológica":
+* **Suporte Nativo a SquashFS XZ:** Modificamos as entranhas do Kernel para que ele entenda a compressão XZ. Sem isso, jogos modernos do **PortMaster** (como *Stardew Valley* e *Celeste*) simplesmente não montam e dão erro de "Invalid Argument".
+* **Controle Total de Framebuffer:** Diferente dos Kernels mais novos (4.9+), este permite a troca dinâmica de resolução para 720p ou 480p, garantindo que a GPU Mali-450 não sofra com 1080p forçado.
 
-```
-$ apt install gcc make git unzip wget xz-utils libsdl2-dev libsdl2-mixer-dev libfreeimage-dev libfreetype6-dev libcurl4-openssl-dev rapidjson-dev libasound2-dev libgl1-mesa-dev build-essential libboost-all-dev cmake fonts-droid-fallback libvlc-dev libvlccore-dev vlc-bin texinfo premake4 golang libssl-dev curl patchelf xmlstarlet default-jre xsltproc libvpx-dev rdfind
-```
+**🚀 Compromisso de Atualização:**
+Este repositório será mantido **mais atualizado que o EmuELEC oficial** no que diz respeito ao suporte para dispositivos antigos. Enquanto o projeto principal foca em novos chips, aqui faremos o *backport* de novos emuladores, scripts de otimização e correções de segurança especificamente para a arquitetura "Old Edition".
 
-### Building EmuELEC
-To build EmuELEC locally do the following:
+---
 
-```
-$ git clone https://github.com/EmuELEC/EmuELEC.git
-$ cd EmuELEC
-$ git checkout dev
-$ PROJECT=Amlogic-ce DEVICE=Amlogic-ng ARCH=aarch64 DISTRO=EmuELEC make image
-```
+## ✨ Destaques Técnicos
 
-For the Odroid GO Advance/Super:
-```
-$ PROJECT=Rockchip DEVICE=OdroidGoAdvance ARCH=aarch64 DISTRO=EmuELEC make image
-```
+* **PortMaster Fix:** Montagem de arquivos `.squashfs` funcionando perfeitamente.
+* **Particionamento Inteligente:** * **Sistema (BOOT):** Travado em **2GB**.
+    * **Dados (STORAGE):** Travado em **2GB**.
+    * **ROMS (EEROMS):** Alocação automática de todo o restante do cartão SD.
+* **Performance:** Scripts de CPU Governor configurados para extrair o máximo do Cortex-A53.
 
-Note: In some cases you may also need to install the tzdata, xfonts-utils and/or lzop packages.
-```
-$ apt install tzdata xfonts-utils lzop
-```
+---
 
+## 🛠️ Desenvolvimento
 
-**Remember to use the proper DTB for your device!**
+### Pré-requisitos de compilação
+Estas instruções são destinadas apenas a sistemas baseados em Debian/Ubuntu.
 
-### Submitting patches
-Please create a pull request with the changes you made in the dev branch and make sure to include a brief description of what you changed and why you did it.
+```bash
+sudo apt install gcc make git unzip wget xz-utils libsdl2-dev libsdl2-mixer-dev libfreeimage-dev libfreetype6-dev libcurl4-openssl-dev rapidjson-dev libasound2-dev libgl1-mesa-dev build-essential libboost-all-dev cmake fonts-droid-fallback libvlc-dev libvlccore-dev vlc-bin texinfo premake4 golang libssl-dev curl patchelf xmlstarlet default-jre xsltproc libvpx-dev rdfind tzdata xfonts-utils lzop
 
-## Get in touch
-If you have a question, suggestions for new features, or need help configuring or installing EmuELEC, please visit [our forum](https://emuelec.org/). You may also want to visit our [wiki](https://github.com/EmuELEC/EmuELEC/wiki) or join our [Discord](https://discord.gg/jQWCFwTn5T).
+# Clone o repositório
+git clone [https://github.com/felc18-blip/EMUELEC-3.14.git](https://github.com/felc18-blip/EMUELEC-3.14.git)
+cd EMUELEC-3.14
 
-**EmuELEC DOES NOT INCLUDE KODI**
-
-Please note, this is mainly a personal project, I can't guarantee it will work with your box. I've spent many hours tweaking many things and making sure everything works, but I can't test everything and some things may not work yet. Also, be aware of hardware limitations and don't expect everything to run at 60FPS (especially N64, PSP, and Reicast). I can't guarantee that changes will be incorporated to fit your specific needs, but I welcome pull requests, help testing other boxes, and fixing problems in general.  
-I'm working on this project in my spare time, I'm not making any money from it, so it will take me a while to test all the changes properly, but I'll do my best to help you fix any problems you might have on other boxes, in my spare time.
-
-## License
-
-EmuELEC is based on CoreELEC, which in turn is licensed under the GPLv2 (and GPLv2-or-later). All original files created by the EmuELEC team are licensed as GPLv2-or-later and marked as such.
-
-However, the distro contains many non-commercial emulators/libraries/cores/binaries and therefore **cannot be sold, bundled, offered, included in commercial products/applications or anything similar, including but not limited to Android devices, smart TVs, TV boxes, handheld devices, computers, SBCs or anything else that can run EmuELEC** with the included emulators/libraries/cores/binaries.
-
-Also note the license section from the README from the CoreELEC team, which has been adapted for EmuELEC:
-
-As EmuELEC includes code from many upstream projects it includes many copyright owners. EmuELEC makes NO claim of copyright on any upstream code. Patches to upstream code have the same license as the upstream project, unless specified otherwise. For a complete copyright list please checkout the source code to examine license headers. Unless expressly stated otherwise all code submitted to the EmuELEC project (in any form) is licensed under GPLv2-or-later. You are absolutely free to retain copyright. To retain copyright simply add a copyright header to each submitted code page. If you submit code that is not your own work it is your responsibility to place a header stating the copyright.
-
-### Branding
-
-All EmuELEC related logos, videos, images and branding in general are the sole property of EmuELEC. They are all copyrighted by the EmuELEC team and may not be included in any commercial application without proper permission (yes, that includes EmuELEC bundled with ROMS for donations!).
-
-However, you have permission to include/modify them in your forks/projects as long as they are fully open source and freely available (i.e. not under a bunch of "click on this sponsored ad to get the link!" buttons) and do not violate any copyright laws, even if you receive donations for such a project (we are not against donations for honest people!), we just ask that you give us the appropriate credits and if possible a link to this repo.
-
-Happy retrogaming!
+# Para compilar a imagem otimizada para S905L (Amlogic-old):
+PROJECT=Amlogic-ce DEVICE=Amlogic-old ARCH=aarch64 make image
