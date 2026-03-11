@@ -8,10 +8,6 @@
 
 case "${1}" in
 "before")
-    # 1. CPU em modo Performance
-    if [ -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ]; then
-        echo "performance" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-    fi
 
     # 2. Ativar ZRAM (256MB)
     modprobe zram num_devices=1 2>/dev/null

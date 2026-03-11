@@ -225,8 +225,13 @@ case ${PLATFORM} in
                 fi
                 ;;
         "nds")
-                set_kill_keys "drastic"
-                RUNTHIS='${TBASH} /storage/.emulationstation/scripts/drastic.sh "${ROMNAME}"'
+                if [ "${EMU}" = "drastic-advanced" ]; then
+            set_kill_keys "drastic"
+            RUNTHIS="/usr/bin/advancedrastic.sh \"${ROMNAME}\""
+                else
+            set_kill_keys "drastic"
+            RUNTHIS="/usr/bin/start_drastic.sh \"${ROMNAME}\""
+                fi
                 ;;
         "n64")
                 if [ "${EMU}" = "rice" ]; then
@@ -235,7 +240,16 @@ case ${PLATFORM} in
                 elif [ "${EMU}" = "glide64mk2" ]; then
             set_kill_keys "mupen64plus"
             RUNTHIS='${TBASH} m64p.sh "${ROMNAME}" m64p_gl64mk2'
-        fi
+                elif [ "${EMU}" = "rice-adv" ]; then
+            set_kill_keys "mupen64plus-adv"
+            RUNTHIS='${TBASH} start_mupen64plus-adv.sh "${ROMNAME}"'
+                elif [ "${EMU}" = "glide64mk2-adv" ]; then
+            set_kill_keys "mupen64plus-adv"
+            RUNTHIS='${TBASH} start_mupen64plus-adv.sh "${ROMNAME}" m64p_gl64mk2'
+                elif [ "${EMU}" = "gliden64-adv" ]; then
+            set_kill_keys "mupen64plus-adv"
+            RUNTHIS='${TBASH} start_mupen64plus-adv.sh "${ROMNAME}" m64p_gliden64'
+                fi
                 ;;
         "amiga"|"amigacd32")
                 if [ "${EMU}" = "AMIBERRY-LITE" ] || [ "${EMU}" = "AMIBERRY" ]; then
@@ -391,12 +405,12 @@ case ${PLATFORM} in
 		fi
 		;;
 		"saturn")
-        if [ "${EMU}" = "yabasanshiroSA" ]; then
+        if [ "${EMU}" == "yabasanshiroSA_1_11" ]; then
             set_kill_keys "yabasanshiro"
             RUNTHIS='yabasanshiro.sh "${ROMNAME}"'
-        elif [ "${EMU}" = "yabasanshiroSA1_5" ]; then
-		        set_kill_keys "yabasanshiro1_5"
-            	RUNTHIS='yabasanshiro1_5.sh "${ROMNAME}"'
+        elif [ "${EMU}" == "yabasanshiroSA_1_5" ]; then
+            set_kill_keys "yabasanshiro1_5"
+            RUNTHIS='yabasanshiro1_5.sh "${ROMNAME}"'
         fi
         ;;
         esac

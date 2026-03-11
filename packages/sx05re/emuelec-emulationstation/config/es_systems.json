@@ -4512,10 +4512,36 @@
           "name": "libretro",
           "cores": [
             {
-              "name": "yabasanshiro-lr"
+              "name": "yabasanshiro-lr",
+              "default": true
+            },
+            {
+              "name": "yabause"
+            },
+            {
+              "name": "yabasanshiro"
             },
             {
               "name": "mednafen_saturn"
+            },
+            {
+              "name": "kronos"
+            }
+          ]
+        },
+        {
+          "name": "yabasanshiroSA_1_11",
+          "cores": [
+            {
+              "name": "yabasanshiroSA_1_11"
+            }
+          ]
+        },
+        {
+          "name": "yabasanshiroSA_1_5",
+          "cores": [
+            {
+              "name": "yabasanshiroSA_1_5"
             }
           ]
         }
@@ -4738,6 +4764,14 @@
             {
               "name": "beetle_psx"
             },
+            {
+              "name": "duckstation"
+            }
+          ]
+        },
+        {
+          "name": "duckstation",
+          "cores": [
             {
               "name": "duckstation"
             }
