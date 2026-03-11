@@ -1,0 +1,61 @@
+###############################################################################
+# GPTOKEYB - DRASTIC
+# Select + Start = Sair do emulador
+#
+# Funciona com:
+# - Controle com fio
+# - Controle sem fio
+#
+# Desenvolvido por Black Retro Games
+###############################################################################
+
+# --- BOTÕES PRINCIPAIS ---
+a = d
+b = a
+x = s
+y = f
+
+l1 = z
+r1 = x
+
+l2 = home
+r2 = end
+
+l3 = mouse_right
+r3 = shift
+
+# --- START / SELECT ---
+start = enter
+back  = esc
+
+# --- HOTKEY ---
+hotkey = back
+
+# --- SAIR DO EMULADOR ---
+hotkey + start = exit
+
+# --- DIRECIONAL ---
+up = up
+down = down
+left = left
+right = right
+
+# --- ANALÓGICOS ---
+left_analog_up = up
+left_analog_down = down
+left_analog_left = left
+left_analog_right = right
+
+right_analog_up = mouse_movement_up
+right_analog_down = mouse_movement_down
+right_analog_left = mouse_movement_left
+right_analog_right = mouse_movement_right
+
+# --- DEADZONES ---
+deadzone_y = 2100
+deadzone_x = 1900
+deadzone_triggers = 3000
+
+# --- MOUSE ---
+mouse_scale = 512
+mouse_delay = 16

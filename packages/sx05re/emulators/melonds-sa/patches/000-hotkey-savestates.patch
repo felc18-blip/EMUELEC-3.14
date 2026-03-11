@@ -1,0 +1,93 @@
+diff -rupN melonds-sa.orig/src/frontend/qt_sdl/Config.cpp melonds-sa/src/frontend/qt_sdl/Config.cpp
+--- melonds-sa.orig/src/frontend/qt_sdl/Config.cpp	2023-06-09 13:52:03.502169544 +0000
++++ melonds-sa/src/frontend/qt_sdl/Config.cpp	2023-06-09 14:14:26.018915096 +0000
+@@ -191,6 +191,8 @@ ConfigEntry ConfigFile[] =
+     {"HKKey_PowerButton",         0, &HKKeyMapping[HK_PowerButton],         -1, true},
+     {"HKKey_VolumeUp",            0, &HKKeyMapping[HK_VolumeUp],            -1, true},
+     {"HKKey_VolumeDown",          0, &HKKeyMapping[HK_VolumeDown],          -1, true},
++    {"HKKey_SaveState",           0, &HKKeyMapping[HK_SaveState],           -1, true},
++    {"HKKey_LoadState",           0, &HKKeyMapping[HK_LoadState],           -1, true},
+ 
+     {"HKJoy_Lid",                 0, &HKJoyMapping[HK_Lid],                 -1, true},
+     {"HKJoy_Mic",                 0, &HKJoyMapping[HK_Mic],                 -1, true},
+@@ -207,6 +209,8 @@ ConfigEntry ConfigFile[] =
+     {"HKJoy_PowerButton",         0, &HKJoyMapping[HK_PowerButton],         -1, true},
+     {"HKJoy_VolumeUp",            0, &HKJoyMapping[HK_VolumeUp],            -1, true},
+     {"HKJoy_VolumeDown",          0, &HKJoyMapping[HK_VolumeDown],          -1, true},
++    {"HKJoy_SaveState",           0, &HKJoyMapping[HK_SaveState],           -1, true},
++    {"HKJoy_LoadState",           0, &HKJoyMapping[HK_LoadState],           -1, true},
+ 
+     {"JoystickID", 0, &JoystickID, 0, true},
+ 
+diff -rupN melonds-sa.orig/src/frontend/qt_sdl/Config.h melonds-sa/src/frontend/qt_sdl/Config.h
+--- melonds-sa.orig/src/frontend/qt_sdl/Config.h	2023-06-09 13:52:03.502169544 +0000
++++ melonds-sa/src/frontend/qt_sdl/Config.h	2023-06-09 13:55:47.705973753 +0000
+@@ -39,6 +39,8 @@ enum
+     HK_PowerButton,
+     HK_VolumeUp,
+     HK_VolumeDown,
++    HK_SaveState,
++    HK_LoadState,
+     HK_MAX
+ };
+ 
+diff -rupN melonds-sa.orig/src/frontend/qt_sdl/InputConfig/InputConfigDialog.h melonds-sa/src/frontend/qt_sdl/InputConfig/InputConfigDialog.h
+--- melonds-sa.orig/src/frontend/qt_sdl/InputConfig/InputConfigDialog.h	2023-06-09 13:52:03.502169544 +0000
++++ melonds-sa/src/frontend/qt_sdl/InputConfig/InputConfigDialog.h	2023-06-09 14:10:04.074487398 +0000
+@@ -55,7 +55,9 @@ static constexpr std::initializer_list<i
+     HK_SwapScreenEmphasis,
+     HK_PowerButton,
+     HK_VolumeUp,
+-    HK_VolumeDown
++    HK_VolumeDown,
++    HK_SaveState,
++    HK_LoadState
+ };
+ 
+ static constexpr std::initializer_list<const char*> hk_general_labels =
+@@ -72,7 +74,9 @@ static constexpr std::initializer_list<c
+     "Swap screen emphasis",
+     "DSi Power button",
+     "DSi Volume up",
+-    "DSi Volume down"
++    "DSi Volume down",
++    "Save State",
++    "Load State"
+ };
+ 
+ static_assert(hk_general.size() == hk_general_labels.size());
+diff -rupN melonds-sa.orig/src/frontend/qt_sdl/main.cpp melonds-sa/src/frontend/qt_sdl/main.cpp
+--- melonds-sa.orig/src/frontend/qt_sdl/main.cpp	2023-06-09 13:52:03.502169544 +0000
++++ melonds-sa/src/frontend/qt_sdl/main.cpp	2023-06-09 14:11:34.273396945 +0000
+@@ -195,6 +195,8 @@ EmuThread::EmuThread(QObject* parent) :
+     connect(this, SIGNAL(windowFullscreenToggle()), mainWindow, SLOT(onFullscreenToggled()));
+     connect(this, SIGNAL(swapScreensToggle()), mainWindow->actScreenSwap, SLOT(trigger()));
+     connect(this, SIGNAL(screenEmphasisToggle()), mainWindow, SLOT(onScreenEmphasisToggled()));
++    connect(this, SIGNAL(hkSaveState()), mainWindow->actSaveState[1], SLOT(trigger()));
++    connect(this, SIGNAL(hkLoadState()), mainWindow->actLoadState[1], SLOT(trigger()));
+ 
+     static_cast<ScreenPanelGL*>(mainWindow->panel)->transferLayout(this);
+ }
+@@ -368,6 +370,9 @@ void EmuThread::run()
+         if (Input::HotkeyPressed(HK_SwapScreens)) emit swapScreensToggle();
+         if (Input::HotkeyPressed(HK_SwapScreenEmphasis)) emit screenEmphasisToggle();
+ 
++        if (Input::HotkeyPressed(HK_SaveState)) emit hkSaveState();
++        if (Input::HotkeyPressed(HK_LoadState)) emit hkLoadState();
++
+         if (Input::HotkeyPressed(HK_SolarSensorDecrease))
+         {
+             int level = GBACart::SetInput(GBACart::Input_SolarSensorDown, true);
+diff -rupN melonds-sa.orig/src/frontend/qt_sdl/main.h melonds-sa/src/frontend/qt_sdl/main.h
+--- melonds-sa.orig/src/frontend/qt_sdl/main.h	2023-06-09 13:52:03.502169544 +0000
++++ melonds-sa/src/frontend/qt_sdl/main.h	2023-06-09 14:05:33.969707409 +0000
+@@ -87,6 +87,9 @@ signals:
+     void swapScreensToggle();
+     void screenEmphasisToggle();
+ 
++    void hkSaveState();
++    void hkLoadState();
++
+     void syncVolumeLevel();
+ 
+ private:
