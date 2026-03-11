@@ -1,35 +1,18 @@
 #!/bin/bash
-
-# SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2019-present Shanti Gilbert (https://github.com/shantigilbert)
-
-# BlackRetroOS - Performance & ZRAM Hook
-. /etc/profile
+# BlackRetroOS - S905L Lite Hook
 
 case "${1}" in
 "before")
-
-    # 2. Ativar ZRAM (256MB)
-    modprobe zram num_devices=1 2>/dev/null
-    (
-        sleep 1
-        if [ -b /dev/zram0 ]; then
-            swapoff /dev/zram0 2>/dev/null
-            echo 1 > /sys/block/zram0/reset 2>/dev/null
-            echo lz4 > /sys/block/zram0/comp_algorithm 2>/dev/null || echo lzo > /sys/block/zram0/comp_algorithm
-            echo 268435456 > /sys/block/zram0/disksize
-            mkswap /dev/zram0 >/dev/null 2>&1
-            swapon -p 100 /dev/zram0 2>/dev/null
-            echo 100 > /proc/sys/vm/swappiness
-        fi
-    ) &
-
-    # 3. Limite de arquivos para o Mono (PortMaster)
+    # Garante que o limite de ficheiros abertos é alto para o DuckStation/NDS
     ulimit -n 4096
+    
+    # Configura a agressividade da Swap (ZRAM)
+    echo 100 > /proc/sys/vm/swappiness
     ;;
 
 "after")
-    # Aqui você pode colocar comandos para rodar após o boot
+    # Limpa a memória cache e liberta a ZRAM após fechar o jogo
+    echo 3 > /proc/sys/vm/drop_caches
     ;;
 esac
 

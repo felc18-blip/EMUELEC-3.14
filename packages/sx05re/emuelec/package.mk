@@ -5,13 +5,13 @@ PKG_NAME="emuelec"
 PKG_LICENSE="GPLv2"
 PKG_SITE=""
 PKG_URL=""
-PKG_DEPENDS_TARGET="toolchain ${OPENGLES} emuelec-emulationstation retroarch"
+PKG_DEPENDS_TARGET="toolchain ${OPENGLES} emuelec-emulationstation retroarch duckstation duckstation1"
 PKG_SECTION="emuelec"
 PKG_LONGDESC="EmuELEC Meta Package"
 PKG_TOOLCHAIN="manual"
 
 PKG_EXPERIMENTAL="nestopiaCV quasi88 xmil np2kai hypseus-singe yabasanshiroSA_1_11 yabasanshiroSA_1_5 fbneoSA same_cdi ikemen-go" 
-PKG_EMUS="${LIBRETRO_CORES} mupen64plus-adv drastic-advanced vircon32-lr mu-lr mojozork-lr gametank-lr gametank32-lr emuscv-lr duckstation-lr crocods-lr bsnes-hd-lr b2-lr drastic-sa mame2003-xtreme-lr mame2015-lr mame2003-midway-lr opera-lr bsnes-mercury-performance-lr mupen64plus-nx-lr mupen64plus-lr morpheuscast-xtreme32-lr fbalpha2019-lr ludicrousn64-xtreme32-lr ludicrousn64-xtreme-lr beetle-psx-lr desmume-2015 ppsspp ppsspp-lr ppsspp-sa desmume melonds advancemame PPSSPPSDL amiberry amiberry-lite hatarisa openbor dosbox-staging mupen64plus-nx mupen64plus-nx-alt scummvmsa stellasa solarus dosbox-pure pcsx_rearmed potator freej2me duckstation flycastsa fmsx-libretro jzintv mupen64plussa xroar x16 simcoupe ti99sim oricutron"
+PKG_EMUS="${LIBRETRO_CORES} mupen64plus-adv drastic-advanced vircon32-lr mu-lr mojozork-lr gametank-lr gametank32-lr emuscv-lr duckstation-lr crocods-lr bsnes-hd-lr b2-lr drastic-sa mame2003-xtreme-lr mame2015-lr mame2003-midway-lr opera-lr bsnes-mercury-performance-lr mupen64plus-nx-lr mupen64plus-lr morpheuscast-xtreme32-lr fbalpha2019-lr ludicrousn64-xtreme32-lr ludicrousn64-xtreme-lr beetle-psx-lr desmume-2015 ppsspp ppsspp-lr ppsspp-sa desmume melonds advancemame PPSSPPSDL amiberry amiberry-lite hatarisa openbor dosbox-staging mupen64plus-nx mupen64plus-nx-alt scummvmsa stellasa solarus dosbox-pure pcsx_rearmed potator freej2me flycastsa fmsx-libretro jzintv mupen64plussa xroar x16 simcoupe ti99sim oricutron"
 PKG_DEPENDS_TARGET+=" emuelec-tools ${PKG_EMUS} ${PKG_EXPERIMENTAL}"
 
 
