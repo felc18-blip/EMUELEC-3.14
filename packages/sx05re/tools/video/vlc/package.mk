@@ -1,22 +1,20 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2019-present Shanti Gilbert (https://github.com/shantigilbert)
+# Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
 
 PKG_NAME="vlc"
-PKG_VERSION="3.0.17.4"
-PKG_SHA256="8c5a62d88a4fb45c1b095cf10befef217dfa87aedcec5184b9e7d590b6dd4133"
-PKG_REV="20211025"
+PKG_VERSION="3.0.20"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.videolan.org"
-PKG_URL="https://download.videolan.org/pub/videolan/${PKG_NAME}/${PKG_VERSION}/${PKG_NAME}-${PKG_VERSION}.tar.xz"
-PKG_DEPENDS_TARGET="toolchain libdvbpsi gnutls ffmpeg libmpeg2 zlib flac libvorbis libxml2 pulseaudio mpg123-compat x264"
+PKG_URL="https://mirror.netcologne.de/videolan.org/${PKG_NAME}/${PKG_VERSION}/$PKG_NAME-${PKG_VERSION}.tar.xz"
+PKG_DEPENDS_TARGET="toolchain libdvbpsi gnutls ffmpeg libmpeg2 zlib flac libvorbis libxml2 pulseaudio SDL2 x264 x265 aom libogg"
 PKG_SHORTDESC="VideoLAN multimedia player and streamer"
 PKG_LONGDESC="VLC is the VideoLAN project's media player. It plays MPEG, MPEG2, MPEG4, DivX, MOV, WMV, QuickTime, mp3, Ogg/Vorbis files, DVDs, VCDs, and multimedia streams from various network sources."
 
-
 pre_configure_target() {
 
-ENABLED_FEATURES="--enable-silent-rules \
+  ENABLED_FEATURES="--enable-silent-rules \
             --enable-run-as-root \
             --enable-sout \
             --enable-vlm \
@@ -31,20 +29,19 @@ ENABLED_FEATURES="--enable-silent-rules \
             --enable-png \
             --enable-jpeg \
             --enable-libxml2 \
-            --enable-alsa \
+            --enable-pulse \
             --enable-udev \
             --enable-vlc \
-            --enable-neon \
-            --enable-x264 \
-            --enable-gles2"
+            --enable-x264"
 
-DISABLED_FEATURES="--disable-dependency-tracking \
+  DISABLED_FEATURES="--disable-dependency-tracking \
             --without-contrib \
+            --disable-alsa \
             --disable-nls \
-            --disable-rpath \
             --disable-dbus \
             --disable-gprof \
             --disable-cprof \
+            --disable-rpath \
             --disable-debug \
             --disable-coverage \
             --disable-lua \
@@ -169,16 +166,22 @@ DISABLED_FEATURES="--disable-dependency-tracking \
             --disable-x262 \
             --disable-zvbi"
 
-	if [ "${DEVICE}" == "Amlogic-old" ]; then 
-		ENABLED_FEATURES+=" --enable-pulse"
-	else
-		DISABLED_FEATURES+=" --disable-pulse"
-	fi 
+  case ${ARCH} in
+    arm)
+      PKG_DEPENDS_TARGET+=" ${OPENGLES}"
+      ENABLED_FEATURES+=" --enable-gles2 --enable-neon"
+    ;;
+    aarch64)
+      PKG_DEPENDS_TARGET+=" ${OPENGLES}"
+      ENABLED_FEATURES+=" --enable-gles2"
+    ;;
+    *)
+      PKG_DEPENDS_TARGET+=" ${OPENGL} glu libglvnd"
+    ;;
+  esac
 
-PKG_CONFIGURE_OPTS_TARGET="${ENABLED_FEATURES} ${DISABLED_FEATURES}"
-
-
-  export LDFLAGS="${LDFLAGS} -lresolv -fopenmp"
+  PKG_CONFIGURE_OPTS_TARGET="${DISABLED_FEATURES} ${ENABLED_FEATURES}"
+  export LDFLAGS="${LDFLAGS} -lresolv -fopenmp -Wl,-rpath,../src/.libs"
 }
 
 post_makeinstall_target() {

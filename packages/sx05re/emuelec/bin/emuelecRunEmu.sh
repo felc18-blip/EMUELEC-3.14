@@ -226,11 +226,11 @@ case ${PLATFORM} in
                 ;;
         "nds")
                 if [ "${EMU}" = "drastic-advanced" ]; then
-            set_kill_keys "drastic"
-            RUNTHIS="/usr/bin/advancedrastic.sh \"${ROMNAME}\""
+                    set_kill_keys "drastic"
+                    RUNTHIS="/usr/bin/advancedrastic.sh \"${ROMNAME}\""
                 else
-            set_kill_keys "drastic"
-            RUNTHIS="/usr/bin/start_drastic.sh \"${ROMNAME}\""
+                    set_kill_keys "drastic"
+                    RUNTHIS="/usr/bin/start_drastic.sh \"${ROMNAME}\""
                 fi
                 ;;
         "n64")

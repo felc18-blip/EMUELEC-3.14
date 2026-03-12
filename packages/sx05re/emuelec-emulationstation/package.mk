@@ -4,12 +4,16 @@
 PKG_NAME="emuelec-emulationstation"
 PKG_VERSION="4826365da13164770f824a27f6bf6be0a9074040"
 PKG_GIT_CLONE_BRANCH="EmuELEC"
-PKG_GIT_CLONE_SUBMODULES="yes"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/EmuELEC/emuelec-emulationstation"
 PKG_URL="${PKG_SITE}.git"
+PKG_DEPENDS_TARGET="toolchain SDL2 freetype freeimage vlc rapidjson ${OPENGLES} SDL2_mixer fping p7zip espeak"
+PKG_SECTION="emuelec"
+PKG_SHORTDESC="Emulationstation emulator frontend"
+PKG_BUILD_FLAGS="-gold"
+GET_HANDLER_SUPPORT="git"
 
 PKG_DEPENDS_TARGET="toolchain SDL2 freetype freeimage vlc rapidjson ${OPENGLES} SDL2_mixer fping p7zip espeak es-theme-art-book-next"
 
