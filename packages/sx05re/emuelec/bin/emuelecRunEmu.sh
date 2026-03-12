@@ -386,6 +386,12 @@ case ${PLATFORM} in
 			RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
 		fi
 		;;
+        "ports")
+            if [[ "${ROMNAME}" == *".sh" ]]; then
+                set_kill_keys "gptokeyb" 
+                RUNTHIS='${TBASH} "${ROMNAME}"'
+            fi
+            ;;
 		"coco")
 			if [ "${EMU}" = "xroar" ]; then
 			set_kill_keys "xroar.aarch64"

@@ -26,10 +26,10 @@
 		<image>./setup_images/create_dirs.png</image>
 	</game>
 	<game>
-		<path>./install_portmaster.sh</path>
-		<name>Install PortMaster</name>
+		<path>./Port_Master.sh</path>
+		<name>PortMaster</name>
 		<desc>Install latest PortMaster</desc>
-		<developer>shantigilbert</developer>
+		<developer>RetroElite</developer>
 		<publisher>Emuelec</publisher>
 		<genre>script</genre>
 		<image>./setup_images/portmaster.png</image>
