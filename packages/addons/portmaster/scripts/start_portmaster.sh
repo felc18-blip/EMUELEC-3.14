@@ -1,64 +1,84 @@
 #!/bin/bash
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2022-present JELOS (https://github.com/JustEnoughLinuxOS)
+# Copyright (C) 2022-present JELOS
 # Adaptado para EmuELEC 3.14 / S905L por Felipe
 
 . /etc/profile
 
-# 1. Preparação da pasta de configuração no STORAGE (partição de escrita)
-if [ ! -d "/storage/.config/PortMaster" ]; then
-    mkdir -p "/storage/.config/PortMaster"
-    cp -r "/usr/config/PortMaster/"* "/storage/.config/PortMaster/"
+CONFIG_DIR="/storage/.config/PortMaster"
+PORTS_DIR="/storage/roms/ports"
+PORTS_SCRIPTS_DIR="/storage/roms/ports_scripts"
+PM_DIR="$PORTS_DIR/PortMaster"
+
+# gerar control.ini automaticamente
+control-gen > /storage/.config/emuelec/configs/gptokeyb/control.ini
+
+# 1. Preparação da pasta de configuração no STORAGE
+if [ ! -d "$CONFIG_DIR" ]; then
+    mkdir -p "$CONFIG_DIR"
+    cp -r /usr/config/PortMaster/* "$CONFIG_DIR/"
 fi
 
-cd /storage/.config/PortMaster
 
-# 2. Atualiza scripts de controle garantindo permissão de execução
-cp /usr/config/PortMaster/control.txt control.txt
+cd "$CONFIG_DIR" || exit 1
+
+# 2. Atualiza scripts de controle
+cp -f /usr/config/PortMaster/control.txt control.txt
 chmod +x control.txt
-cp /usr/config/PortMaster/mapper.txt mapper.txt
+
+cp -f /usr/config/PortMaster/mapper.txt mapper.txt
 chmod +x mapper.txt
 
-# 3. Link do Banco de Dados de Controles (Ajustado para o caminho da foto que você mandou)
+# 3. Link do banco de controles SDL
 rm -f gamecontrollerdb.txt
 ln -sf /storage/.config/SDL-GameControllerDB/gamecontrollerdb.txt gamecontrollerdb.txt
 
-# 4. Instalação inicial do PortMaster (se não existir)
-if [ ! -d "/storage/roms/ports/PortMaster" ]; then
-    mkdir -p /storage/roms/ports
-    unzip -o /usr/config/PortMaster/release/PortMaster.zip -d /storage/roms/ports/
-    chmod +x /storage/roms/ports/PortMaster/PortMaster.sh
+# 4. Garantir estrutura de diretórios
+mkdir -p "$PORTS_DIR"
+mkdir -p "$PORTS_SCRIPTS_DIR"
+
+# garantir permissões corretas
+chmod 775 "$PORTS_DIR"
+chmod 775 "$PORTS_SCRIPTS_DIR"
+
+# 5. Instalação inicial do PortMaster
+if [ ! -d "$PM_DIR" ]; then
+    unzip -o /usr/config/PortMaster/release/PortMaster.zip -d "$PORTS_DIR"
+    chmod +x "$PM_DIR/PortMaster.sh"
 fi
 
-# 5. Limpeza de arquivos desnecessários
-[ -f /storage/roms/ports/PortMaster/tasksetter ] && rm -f /storage/roms/ports/PortMaster/tasksetter
+# 6. Limpeza de arquivos desnecessários
+[ -f "$PM_DIR/tasksetter" ] && rm -f "$PM_DIR/tasksetter"
 
-# 6. Sincroniza o gptokeyb e os scripts de mapeamento
-# No S905L, usamos o gptokeyb que você compilou em /usr/bin/
-cp /usr/bin/gptokeyb /storage/roms/ports/PortMaster/gptokeyb
-cp /storage/.config/PortMaster/control.txt /storage/roms/ports/PortMaster/control.txt
-cp /storage/.config/PortMaster/mapper.txt /storage/roms/ports/PortMaster/mapper.sh
-cp /storage/.config/PortMaster/gamecontrollerdb.txt /storage/roms/ports/PortMaster/gamecontrollerdb.txt
+# 7. Sincroniza gptokeyb e arquivos de controle
+cp -f /usr/bin/gptokeyb "$PM_DIR/gptokeyb"
+chmod +x "$PM_DIR/gptokeyb"
 
-# 7. Oculta a pasta PortMaster no Gamelist (Otimizado com xmlstarlet)
-# Se você tiver o xmlstarlet instalado como dependência, isso funciona:
-if [ -f /storage/roms/ports/gamelist.xml ]; then
-    xmlstarlet ed --inplace -d "/gameList/folder[path='./PortMaster']" /storage/roms/ports/gamelist.xml 2>/dev/null
-    xmlstarlet ed --inplace --subnode "/gameList" --type elem -n folder -v "" \
+cp -f "$CONFIG_DIR/control.txt" "$PM_DIR/control.txt"
+cp -f "$CONFIG_DIR/mapper.txt" "$PM_DIR/mapper.txt"
+chmod +x "$PM_DIR/mapper.txt"
+
+cp -f "$CONFIG_DIR/gamecontrollerdb.txt" "$PM_DIR/gamecontrollerdb.txt"
+
+# 8. Oculta pasta PortMaster no gamelist
+if [ -f "$PORTS_DIR/gamelist.xml" ]; then
+    xmlstarlet ed --inplace -d "/gameList/folder[path='./PortMaster']" "$PORTS_DIR/gamelist.xml" 2>/dev/null
+    xmlstarlet ed --inplace \
+        --subnode "/gameList" --type elem -n folder -v "" \
         --subnode "/gameList/folder[last()]" --type elem -n path -v "./PortMaster" \
         --subnode "/gameList/folder[last()]" --type elem -n name -v "PortMaster" \
-        --subnode "/gameList/folder[last()]" --type elem -n hidden -v "true" /storage/roms/ports/gamelist.xml 2>/dev/null
+        --subnode "/gameList/folder[last()]" --type elem -n hidden -v "true" \
+        "$PORTS_DIR/gamelist.xml" 2>/dev/null
 fi
 
-# 8. Roda o Fixer de Compatibilidade que configuramos antes
+# 9. Compatibilidade
 if [ -f "/usr/bin/portmaster_compatibility.sh" ]; then
     /usr/bin/portmaster_compatibility.sh
 fi
 
-# 9. EXECUÇÃO FINAL
-# @LIBEGL@ será substituído pelas variáveis da Mali-450 pelo post_install do package.mk
+# 10. Execução final
 @LIBEGL@
 
-cd /storage/roms/ports/PortMaster
-# Executa o PortMaster jogando os logs para um arquivo para debug se precisar
+cd "$PM_DIR" || exit 1
+
 ./PortMaster.sh > /storage/portmaster.log 2>&1

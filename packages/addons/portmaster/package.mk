@@ -1,63 +1,72 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2022-present JELOS (https://github.com/JustEnoughLinuxOS)
+# Copyright (C) 2022-present JELOS
 
 PKG_NAME="portmaster"
 PKG_VERSION="2026.01.19-0955"
 PKG_SITE="https://github.com/PortsMaster/PortMaster-GUI"
 PKG_URL="${PKG_SITE}/releases/download/${PKG_VERSION}/PortMaster.zip"
 COMPAT_URL="https://github.com/RetroGFX/UnofficialOSAddOns/raw/main/compat.zip"
+
 PKG_LICENSE="MIT"
 PKG_ARCH="arm aarch64"
-# ADICIONADO: unzip e libmali | REMOVIDO: oga_controls
+
 PKG_DEPENDS_TARGET="toolchain gptokeyb gamecontrollerdb wget control-gen unzip libmali"
 PKG_TOOLCHAIN="manual"
-PKG_LONGDESC="Portmaster - a simple tool that allows you to download various game ports"
+PKG_LONGDESC="PortMaster - a simple tool that allows you to download various game ports"
 
 makeinstall_target() {
   export STRIP=true
+
+  # Diretório base do PortMaster
   mkdir -p ${INSTALL}/usr/config/PortMaster
-  
-  # Verifica se a pasta sources existe antes de copiar
+
+  # Instala arquivos sources (control.txt / mapper.txt)
   if [ -d "${PKG_DIR}/sources" ]; then
     cp -rf ${PKG_DIR}/sources/* ${INSTALL}/usr/config/PortMaster/
   fi
 
+  # Instala scripts executáveis
   mkdir -p ${INSTALL}/usr/bin
   if [ -d "${PKG_DIR}/scripts" ]; then
-    cp -rf ${PKG_DIR}/scripts/* ${INSTALL}/usr/bin
+    cp -rf ${PKG_DIR}/scripts/* ${INSTALL}/usr/bin/
   fi
-  chmod +x ${INSTALL}/usr/bin/*
 
-  # Baixa o Zip do PortMaster
+  chmod +x ${INSTALL}/usr/bin/*.sh 2>/dev/null
+
+  # Baixa o PortMaster
   mkdir -p ${INSTALL}/usr/config/PortMaster/release
-  curl -Lo ${INSTALL}/usr/config/PortMaster/release/PortMaster.zip ${PKG_URL}
+  curl -L --retry 5 -o \
+    ${INSTALL}/usr/config/PortMaster/release/PortMaster.zip \
+    ${PKG_URL}
 
-  # Baixa e EXTRAI as libs de compatibilidade (aqui o unzip entra em ação)
+  # Compat libs usadas pelos ports
   mkdir -p ${INSTALL}/usr/lib/compat
-  curl -Lo ${PKG_BUILD}/compat.zip ${COMPAT_URL}
-  unzip -qq -o ${PKG_BUILD}/compat.zip -d ${INSTALL}/usr/lib/compat/
-  
-  # 5. AJUSTE: Garante que a pasta de configs do EmuELEC exista
+
+  curl -L --retry 5 -o ${PKG_BUILD}/compat.zip ${COMPAT_URL}
+
+  unzip -qq -o ${PKG_BUILD}/compat.zip \
+      -d ${INSTALL}/usr/lib/compat/
+
+  # Estrutura necessária do EmuELEC para gptokeyb
   mkdir -p ${INSTALL}/storage/.config/emuelec/configs/gptokeyb
 }
 
 post_install() {
-    case ${DEVICE} in
-      Amlogic-old)
-        # Caminhos específicos para a Mali-450 do S905L
-        LIBEGL="export SDL_VIDEO_GL_DRIVER=/usr/lib/libGLESv2.so export SDL_VIDEO_EGL_DRIVER=/usr/lib/libEGL.so"
-      ;;
-      S922X)
-        LIBEGL="export SDL_VIDEO_GL_DRIVER=/usr/lib/egl/libGL.so.1 export SDL_VIDEO_EGL_DRIVER=/usr/lib/egl/libEGL.so.1"
-      ;;
-      *)
-        LIBEGL=""
-      ;;
-    esac
-    
-    if [ -f "${INSTALL}/usr/bin/start_portmaster.sh" ]; then
-      # MUDANÇA AQUI: Trocamos o / por | para evitar erro com caminhos de arquivos
-      sed -e "s|@LIBEGL@|${LIBEGL}|g" \
-          -i ${INSTALL}/usr/bin/start_portmaster.sh
-    fi
+
+  case ${DEVICE} in
+    Amlogic-old)
+      LIBEGL="export SDL_VIDEO_GL_DRIVER=/usr/lib/libGLESv2.so export SDL_VIDEO_EGL_DRIVER=/usr/lib/libEGL.so"
+    ;;
+    S922X)
+      LIBEGL="export SDL_VIDEO_GL_DRIVER=/usr/lib/egl/libGL.so.1 export SDL_VIDEO_EGL_DRIVER=/usr/lib/egl/libEGL.so.1"
+    ;;
+    *)
+      LIBEGL=""
+    ;;
+  esac
+
+  if [ -f "${INSTALL}/usr/bin/start_portmaster.sh" ]; then
+    sed -e "s|@LIBEGL@|${LIBEGL}|g" \
+        -i ${INSTALL}/usr/bin/start_portmaster.sh
+  fi
 }

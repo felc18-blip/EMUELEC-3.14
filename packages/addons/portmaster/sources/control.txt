@@ -177,4 +177,4 @@ if [ ! -z "$ESUDO" ]; then
 fi
 
 export GPTOKEYB2="$ESUDO env LD_PRELOAD=$controlfolder/libinterpose.${DEVICE_ARCH}.so $controlfolder/gptokeyb2 $ESUDOKILL2"
-export GPTOKEYB="$ESUDO $controlfolder/gptokeyb $ESUDOKILL"
+export GPTOKEYB="$GPTOKEYB2"

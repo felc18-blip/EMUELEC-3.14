@@ -3,25 +3,26 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2022-present JELOS (https://github.com/JustEnoughLinuxOS)
 
-# 1. Ajustado para o caminho real que vimos na sua Captura de Tela
+# 1. Ajustado para o caminho real
 GPTK_DIR="/storage/.config/emuelec/configs/gptokeyb"
 
-if [ ! -d "$GPTK_DIR" ]; then
-    mkdir -p "$GPTK_DIR"
+mkdir -p "$GPTK_DIR"
+
+# 2. Link gamecontrollerdb.txt
+if [ -f /storage/.config/SDL-GameControllerDB/gamecontrollerdb.txt ]; then
+    ln -sf /storage/.config/SDL-GameControllerDB/gamecontrollerdb.txt \
+    "$GPTK_DIR/gamecontrollerdb.txt"
 fi
 
-# 2. Link gamecontrollerdb.txt 
-# Usando o caminho da Box onde o banco de dados realmente fica
-ln -sf /storage/.config/SDL-GameControllerDB/gamecontrollerdb.txt "$GPTK_DIR/gamecontrollerdb.txt"
-
 # 3. Link gptokeyb
-# Faz o link do binário para a pasta de config (alguns scripts antigos buscam aqui)
-ln -sf /usr/bin/gptokeyb "$GPTK_DIR/gptokeyb"
+if [ -f /usr/bin/gptokeyb ]; then
+    ln -sf /usr/bin/gptokeyb "$GPTK_DIR/gptokeyb"
+fi
 
 # 4. Run control-gen
-# Gera o mapeamento inicial baseado no seu es_input.cfg
-# Salvando na pasta correta para o EmuELEC reconhecer
-/usr/bin/control-gen > "$GPTK_DIR/control.ini"
+if [ -x /usr/bin/control-gen ]; then
+    /usr/bin/control-gen > "$GPTK_DIR/control.ini"
+fi
 
-# Garante que as permissões estejam corretas na partição de escrita
-chmod 0755 "$GPTK_DIR"/*
+# 5. Permissões
+chmod 0755 "$GPTK_DIR"/* 2>/dev/null
