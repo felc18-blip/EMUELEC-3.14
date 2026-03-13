@@ -3,15 +3,14 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="glibc"
-PKG_VERSION="2.36"
-PKG_SHA256="1c959fea240906226062cb4b1e7ebce71a9f0e3c0836c09e7e3423d434fcfe75"
+PKG_VERSION="2.38"
 PKG_LICENSE="GPL"
 PKG_SITE="https://www.gnu.org/software/libc/"
 PKG_URL="https://ftp.gnu.org/pub/gnu/glibc/${PKG_NAME}-${PKG_VERSION}.tar.xz"
 PKG_DEPENDS_TARGET="ccache:host autotools:host linux:host gcc:bootstrap pigz:host Python3:host"
 PKG_DEPENDS_INIT="glibc"
 PKG_LONGDESC="The Glibc package contains the main C library."
-PKG_BUILD_FLAGS="+bfd"
+PKG_BUILD_FLAGS="+bfd -gold"
 
 case "${LINUX}" in
   amlogic-4.9|rk356x-4.19|OdroidM1-4.19)
@@ -47,6 +46,7 @@ PKG_CONFIGURE_OPTS_TARGET="BASH_SHELL=/bin/sh \
                            --disable-sanity-checks \
                            --enable-add-ons \
                            --enable-bind-now \
+                           --enable-crypt \
                            --with-elf \
                            --with-tls \
                            --with-__thread \
@@ -70,7 +70,7 @@ post_unpack() {
 }
 
 pre_configure_target() {
-# Filter out some problematic *FLAGS
+
   export CFLAGS=$(echo ${CFLAGS} | sed -e "s|-ffast-math||g")
   export CFLAGS=$(echo ${CFLAGS} | sed -e "s|-Ofast|-O2|g")
   export CFLAGS=$(echo ${CFLAGS} | sed -e "s|-O.|-O2|g")
@@ -90,7 +90,6 @@ pre_configure_target() {
 
   unset LD_LIBRARY_PATH
 
-  # set some CFLAGS we need
   export CFLAGS="${CFLAGS} -g -fno-stack-protector"
 
   export BUILD_CC=${HOST_CC}
@@ -112,18 +111,16 @@ rootsbindir=/usr/bin
 build-programs=yes
 EOF
 
-  # binaries to install into target
   GLIBC_INCLUDE_BIN="getent ldd locale localedef"
 }
 
 post_makeinstall_target() {
-  mkdir -p ${INSTALL}/.noinstall
-    cp -p ${INSTALL}/usr/bin/localedef ${INSTALL}/.noinstall
-    cp -a ${INSTALL}/usr/share/i18n/locales ${INSTALL}/.noinstall
-    mv ${INSTALL}/usr/share/i18n/charmaps ${INSTALL}/.noinstall
 
-# cleanup
-# remove any programs we don't want/need, keeping only those we want
+  mkdir -p ${INSTALL}/.noinstall
+  cp -p ${INSTALL}/usr/bin/localedef ${INSTALL}/.noinstall
+  cp -a ${INSTALL}/usr/share/i18n/locales ${INSTALL}/.noinstall
+  mv ${INSTALL}/usr/share/i18n/charmaps ${INSTALL}/.noinstall
+
   for f in $(find ${INSTALL}/usr/bin -type f); do
     listcontains "${GLIBC_INCLUDE_BIN}" "$(basename "${f}")" || safe_remove "${f}"
   done
@@ -133,46 +130,50 @@ post_makeinstall_target() {
   safe_remove ${INSTALL}/usr/lib/*.o
   safe_remove ${INSTALL}/var
 
-# add UTF-8 charmap
   mkdir -p ${INSTALL}/usr/share/i18n/charmaps
-    cp -PR ${INSTALL}/.noinstall/charmaps/UTF-8.gz ${INSTALL}/usr/share/i18n/charmaps
+  cp -PR ${INSTALL}/.noinstall/charmaps/UTF-8.gz ${INSTALL}/usr/share/i18n/charmaps
 
   if [ ! "${GLIBC_LOCALES}" = yes ]; then
+
     safe_remove ${INSTALL}/usr/share/i18n/locales
 
     mkdir -p ${INSTALL}/usr/share/i18n/locales
-      cp -PR ${PKG_BUILD}/localedata/locales/POSIX ${INSTALL}/usr/share/i18n/locales
+    cp -PR ${PKG_BUILD}/localedata/locales/POSIX ${INSTALL}/usr/share/i18n/locales
+
   fi
 
-# create default configs
   mkdir -p ${INSTALL}/etc
-    cp ${PKG_DIR}/config/nsswitch-target.conf ${INSTALL}/etc/nsswitch.conf
-    cp ${PKG_DIR}/config/host.conf ${INSTALL}/etc
-    cp ${PKG_DIR}/config/gai.conf ${INSTALL}/etc
+  cp ${PKG_DIR}/config/nsswitch-target.conf ${INSTALL}/etc/nsswitch.conf
+  cp ${PKG_DIR}/config/host.conf ${INSTALL}/etc
+  cp ${PKG_DIR}/config/gai.conf ${INSTALL}/etc
 }
 
 configure_init() {
   cd ${PKG_BUILD}
-    rm -rf ${PKG_BUILD}/.${TARGET_NAME}-init
+  rm -rf ${PKG_BUILD}/.${TARGET_NAME}-init
 }
 
 make_init() {
-  : # reuse make_target()
+  :
 }
 
 makeinstall_init() {
+
   mkdir -p ${INSTALL}/usr/lib
-    cp -PR ${PKG_BUILD}/.${TARGET_NAME}/elf/ld*.so* ${INSTALL}/usr/lib
-    cp -PR ${PKG_BUILD}/.${TARGET_NAME}/libc.so* ${INSTALL}/usr/lib
-    cp -PR ${PKG_BUILD}/.${TARGET_NAME}/math/libm.so* ${INSTALL}/usr/lib
-    cp -PR ${PKG_BUILD}/.${TARGET_NAME}/nptl/libpthread.so* ${INSTALL}/usr/lib
-    cp -PR ${PKG_BUILD}/.${TARGET_NAME}/rt/librt.so* ${INSTALL}/usr/lib
-    cp -PR ${PKG_BUILD}/.${TARGET_NAME}/resolv/libnss_dns.so* ${INSTALL}/usr/lib
-    cp -PR ${PKG_BUILD}/.${TARGET_NAME}/resolv/libresolv.so* ${INSTALL}/usr/lib
+
+  cp -PR ${PKG_BUILD}/.${TARGET_NAME}/elf/ld*.so* ${INSTALL}/usr/lib
+  cp -PR ${PKG_BUILD}/.${TARGET_NAME}/libc.so* ${INSTALL}/usr/lib
+  cp -PR ${PKG_BUILD}/.${TARGET_NAME}/math/libm.so* ${INSTALL}/usr/lib
+  cp -PR ${PKG_BUILD}/.${TARGET_NAME}/nptl/libpthread.so* ${INSTALL}/usr/lib
+  cp -PR ${PKG_BUILD}/.${TARGET_NAME}/rt/librt.so* ${INSTALL}/usr/lib
+  cp -PR ${PKG_BUILD}/.${TARGET_NAME}/resolv/libnss_dns.so* ${INSTALL}/usr/lib
+  cp -PR ${PKG_BUILD}/.${TARGET_NAME}/resolv/libresolv.so* ${INSTALL}/usr/lib
+
 }
 
 post_makeinstall_init() {
-# create default configs
+
   mkdir -p ${INSTALL}/etc
-    cp ${PKG_DIR}/config/nsswitch-init.conf ${INSTALL}/etc/nsswitch.conf
+  cp ${PKG_DIR}/config/nsswitch-init.conf ${INSTALL}/etc/nsswitch.conf
+
 }

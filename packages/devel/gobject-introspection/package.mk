@@ -4,12 +4,11 @@
 # Copyright (C) 2020-present Team CoreELEC (https://coreelec.org)
 
 PKG_NAME="gobject-introspection"
-PKG_VERSION="1.75.4"
-PKG_SHA256="5356640b5941368fe8abfa7810fd8b5e07160038a177dcf4b683efb840932b5b"
+PKG_VERSION="1.78.1"
 PKG_ARCH="any"
 PKG_LICENSE="LGPL"
 PKG_SITE="http://www.gtk.org/"
-PKG_URL="https://github.com/GNOME/$PKG_NAME/archive/$PKG_VERSION.tar.gz"
+PKG_URL="https://github.com/GNOME/${PKG_NAME}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain libffi glib Python3 qemu:host gobject-introspection:host"
 PKG_DEPENDS_HOST="libffi:host glib:host"
 PKG_SECTION="devel"
@@ -22,6 +21,13 @@ pre_configure_host() {
 
   # prevent g-ir-scanner from writing cache data to $HOME
   export GI_SCANNER_DISABLE_CACHE="1"
+
+  # adicionado para versões novas
+  CC="${HOST_CC}"
+  CXX="${HOST_CXX}"
+  AR="${HOST_AR}"
+  CPP="${HOST_PREFIX}cpp"
+  CFLAGS="${HOST_CFLAGS} -fPIC"
 }
 
 pre_configure_target() {
@@ -29,15 +35,16 @@ pre_configure_target() {
   QEMU_BINARY="${TOOLCHAIN}/bin/qemu-${TARGET_ARCH}"
   PKG_CONFIG_PATH="${SYSROOT_PREFIX}/usr/lib/pkgconfig"
 
+  # adicionado para versões novas
+  TARGET_LDFLAGS="${TARGET_LDFLAGS} -Wl,--dynamic-linker=${GLIBC_DYNAMIC_LINKER}"
+
   # for gi this variables must be defined for target and not for host
-  # because they are used in
-  # toolchain/lib/gobject-introspection/giscanner/ccompiler.py
   CC="${TARGET_CC}"
   CXX="${TARGET_CXX}"
   AR="${TARGET_AR}"
   CPP="${TARGET_PREFIX}cpp"
   CPPFLAGS="${TARGET_CPPFLAGS}"
-  CFLAGS="${TARGET_CFLAGS}"
+  CFLAGS="${TARGET_CFLAGS} -fPIC"
   LDFLAGS="${TARGET_LDFLAGS}"
 
   PKG_MESON_OPTS_TARGET=" \
@@ -48,11 +55,8 @@ pre_configure_target() {
     -Dgi_cross_ldd_wrapper=${TOOLCHAIN}/bin/g-ir-scanner-ldd-wrapper \
     -Dbuild_introspection_data=true"
 
-  # prevent g-ir-scanner from writing cache data to $HOME
   export GI_SCANNER_DISABLE_CACHE="1"
 
-  # write out a qemu wrapper that will be given to gi-scanner
-  # so that it can run target helper binaries through that
   cat > ${TOOLCHAIN}/bin/g-ir-scanner-binary-wrapper << EOF
 #!/bin/sh
   ${QEMU_BINARY} \
@@ -61,8 +65,6 @@ pre_configure_target() {
     "\$@"
 EOF
 
-  # write out a wrapper to use instead of ldd, which does not
-  # work when a binary is built for a different architecture
   cat > ${TOOLCHAIN}/bin/g-ir-scanner-ldd-wrapper << EOF
 #!/bin/sh
   ${QEMU_BINARY} \

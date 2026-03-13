@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
+# Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
 
 PKG_NAME="glib"
-PKG_VERSION="2.75.2"
-PKG_SHA256="360d6fb75202c0eb0d07f0ab812b19b526f1c05ccc0a8ed7e5d2c988616d343a"
+PKG_VERSION="2.78.3"
 PKG_LICENSE="LGPL"
 PKG_SITE="https://www.gtk.org/"
 PKG_URL="https://download.gnome.org/sources/glib/$(get_pkg_version_maj_min)/${PKG_NAME}-${PKG_VERSION}.tar.xz"
@@ -35,4 +35,6 @@ post_makeinstall_target() {
   rm -rf ${INSTALL}/usr/lib/glib-2.0
   rm -rf ${INSTALL}/usr/lib/installed-tests
   rm -rf ${INSTALL}/usr/share
+
+  sed -e "s#bindir=\${prefix}/bin#bindir=${TOOLCHAIN}/bin#" -i "${SYSROOT_PREFIX}/usr/lib/pkgconfig/"{gio,glib}-2.0.pc
 }

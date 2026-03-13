@@ -1,11 +1,11 @@
-# SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
+# SPDX-License-Identifier: GPL-2.0
+# Copyright (C) 2016-present Team LibreELEC
 
 PKG_NAME="vdpauinfo"
-PKG_VERSION="1.0"
-PKG_SHA256="4054960b7ae618c351ff1ce3e7831b5cbda964ae1fbf9969b7146404d3044bc4"
-PKG_LICENSE="GPL"
-PKG_SITE="http://freedesktop.org/wiki/Software/VDPAU"
-PKG_URL="http://people.freedesktop.org/~aplattner/vdpau/${PKG_NAME}-${PKG_VERSION}.tar.gz"
+PKG_VERSION="git"
+PKG_LICENSE="MIT"
+PKG_SITE="https://gitlab.freedesktop.org/vdpau/vdpauinfo"
+PKG_URL="https://gitlab.freedesktop.org/vdpau/vdpauinfo/-/archive/master/vdpauinfo-master.tar.gz"
 PKG_DEPENDS_TARGET="toolchain libvdpau"
-PKG_LONGDESC="A tool to show vdpau infos."
+PKG_LONGDESC="Tool to query the capabilities of a VDPAU implementation"
+PKG_TOOLCHAIN="autotools"
