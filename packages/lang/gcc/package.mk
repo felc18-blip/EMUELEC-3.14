@@ -3,11 +3,10 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="gcc"
-PKG_VERSION="12.2.0"
-PKG_SHA256="e549cf9cf3594a00e27b6589d4322d70e0720cdd213f39beb4181e06926230ff"
+PKG_VERSION="12.3.0"
 PKG_LICENSE="GPL-2.0-or-later"
 PKG_SITE="https://gcc.gnu.org/"
-PKG_URL="https://ftpmirror.gnu.org/gcc/${PKG_NAME}-${PKG_VERSION}/${PKG_NAME}-${PKG_VERSION}.tar.xz"
+PKG_URL="https://ftp.gnu.org/gnu/gcc/${PKG_NAME}-${PKG_VERSION}/${PKG_NAME}-${PKG_VERSION}.tar.xz"
 PKG_DEPENDS_BOOTSTRAP="ccache:host autoconf:host binutils:host gmp:host mpfr:host mpc:host zstd:host"
 PKG_DEPENDS_TARGET="toolchain"
 PKG_DEPENDS_HOST="ccache:host autoconf:host binutils:host gmp:host mpfr:host mpc:host zstd:host glibc"
@@ -19,7 +18,7 @@ if [ "${MOLD_SUPPORT}" = "yes" ]; then
 fi
 
 case ${TARGET_ARCH} in
-  arm|riscv64)
+  arm|aarch64|riscv64)
     OPTS_LIBATOMIC="--enable-libatomic"
     ;;
   *)
@@ -51,6 +50,10 @@ GCC_COMMON_CONFIGURE_OPTS="--target=${TARGET_NAME} \
                            --disable-libquadmath \
                            --disable-libmpx \
                            --disable-libssp \
+                           --disable-libsanitizer \
+                           --disable-libvtv \
+                           --disable-libstdcxx-debug \
+                           --disable-werror \
                            --enable-__cxa_atexit"
 
 PKG_CONFIGURE_OPTS_BOOTSTRAP="${GCC_COMMON_CONFIGURE_OPTS} \
@@ -61,8 +64,8 @@ PKG_CONFIGURE_OPTS_BOOTSTRAP="${GCC_COMMON_CONFIGURE_OPTS} \
                               --disable-libatomic \
                               --disable-libgomp \
                               --disable-libsanitizer \
+                              --disable-libvtv \
                               --disable-shared \
-							  --disable-libgomp \
                               --disable-threads \
                               --without-headers \
                               --with-newlib \
@@ -76,6 +79,8 @@ PKG_CONFIGURE_OPTS_HOST="${GCC_COMMON_CONFIGURE_OPTS} \
                          --enable-shared \
                          --disable-static \
                          --enable-long-long \
+                         --disable-libsanitizer \
+                         --disable-libvtv \
                          --enable-threads=posix \
                          --disable-libstdcxx-pch \
                          --enable-libstdcxx-time \
