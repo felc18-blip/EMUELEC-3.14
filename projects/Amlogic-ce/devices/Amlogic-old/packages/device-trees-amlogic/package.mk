@@ -11,12 +11,23 @@ PKG_URL="https://github.com/CoreELEC/device-trees-amlogic/archive/$PKG_VERSION.t
 PKG_DEPENDS_TARGET="toolchain"
 PKG_DEPENDS_UNPACK="linux"
 PKG_LONGDESC="Device trees for Amlogic devices."
-# some unpack recursive loop happen with yes maybe because already unpacked from linux
-# don't set no either 
-#PKG_IS_KERNEL_PKG="yes"
 PKG_TOOLCHAIN="manual"
 
+# Compila o dtbTool para rodar no PC (Host) usando a GLIBC do seu Ubuntu
+make_host() {
+  $HOST_CC -Wall $PKG_BUILD/dtbTool.c -o $PKG_BUILD/dtbTool
+}
+
+# Instala a ferramenta na pasta de binaríos da toolchain
+makeinstall_host() {
+  mkdir -p $TOOLCHAIN/bin
+  cp $PKG_BUILD/dtbTool $TOOLCHAIN/bin/
+}
+
 make_target() {
+  # Garante que o dtbTool que acabamos de compilar esteja acessível
+  export PATH=$TOOLCHAIN/bin:$PATH
+
   # Enter kernel directory
   pushd $BUILD/build/linux-$(kernel_version) > /dev/null
 
@@ -24,7 +35,7 @@ make_target() {
   EXTRA_TREES=( \
                 gxbb_p200 gxbb_p200_2G gxbb_p201 gxbb_p200_1G_wetek_hub gxbb_p200_2G_wetek_play_2 \
                 gxl_p212_1g gxl_p212_2g gxl_p230_2g gxl_p281_1g gxm_q200_2g gxm_q201_1g gxm_q201_2g \
-	      )
+              )
 
   # Add trees to the list
   for f in ${EXTRA_TREES[@]}; do

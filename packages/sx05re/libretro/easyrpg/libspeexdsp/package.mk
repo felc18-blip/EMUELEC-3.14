@@ -19,7 +19,7 @@
 ################################################################################
 
 PKG_NAME="libspeexdsp"
-PKG_VERSION="64cbfa9"
+PKG_VERSION="738e17905e1ca2a1fa932ddd9c2a85d089f4e845"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_SITE="https://github.com/xiph/speexdsp"
@@ -28,11 +28,6 @@ PKG_DEPENDS_TARGET="toolchain"
 PKG_PRIORITY="optional"
 PKG_SHORTDESC="Speex audio processing library"
 GET_HANDLER_SUPPORT="git"
-PKG_TOOLCHAIN="configure"
-
 PKG_IS_ADDON="no"
 PKG_AUTORECONF="no"
-
-pre_configure_target() {
-  ${PKG_BUILD}/autogen.sh
-}
+PKG_TOOLCHAIN="autotools"

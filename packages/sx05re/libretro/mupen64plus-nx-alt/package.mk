@@ -6,7 +6,7 @@ PKG_ARCH="any"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/mupen64plus-libretro-nx"
 PKG_URL="${PKG_SITE}.git"
-
+PKG_GIT_CLONE_OPTIONS="--single-branch" 
 PKG_GIT_SUBMODULES="no"
 
 PKG_DEPENDS_TARGET="toolchain nasm:host ${OPENGLES}"
