@@ -203,7 +203,8 @@ make_target() {
     KERNEL_TARGET="${KERNEL_TARGET/uImage/Image}"
   fi
 
-  DTC_FLAGS=-@ kernel_make ${KERNEL_TARGET} ${KERNEL_MAKE_EXTRACMD} modules
+ DTC_FLAGS=-@ KCFLAGS="-Wno-error -Wno-missing-attributes -Wno-stringop-truncation -Wno-address-of-packed-member -Wno-tautological-compare -fno-allow-store-data-races" \
+kernel_make ${KERNEL_TARGET} ${KERNEL_MAKE_EXTRACMD} modules
 
   if [ "${PKG_BUILD_PERF}" = "yes" ]; then
     ( cd tools/perf
@@ -289,7 +290,8 @@ makeinstall_target() {
       pigz --best --force ${INSTALL}/.image/${KERNEL_TARGET}
       mv ${INSTALL}/.image/${KERNEL_TARGET}.gz ${INSTALL}/.image/${KERNEL_TARGET}
     fi
-
+    DTC_FLAGS=-@ KCFLAGS="-Wno-error -Wno-missing-attributes -Wno-stringop-truncation -Wno-address-of-packed-member -fno-allow-store-data-races" \
+  kernel_make ${KERNEL_TARGET} ${KERNEL_MAKE_EXTRACMD} modules
     mkdir -p ${INSTALL}/usr/share/bootloader/overlays
 
     # install platform dtbs, but remove upstream kernel dtbs (i.e. without downstream

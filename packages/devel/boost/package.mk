@@ -35,13 +35,20 @@ configure_target() {
                   --with-python=${TOOLCHAIN}/bin/python \
                   --with-python-root=${SYSROOT_PREFIX}/usr
 
-  echo "using gcc : $(${CC} -v 2>&1  | tail -n 1 |awk '{print $3}') : ${CC}  : <compileflags>\"${CFLAGS}\" <linkflags>\"${LDFLAGS}\" ;" \
-    > tools/build/src/user-config.jam
+  echo "using gcc : cross : ${TARGET_PREFIX}g++ : <archiver>${TARGET_PREFIX}ar <ranlib>${TARGET_PREFIX}ranlib <compileflags>\"${CFLAGS}\" <linkflags>\"${LDFLAGS}\" ;" \
+  > tools/build/src/user-config.jam
+
   echo "using python : ${PKG_PYTHON_VERSION/#python} : ${TOOLCHAIN} : ${SYSROOT_PREFIX}/usr/include : ${SYSROOT_PREFIX}/usr/lib ;" \
-    >> tools/build/src/user-config.jam
+  >> tools/build/src/user-config.jam
 }
 
 makeinstall_target() {
+
+  export CC=${TARGET_PREFIX}gcc
+  export CXX=${TARGET_PREFIX}g++
+  export AR=${TARGET_PREFIX}ar
+  export RANLIB=${TARGET_PREFIX}ranlib
+
   ${TOOLCHAIN}/bin/b2 -d2 --ignore-site-config \
                       --layout=system \
                       --prefix=${SYSROOT_PREFIX}/usr \
@@ -54,9 +61,13 @@ makeinstall_target() {
                       --with-python \
                       --with-locale \
                       --with-random \
-                      --with-regex -sICU_PATH="${SYSROOT_PREFIX}/usr" \
+                      --with-regex \
+					  --with-context \
+                      --with-nowide \
+                      -sICU_PATH="${SYSROOT_PREFIX}/usr" \
                       --with-serialization \
                       --with-system \
                       --with-thread \
                       install
 }
+
