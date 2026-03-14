@@ -9,67 +9,56 @@ PKG_LICENSE="MAME"
 PKG_SITE="https://github.com/hrydgard/ppsspp"
 PKG_URL="https://github.com/hrydgard/ppsspp.git"
 PKG_DEPENDS_TARGET="toolchain ffmpeg libzip libpng SDL2 zlib zip"
-PKG_SHORTDESC="PPSSPP Standalone"
-PKG_LONGDESC="PPSSPP Standalone SDL build"
+PKG_SHORTDESC="PPSSPPDL"
+PKG_LONGDESC="PPSSPP Standalone"
 GET_HANDLER_SUPPORT="git"
 PKG_BUILD_FLAGS="-lto"
 
-PKG_CMAKE_OPTS_TARGET+=" -DUSE_SYSTEM_FFMPEG=ON \
-                         -DUSE_SYSTEM_LIBPNG=ON \
-                         -DUSING_FBDEV=ON \
-                         -DUSING_EGL=OFF \
-                         -DUSING_GLES2=ON \
-                         -DUSING_X11_VULKAN=OFF \
-                         -DUSE_DISCORD=OFF"
 
-if [ "${ARCH}" = "aarch64" ]; then
-  PKG_CMAKE_OPTS_TARGET+=" -DARM64=ON"
+PKG_CMAKE_OPTS_TARGET+="-DUSE_SYSTEM_FFMPEG=ON \
+                        -DUSING_FBDEV=ON \
+                        -DUSING_EGL=OFF \
+                        -DUSING_GLES2=ON \
+                        -DUSING_X11_VULKAN=OFF \
+                        -DUSE_DISCORD=OFF"
+
+if [ ${ARCH} == "aarch64" ]; then
+PKG_CMAKE_OPTS_TARGET+=" -DARM64=ON"
 else
-  PKG_CMAKE_OPTS_TARGET+=" -DARMV7=ON"
+PKG_CMAKE_OPTS_TARGET+=" -DARMV7=ON"
 fi
 
 
-pre_patch() {
-  cd ${PKG_BUILD}
-  git submodule update --init --recursive
-}
-
-
 pre_configure_target() {
-  if [ "${DEVICE}" = "OdroidGoAdvance" ] || [ "${DEVICE}" = "GameForce" ]; then
-    sed -i "s|include_directories(/usr/include/drm)|include_directories(${SYSROOT_PREFIX}/usr/include/drm)|" ${PKG_BUILD}/CMakeLists.txt
-  fi
+if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ]; then
+	sed -i "s|include_directories(/usr/include/drm)|include_directories(${SYSROOT_PREFIX}/usr/include/drm)|" ${PKG_BUILD}/CMakeLists.txt
+fi
 }
-
 
 pre_make_target() {
-  find ${PKG_BUILD} -name flags.make -exec sed -i "s:isystem :I:g" {} \;
-  find ${PKG_BUILD} -name build.ninja -exec sed -i "s:isystem :I:g" {} \;
+  # fix cross compiling
+  find ${PKG_BUILD} -name flags.make -exec sed -i "s:isystem :I:g" \{} \;
+  find ${PKG_BUILD} -name build.ninja -exec sed -i "s:isystem :I:g" \{} \;
 }
 
 
 makeinstall_target() {
-
   mkdir -p ${INSTALL}/usr/bin
-  cp ${PKG_DIR}/scripts/*.sh ${INSTALL}/usr/bin
-
-  cp $(find ${PKG_BUILD} -name PPSSPPSDL) ${INSTALL}/usr/bin/PPSSPPSDL
-
-  ln -sf /storage/.config/ppsspp/assets ${INSTALL}/usr/bin/assets
-
-  mkdir -p ${INSTALL}/usr/config/ppsspp
-  cp -r $(find ${PKG_BUILD} -name assets) ${INSTALL}/usr/config/ppsspp/
-
-  cp -rf ${PKG_DIR}/config/* ${INSTALL}/usr/config/ppsspp/
-
-  rm -f ${INSTALL}/usr/config/ppsspp/assets/gamecontrollerdb.txt
-  ln -sf /storage/.config/SDL-GameControllerDB/gamecontrollerdb.txt \
-        ${INSTALL}/usr/config/ppsspp/assets/gamecontrollerdb.txt
-
-  mkdir -p "${INSTALL}/usr/config/ppsspp/PSP"
-
-  for dir in Cheats PPSSPP_STATE SAVEDATA TEXTURES; do
-    ln -sf "/storage/roms/savestates/PPSSPPSDL/PSP/${dir}" \
-           "${INSTALL}/usr/config/ppsspp/PSP/${dir}"
-  done
-}
+    cp ${PKG_DIR}/scripts/*.sh ${INSTALL}/usr/bin
+    cp `find . -name "PPSSPPSDL" | xargs echo` ${INSTALL}/usr/bin/PPSSPPSDL
+    ln -sf /storage/.config/ppsspp/assets ${INSTALL}/usr/bin/assets
+    mkdir -p ${INSTALL}/usr/config/ppsspp/
+    cp -r `find . -name "assets" | xargs echo` ${INSTALL}/usr/config/ppsspp/
+    
+    cp -rf ${PKG_DIR}/config/* ${INSTALL}/usr/config/ppsspp/
+    
+    rm ${INSTALL}/usr/config/ppsspp/assets/gamecontrollerdb.txt
+    ln -sf /storage/.config/SDL-GameControllerDB/gamecontrollerdb.txt ${INSTALL}/usr/config/ppsspp/assets/gamecontrollerdb.txt
+    
+# redirect some of PSP folders to /storage/roms to keep all the saves and custom files
+   mkdir -p "${INSTALL}/usr/config/ppsspp/PSP"    
+   
+for dir in Cheats PPSSPP_STATE SAVEDATA TEXTURES; do
+		ln -sf "/storage/roms/savestates/PPSSPPSDL/PSP/${dir}" "${INSTALL}/usr/config/ppsspp/PSP/${dir}"
+done
+} 

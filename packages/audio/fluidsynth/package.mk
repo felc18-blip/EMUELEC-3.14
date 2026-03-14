@@ -11,12 +11,11 @@ PKG_DEPENDS_TARGET="toolchain glib libsndfile pulseaudio"
 PKG_LONGDESC="FluidSynth renders midi music files as raw audio data, for playing or conversion."
 PKG_BUILD_FLAGS="+pic"
 
-# 2. Desative o suporte no CMake
 PKG_CMAKE_OPTS_TARGET="-DBUILD_SHARED_LIBS=0 \
                        -DLIB_SUFFIX= \
                        -Denable-libsndfile=1 \
                        -Denable-pkgconfig=1 \
-                       -Denable-pipewire=0 \
+                       -Denable-pipewire=1 \
                        -Denable-pulseaudio=1 \
                        -Denable-systemd=1 \
                        -Denable-readline=0"
