@@ -15,7 +15,10 @@ PKG_CONFIGURE_OPTS_TARGET="--host=${LIB32_TARGET_NAME} \
                            --prefix=/usr \
                            --libdir=/usr/lib32 \
                            --enable-shared \
-                           --disable-static"
+                           --disable-static \
+                           --enable-hashes=all \
+                           --enable-obsolete-api=glibc \
+                           --disable-werror"
 
 makeinstall_target() {
 

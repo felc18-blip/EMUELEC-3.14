@@ -31,6 +31,9 @@ PKG_CONFIGURE_OPTS_TARGET="ac_cv_func_malloc_0_nonnull=yes \
                            --with-libxslt-include-prefix=${SYSROOT_PREFIX}/usr/include \
                            --with-libxslt-libs-prefix=${SYSROOT_PREFIX}/usr/lib"
 
+# ADICIONADO: Força o link do iconv durante a execução do MAKE
+PKG_MAKE_OPTS_TARGET="LIBS=-liconv"
+
 post_makeinstall_host() {
   ln -sf xml ${TOOLCHAIN}/bin/xmlstarlet
 }

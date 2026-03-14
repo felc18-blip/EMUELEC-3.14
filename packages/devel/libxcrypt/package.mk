@@ -9,4 +9,7 @@ PKG_DEPENDS_TARGET="toolchain"
 PKG_CONFIGURE_OPTS_TARGET="\
   --enable-shared \
   --disable-static \
+  --enable-hashes=all \
+  --enable-obsolete-api=glibc \
+  --disable-werror \
 "
