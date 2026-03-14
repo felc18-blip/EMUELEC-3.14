@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2020-present Shanti Gilbert (https://github.com/shantigilbert)
-# Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
+# Copyright (C) 2020-present Shanti Gilbert
+# Copyright (C) 2023 JELOS
 
 PKG_NAME="sdljoytest"
 PKG_VERSION="811d9875e0c13e0c87d93351e69169bf74d28270"
@@ -12,13 +12,25 @@ PKG_LONGDESC="Test joystick with SDL2 in Linux"
 PKG_TOOLCHAIN="make"
 
 pre_configure_target() {
-sed -i "s|gcc|${CC}|" Makefile
+  # Corrigir compilador C++ no Makefile
+  sed -i "s|gcc|g++|g" Makefile
+}
+
+pre_make_target() {
+  export CC="${TARGET_CC}"
+  export CXX="${TARGET_CXX}"
+}
+
+make_target() {
+  make CC="${TARGET_CC}" CXX="${TARGET_CXX}"
 }
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/bin
-  cp -rf test_gamepad_SDL2 ${INSTALL}/usr/bin
-  ln -s test_gamepad_SDL2 ${INSTALL}/usr/bin/sdljoytest
-  cp -rf map_gamepad_SDL2 ${INSTALL}/usr/bin
-  ln -s map_gamepad_SDL2 ${INSTALL}/usr/bin/sdljoymap
+
+  cp test_gamepad_SDL2 ${INSTALL}/usr/bin/
+  ln -sf test_gamepad_SDL2 ${INSTALL}/usr/bin/sdljoytest
+
+  cp map_gamepad_SDL2 ${INSTALL}/usr/bin/
+  ln -sf map_gamepad_SDL2 ${INSTALL}/usr/bin/sdljoymap
 }
