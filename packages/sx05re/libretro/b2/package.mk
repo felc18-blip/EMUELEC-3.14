@@ -15,6 +15,12 @@ PKG_TOOLCHAIN="make"
 
 PKG_LIBRETRO="src/libretro"
 
+pre_configure_target() {
+  sed -i 's/size_t strlcpy(char \*dest, const char \*src, size_t size);/\/\/ removed: provided by glibc/' \
+  ${PKG_BUILD}/src/shared/h/shared/system.h
+}
+
+
 pre_make_target() {
  
   cd ${PKG_BUILD}/${PKG_LIBRETRO}

@@ -31,12 +31,20 @@ PKG_TOOLCHAIN="make"
 PKG_BUILD_FLAGS="-lto"
 
 pre_make_target() {
-  export REALCC=${CC}
-  export CC=${CXX}
-  export LD=${CXX}
-
   mkdir -p obj/mame/mame
+
+  # wrapper para forçar gcc -> g++
+  cat > gcc << EOF
+#!/bin/sh
+exec ${CXX} "\$@"
+EOF
+  chmod +x gcc
+
+  export PATH="$(pwd):$PATH"
+
+  PKG_MAKE_OPTS_TARGET+=" platform=armv8-neon-hardfloat-cortex-a53"
 }
+
 
 pre_configure_target() {
   case ${ARCH} in

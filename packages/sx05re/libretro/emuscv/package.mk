@@ -15,7 +15,7 @@ PKG_TOOLCHAIN="make"
 PKG_GIT_CLONE_SINGLE="yes"
 
 pre_make_target() {
-  export PATH="${SYSROOT_PREFIX}/usr/bin:${PATH}"
+  export PATH=$(echo $PATH | sed 's|[^:]*sysroot/usr/bin:||g')
   mkdir -p sys
   : > sys/io.h
   sed -i 's|-I/usr/include/SDL2||g' Makefile.libretro

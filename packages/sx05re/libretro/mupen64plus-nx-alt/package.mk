@@ -1,6 +1,3 @@
-# SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2021-present Shanti Gilbert
-
 PKG_NAME="mupen64plus-nx-alt"
 PKG_VERSION="680e033fc8ed1a49df7b156d97164e0050ee13bc"
 PKG_SHA256="ffadc0144406df9875e1cb5e788d619fcddc6c7d5df61692be8c67c86d5b8fcb"
@@ -10,7 +7,10 @@ PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/mupen64plus-libretro-nx"
 PKG_URL="${PKG_SITE}.git"
 
+PKG_GIT_SUBMODULES="no"
+
 PKG_DEPENDS_TARGET="toolchain nasm:host ${OPENGLES}"
+
 PKG_SECTION="libretro"
 PKG_LONGDESC="Improved mupen64plus libretro core reimplementation"
 

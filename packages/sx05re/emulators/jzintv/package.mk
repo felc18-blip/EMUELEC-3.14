@@ -6,7 +6,7 @@ PKG_VERSION="20200712"
 PKG_LICENSE="FOSS"
 PKG_SITE="http://spatula-city.org/~im14u2c/intv"
 PKG_URL="${PKG_SITE}/dl/jzintv-${PKG_VERSION}-src.zip"
-PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_mixer SDL2_net"
+PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_mixer SDL2_net sdl12-compat"
 PKG_LONGDESC="Joe Zbiciak Intellivision Emulator"
 PKG_TOOLCHAIN="make"
 
@@ -16,6 +16,7 @@ PKG_MAKE_OPTS_TARGET="-C src/ -f Makefile GNU_READLINE=0 "
 }
 
 makeinstall_target() {
+  LDFLAGS="${LDFLAGS} -lSDL"
   mkdir -p ${INSTALL}/usr/bin
   cp bin/jzintv ${INSTALL}/usr/bin
   cp ${PKG_DIR}/scripts/* ${INSTALL}/usr/bin

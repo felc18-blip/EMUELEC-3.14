@@ -3,17 +3,16 @@
 # EmuELEC package for Mini vMac (libretro-minivmac) core
 
 PKG_NAME="minivmac"
-PKG_VERSION="e7fcfef"
-
-PKG_LICENSE="GPL-2.0-only"
+PKG_VERSION="2eb65cd5ca80174435867d2453d702390e5aab45"
+PKG_ARCH="any"
+PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/libretro-minivmac"
 PKG_URL="${PKG_SITE}.git"
-
 PKG_DEPENDS_TARGET="toolchain"
-PKG_SECTION="emuelec/libretro"
-PKG_SHORTDESC="Mini vMac Macintosh II emulator (libretro core)"
-PKG_LONGDESC="libretro-minivmac is a libretro port of Mini vMac, a classic Macintosh II emulator."
+PKG_SECTION="libretro"
+PKG_SHORTDESC="Virtual Macintosh"
 PKG_TOOLCHAIN="make"
+
 
 make_target() {
   make -C "${PKG_BUILD}"
