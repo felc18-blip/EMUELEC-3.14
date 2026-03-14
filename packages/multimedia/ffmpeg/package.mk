@@ -3,37 +3,15 @@
 # Copyright (C) 2017-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="ffmpeg"
-PKG_VERSION="4.4.1"
-PKG_SHA256="eadbad9e9ab30b25f5520fbfde99fae4a92a1ae3c0257a8d68569a4651e30e02"
-PKG_LICENSE="GPL-3.0-only"
+PKG_LICENSE="LGPLv2.1+"
 PKG_SITE="https://ffmpeg.org"
-PKG_URL="http://ffmpeg.org/releases/ffmpeg-${PKG_VERSION}.tar.xz"
-PKG_DEPENDS_TARGET="toolchain zlib bzip2 openssl speex SDL2 lame x264 libtheora"
+PKG_DEPENDS_TARGET="toolchain zlib bzip2 SDL2 openssl speex"
 PKG_LONGDESC="FFmpeg is a complete, cross-platform solution to record, convert and stream audio and video."
-PKG_PATCH_DIRS="kodi libreelec"
 
-case "${PROJECT}" in
-  Amlogic)
-    PKG_VERSION="f9638b6331277e53ecd9276db5fe6dcd91d44c57"
-    PKG_FFMPEG_BRANCH="dev/4.4/rpi_import_1"
-    PKG_SHA256="3b42cbffd15d95d59e402475fcdb1aaac9ae6a8404a521b95d1fe79c6b2baad4"
-    PKG_URL="https://github.com/jc-kynesim/rpi-ffmpeg/archive/${PKG_VERSION}.tar.gz"
-    PKG_PATCH_DIRS="libreelec dav1d"
-    ;;
-  RPi)
-    PKG_FFMPEG_RPI="--disable-mmal --disable-rpi --enable-sand"
-    PKG_PATCH_DIRS+=" rpi"
-    ;;
-  *)
-    PKG_PATCH_DIRS+=" v4l2-request v4l2-drmprime"
-    ;;
-esac
-
-case "${DEVICE}" in
-  Amlogic-ne|Amlogic-no|Amlogic-ng-dv)
-    PKG_PATCH_DIRS+=" dv"
-    ;;
-esac
+PKG_VERSION="6.0"
+PKG_URL="http://ffmpeg.org/releases/ffmpeg-${PKG_VERSION}.tar.xz"
+PKG_PATCH_DIRS="unofficialos"
+PKG_PATCH_DIRS+=" v4l2-request v4l2-drmprime" # Patches adicionais necessários para EmuELEC
 
 post_unpack() {
   # Fix FFmpeg version
@@ -49,22 +27,33 @@ get_graphicdrivers
 
 PKG_FFMPEG_HWACCEL="--enable-hwaccels"
 
-if [ "${V4L2_SUPPORT}" = "yes" ]; then
+case ${DEVICE} in
+  RK3588*)
+    V4L2_SUPPORT=no
+  ;;
+  *)
+    case ${PROJECT} in
+      Rockchip)
+        PKG_PATCH_DIRS+=" vf-deinterlace-v4l2m2m"
+      ;;
+    esac
+  ;;
+esac
+
+# Forçamos a ativação do V4L2 se for Amlogic ou se o suporte geral estiver ligado
+if [ "${V4L2_SUPPORT}" = "yes" ] || [ "${PROJECT}" = "Amlogic" ]; then
   PKG_DEPENDS_TARGET+=" libdrm"
   PKG_NEED_UNPACK+=" $(get_pkg_directory libdrm)"
   PKG_FFMPEG_V4L2="--enable-v4l2_m2m --enable-libdrm"
 
-  if [ "${PROJECT}" = "Allwinner" -o "${PROJECT}" = "Rockchip" -o "${DEVICE}" = "iMX8" ]; then
-    PKG_V4L2_REQUEST="yes"
-  elif [ "${PROJECT}" = "RPi" ] && [ "${DEVICE}" = "RPi4" -o "${DEVICE}" = "RPi5" ]; then
-    PKG_V4L2_REQUEST="yes"
-    PKG_FFMPEG_HWACCEL="--disable-hwaccel=h264_v4l2request \
-                        --disable-hwaccel=mpeg2_v4l2request \
-                        --disable-hwaccel=vp8_v4l2request \
-                        --disable-hwaccel=vp9_v4l2request"
-  else
-    PKG_V4L2_REQUEST="no"
-  fi
+  case ${PROJECT} in
+    Amlogic|PC|Rockchip)
+      PKG_V4L2_REQUEST="yes"
+    ;;
+    *)
+      PKG_V4L2_REQUEST="no"
+    ;;
+  esac
 
   if [ "${PKG_V4L2_REQUEST}" = "yes" ]; then
     PKG_DEPENDS_TARGET+=" systemd"
@@ -85,13 +74,13 @@ else
   PKG_FFMPEG_VAAPI="--disable-vaapi"
 fi
 
-if [ "${DISPLAYSERVER}" != "x11" ] && [ ${PROJECT} != "Amlogic-ce" ]; then
+if [ "${DISPLAYSERVER}" != "wl" ]; then
   PKG_DEPENDS_TARGET+=" libdrm"
   PKG_NEED_UNPACK+=" $(get_pkg_directory libdrm)"
   PKG_FFMPEG_VAAPI=" --enable-libdrm"
 fi
 
-if [ "${VDPAU_SUPPORT}" = "yes" -a "${DISPLAYSERVER}" = "x11" ]; then
+if [ "${VDPAU_SUPPORT}" = "yes" -a "${DISPLAYSERVER}" = "wl" ]; then
   PKG_DEPENDS_TARGET+=" libvdpau"
   PKG_NEED_UNPACK+=" $(get_pkg_directory libvdpau)"
   PKG_FFMPEG_VDPAU="--enable-vdpau"
@@ -115,6 +104,12 @@ if [ "${TARGET_ARCH}" = "x86_64" ]; then
   PKG_DEPENDS_TARGET+=" nasm:host"
 fi
 
+case ${PROJECT} in
+  Rockchip)
+    PKG_DEPENDS_TARGET+=" rkmpp"
+  ;;
+esac
+
 if target_has_feature "(neon|sse)"; then
   PKG_DEPENDS_TARGET+=" dav1d"
   PKG_NEED_UNPACK+=" $(get_pkg_directory dav1d)"
@@ -129,20 +124,23 @@ pre_configure_target() {
 }
 
 if [ "${FFMPEG_TESTING}" = "yes" ]; then
-  PKG_FFMPEG_TESTING="--enable-encoder=wrapped_avframe --enable-muxer=null"
+  # Modo teste: Habilita ffmpeg e ffplay + ferramentas de debug
+  PKG_FFMPEG_TESTING="--enable-ffmpeg --enable-ffplay --enable-encoder=wrapped_avframe --enable-muxer=null"
   if [ "${PROJECT}" = "RPi" ]; then
     PKG_FFMPEG_TESTING+=" --enable-vout-drm --enable-outdev=vout_drm"
   fi
 else
-  PKG_FFMPEG_TESTING="--enable-ffplay" #"--disable-programs"
+  # Modo padrão: Habilita o conversor (ffmpeg) e o player (ffplay)
+  # Mantemos o ffprobe desativado para economizar espaço
+  PKG_FFMPEG_TESTING="--enable-ffmpeg --enable-ffplay --disable-ffprobe"
 fi
 
 configure_target() {
-
-if [ ${DISTRO} == "EmuELEC" ]; then
-sed -i "s|int hide_banner = 0|int hide_banner = 1|" ${PKG_BUILD}/fftools/cmdutils.c
-sed -i "s|SDL2_CONFIG=\"\${cross_prefix}sdl2-config\"|SDL2_CONFIG=\"${SYSROOT_PREFIX}/usr/bin/sdl2-config\"|" ${PKG_BUILD}/configure
-fi
+  # Correção vital para o EmuELEC encontrar o SDL2 e esconder o banner
+  if [ "${DISTRO}" = "EmuELEC" ]; then
+    sed -i "s|int hide_banner = 0|int hide_banner = 1|" ${PKG_BUILD}/fftools/cmdutils.c
+    sed -i "s|SDL2_CONFIG=\"\${cross_prefix}sdl2-config\"|SDL2_CONFIG=\"${SYSROOT_PREFIX}/usr/bin/sdl2-config\"|" ${PKG_BUILD}/configure
+  fi
 
   ./configure --prefix="/usr" \
               --cpu="${TARGET_CPU}" \
@@ -165,7 +163,6 @@ fi
               --extra-libs="${PKG_FFMPEG_LIBS}" \
               --disable-static \
               --enable-shared \
-              --enable-gpl \
               --enable-version3 \
               --enable-logging \
               --disable-doc \
@@ -180,6 +177,7 @@ fi
               --enable-swscale \
               --enable-postproc \
               --enable-avfilter \
+              --disable-devices \
               --enable-pthreads \
               --enable-network \
               --disable-gnutls --enable-openssl \
@@ -194,19 +192,19 @@ fi
               ${PKG_FFMPEG_V4L2} \
               ${PKG_FFMPEG_VAAPI} \
               ${PKG_FFMPEG_VDPAU} \
-              ${PKG_FFMPEG_RPI} \
+              ${PKG_FFMPEG_HWACCEL} \
               --enable-runtime-cpudetect \
               --disable-hardcoded-tables \
+              --disable-encoders \
               --enable-encoder=ac3 \
-              --enable-encoder=libmp3lame \
-              --enable-encoder=libtheora \
               --enable-encoder=aac \
               --enable-encoder=wmav2 \
               --enable-encoder=mjpeg \
               --enable-encoder=png \
               --enable-encoder=mpeg4 \
               --enable-encoder=libx264 \
-              ${PKG_FFMPEG_HWACCEL} \
+              --disable-muxers \
+			  --enable-gpl \
               --enable-muxer=spdif \
               --enable-muxer=adts \
               --enable-muxer=asf \
@@ -216,6 +214,8 @@ fi
               --enable-parsers \
               --enable-bsfs \
               --enable-protocol=http \
+              --disable-indevs \
+              --disable-outdevs \
               --enable-filters \
               --disable-avisynth \
               --enable-bzlib \
@@ -228,16 +228,16 @@ fi
               --disable-libdc1394 \
               --disable-libfreetype \
               --disable-libgsm \
-              --enable-libmp3lame \
+              --disable-libmp3lame \
               --disable-libopenjpeg \
               --disable-librtmp \
               ${PKG_FFMPEG_AV1} \
               --enable-libspeex \
-              --enable-libtheora \
+              --disable-libtheora \
               --disable-libvo-amrwbenc \
               --disable-libvorbis \
               --disable-libvpx \
-              --enable-libx264 \
+              --disable-libx264 \
               --disable-libxavs \
               --disable-libxvid \
               --enable-zlib \
@@ -249,5 +249,20 @@ fi
 }
 
 post_makeinstall_target() {
+  # Limpeza de exemplos (já existia)
   rm -rf ${INSTALL}/usr/share/ffmpeg/examples
+
+  # --- MARRETA PARA INSTALAR LIBPOSTPROC ---
+  echo "Instalando libpostproc manualmente..."
+  mkdir -p ${INSTALL}/usr/lib/pkgconfig
+  mkdir -p ${INSTALL}/usr/include/libpostproc
+
+  # Copia as bibliotecas (.so e .so.57)
+  cp -P ${PKG_BUILD}/libpostproc/libpostproc.so* ${INSTALL}/usr/lib/
+
+  # Copia o header (necessário para compilar o PPSSPP)
+  cp ${PKG_BUILD}/libpostproc/postprocess.h ${INSTALL}/usr/include/libpostproc/
+
+  # Copia o arquivo .pc (essencial para o CMake/pkg-config achar a lib)
+  cp ${PKG_BUILD}/libpostproc/libpostproc.pc ${INSTALL}/usr/lib/pkgconfig/
 }
