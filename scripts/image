@@ -277,10 +277,8 @@ if [ -z "${SQUASHFS_COMPRESSION_OPTION}" ]; then
   fi
 fi
 
-find ${BUILD}/image/system -type f -exec sh -c '
-file "$1" | grep -q ELF || exit 0
-patchelf --remove-rpath "$1" 2>/dev/null
-' _ {} \;
+patchelf --remove-rpath ${BUILD}/image/system/usr/bin/alsamixer
+patchelf --remove-rpath ${BUILD}/image/system/usr/bin/duckstation-nogui 2>/dev/null
 
 # Create squashfs file, default to gzip if no compression configured
 echo "rm -rf \"${TARGET_IMG}/${IMAGE_NAME}.system\"" >> ${FAKEROOT_SCRIPT}
