@@ -5,12 +5,12 @@ PKG_NAME="emuelec"
 PKG_LICENSE="GPLv2"
 PKG_SITE=""
 PKG_URL=""
-PKG_DEPENDS_TARGET="toolchain ${OPENGLES} emuelec-emulationstation retroarch duckstation duckstation1"
+PKG_DEPENDS_TARGET="toolchain ${OPENGLES} emuelec-emulationstation retroarch duckstation-sa"
 PKG_SECTION="emuelec"
 PKG_LONGDESC="EmuELEC Meta Package"
 PKG_TOOLCHAIN="manual"
 
-PKG_EXPERIMENTAL="nestopiaCV moonlight fileman portmaster quasi88 xmil np2kai hypseus-singe yabasanshiroSA_1_11 yabasanshiroSA_1_5 same_cdi ikemen-go" 
+PKG_EXPERIMENTAL="nestopiaCV moonlight mednafen fileman portmaster quasi88 xmil np2kai hypseus-singe same_cdi ikemen-go" 
 PKG_EMUS="${LIBRETRO_CORES} mupen64plus-adv drastic-advanced vircon32-lr mu-lr mojozork-lr gametank-lr gametank32-lr emuscv-lr duckstation-lr crocods-lr bsnes-hd-lr b2-lr drastic-sa mame2003-xtreme-lr mame2015-lr mame2003-midway-lr opera-lr bsnes-mercury-performance-lr mupen64plus-nx-lr mupen64plus-lr morpheuscast-xtreme32-lr fbalpha2019-lr ludicrousn64-xtreme32-lr ludicrousn64-xtreme-lr beetle-psx-lr desmume-2015 ppsspp ppsspp-lr ppsspp-sa desmume melonds advancemame PPSSPPSDL amiberry amiberry-lite hatarisa openbor dosbox-staging mupen64plus-nx mupen64plus-nx-alt scummvmsa stellasa solarus dosbox-pure pcsx_rearmed potator freej2me flycastsa fmsx-libretro jzintv mupen64plussa xroar x16 simcoupe ti99sim oricutron"
 PKG_COMPRESS="gzip minizip"
 PKG_DEPENDS_TARGET+=" emuelec-tools ${PKG_EMUS} ${PKG_EXPERIMENTAL} ${PKG_COMPRESS}"
@@ -57,10 +57,17 @@ if [ "${ARCH}" == "aarch64" ]; then
   fi
 
   if [ "${DEVICE}" == "Amlogic-old" ]; then
-    #we disable some cores that are not working or work poorly on Amlogic-old
-    for discore in yabasanshiroSA_1_11 yabasanshiroSA_1_5 yabasanshiro same_cdi duckstation; do
+    # Removemos APENAS o duckstation original para usar o seu novo -sa
+    # O resto (Saturn/Yabasanshiro e CDI) deixamos passar para a build
+    for discore in duckstation yabasanshiro yabasanshiroSA_1_5 ; do
       PKG_DEPENDS_TARGET=$(echo ${PKG_DEPENDS_TARGET} | sed "s|${discore} | |")
     done
+    
+    # ADICIONAMOS os novos e garantimos que os de Saturn estejam na lista
+    PKG_DEPENDS_TARGET+=" duckstation-sa dolphinSA same_cdi"
+    
+    # Dica: O ee_s905 ajuda o sistema a identificar que é um hardware antigo
+    echo "s905" > ${INSTALL}/ee_s905
   fi
 fi
 

@@ -10,10 +10,11 @@ PKG_URL="${PKG_SITE}.git"
 PKG_VERSION="3f428cced62fffcc2b9bfa3d204180d08308811c" # v 1.20.1
 CHEAT_DB_VERSION="9475ff7b4be805f818f5f40cc3e5116a4a68deac" # Update cheat.db (20/01/2025)
 PKG_LICENSE="GPLv2"
-PKG_DEPENDS_TARGET="toolchain ffmpeg libzip SDL2 libpng zlib zip"
+PKG_DEPENDS_TARGET="toolchain SDL2 zlib zip"
 PKG_SHORTDESC="PPSSPPDL"
 PKG_LONGDESC="PPSSPP Standalone"
 GET_HANDLER_SUPPORT="git"
+PKG_GIT_SUBMODULES="yes"
 PKG_BUILD_FLAGS="-lto"
 
 TARGET_CFLAGS+=" -O3 -mcpu=cortex-a53 -ftree-vectorize"
@@ -25,9 +26,9 @@ TARGET_CXXFLAGS+=" -O3 -mcpu=cortex-a53 -ftree-vectorize"
 ### directory in the root of this project, OFL.txt.
 ###
 
-PKG_PATCH_DIRS+="${DEVICE}"
+# PKG_PATCH_DIRS+="${DEVICE}"
 
-PKG_CMAKE_OPTS_TARGET=" -DUSE_SYSTEM_FFMPEG=ON \
+PKG_CMAKE_OPTS_TARGET=" -DUSE_SYSTEM_FFMPEG=OFF \
                         -DUSE_SYSTEM_LIBZIP=ON \
                         -DCMAKE_BUILD_TYPE=Release \
                         -DCMAKE_SYSTEM_NAME=Linux \
@@ -108,6 +109,14 @@ pre_configure_target() {
 
   # 6. Ajusta os Assets e VFS (NativeApp.cpp)
   sed -i 's|g_VFS.Register("", new DirectoryReader(Path("/usr/local/share/ppsspp/assets")));|g_VFS.Register("", new DirectoryReader(Path("/storage/.config/ppsspp-sa/assets")));|' ${PKG_BUILD}/UI/NativeApp.cpp
+  
+   # 7. Ajusta diretórios de saves/cheats para o standalone SA
+  sed -i 's|return pspDirectory / "Cheats";|return Path("/storage/roms/savestates/PPSSPPSA/PSP/Cheats/");|' ${PKG_BUILD}/Core/System.cpp
+  sed -i 's|return pspDirectory / "GAME";|return Path("/storage/roms/savestates/PPSSPPSA/PSP/GAME/");|' ${PKG_BUILD}/Core/System.cpp
+  sed -i 's|return pspDirectory / "SAVEDATA";|return Path("/storage/roms/savestates/PPSSPPSA/PSP/SAVEDATA");|' ${PKG_BUILD}/Core/System.cpp
+  sed -i 's|return pspDirectory / "PPSSPP_STATE";|return Path("/storage/roms/savestates/PPSSPPSA/PSP/PPSSPP_STATE/");|' ${PKG_BUILD}/Core/System.cpp
+  sed -i 's|return pspDirectory / "AUDIO";|return Path("/storage/roms/savestates/PPSSPPSA/PSP/AUDIO/");|' ${PKG_BUILD}/Core/System.cpp
+  sed -i 's|return pspDirectory / "SCREENSHOT";|return Path("/storage/roms/screenshots");|' ${PKG_BUILD}/Core/System.cpp 
 }
 
 pre_make_target() {
@@ -129,7 +138,7 @@ makeinstall_target() {
   fi
 
   # 3. Copia o binário principal renomeando para ppsspp-sa
-  cp PPSSPPSDL ${INSTALL}/usr/bin/ppsspp-sa
+  cp $(find ${PKG_BUILD} -name PPSSPPSDL | head -1) ${INSTALL}/usr/bin/ppsspp-sa
   chmod 0755 ${INSTALL}/usr/bin/*
 
   # 4. Link simbólico para os assets no binário
@@ -159,7 +168,16 @@ makeinstall_target() {
   cd ${INSTALL}/usr/config/ppsspp-sa/assets
   ln -sf NotoSansJP-Regular.ttf Roboto-Condensed.ttf
   cd -
+mkdir -p ${INSTALL}/usr/config/ppsspp-sa/PSP/SYSTEM
+mkdir -p ${INSTALL}/usr/config/ppsspp-sa/PSP/SAVEDATA
+mkdir -p ${INSTALL}/usr/config/ppsspp-sa/PSP/Cheats
+mkdir -p ${INSTALL}/usr/config/ppsspp-sa/PSP/GAME
+mkdir -p ${INSTALL}/usr/config/ppsspp-sa/PSP/PPSSPP_STATE
+mkdir -p ${INSTALL}/usr/config/ppsspp-sa/PSP/AUDIO
 
+mkdir -p ${INSTALL}/usr/config/ppsspp-sa
+cp -r ${PKG_DIR}/config/* ${INSTALL}/usr/config/ppsspp-sa/
   # 10. Baixa a base de dados de Cheats atualizada
   curl -Lo ${INSTALL}/usr/config/ppsspp-sa/PSP/Cheats/cheat.db https://raw.githubusercontent.com/Saramagrean/CWCheat-Database-Plus-/${CHEAT_DB_VERSION}/cheat.db
 }
+

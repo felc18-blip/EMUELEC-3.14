@@ -193,6 +193,13 @@ pre_make_target() {
 }
 
 make_target() {
+  # CORREÇÃO PARA O dtbTool: Compilar para Host para evitar conflito de GLIBC
+  local DTB_TOOL_SRC=$(get_build_dir device-trees-amlogic)/dtbTool.c
+  if [ -f "${DTB_TOOL_SRC}" ]; then
+    build_msg "CLR_BUILD" "RE-FIXING" "dtbTool for Host"
+    $HOST_CC -Wall "${DTB_TOOL_SRC}" -o "${TOOLCHAIN}/bin/dtbTool"
+  fi
+
   # arm64 target does not support creating uImage.
   # Build Image first, then wrap it using u-boot's mkimage.
   if [[ "${TARGET_KERNEL_ARCH}" = "arm64" && "${KERNEL_TARGET}" = uImage* ]]; then
@@ -203,8 +210,8 @@ make_target() {
     KERNEL_TARGET="${KERNEL_TARGET/uImage/Image}"
   fi
 
- DTC_FLAGS=-@ KCFLAGS="-Wno-error -Wno-missing-attributes -Wno-stringop-truncation -Wno-address-of-packed-member -Wno-tautological-compare -fno-allow-store-data-races" \
-kernel_make ${KERNEL_TARGET} ${KERNEL_MAKE_EXTRACMD} modules
+  DTC_FLAGS=-@ KCFLAGS="-Wno-error -Wno-missing-attributes -Wno-stringop-truncation -Wno-address-of-packed-member -Wno-tautological-compare -fno-allow-store-data-races" \
+  kernel_make ${KERNEL_TARGET} ${KERNEL_MAKE_EXTRACMD} modules
 
   if [ "${PKG_BUILD_PERF}" = "yes" ]; then
     ( cd tools/perf

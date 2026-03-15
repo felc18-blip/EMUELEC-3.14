@@ -204,9 +204,9 @@ case ${PLATFORM} in
                 fi
                 ;;
         "psx")
-                if [ "${EMU}" = "duckstation" ]; then
+                if [ "${EMU}" = "duckstation-sa" ]; then
             set_kill_keys "duckstation-nogui"
-            RUNTHIS='${TBASH} duckstation.sh "${ROMNAME}"'
+            RUNTHIS='${TBASH} start_duckstation.sh "${ROMNAME}"'
         fi
                 ;;
         "mame"|"arcade"|"cps1"|"cps2"|"cps3")
@@ -293,9 +293,12 @@ case ${PLATFORM} in
                 fi
                 ;;
         "wii"|"gamecube")
-                if [ "${EMU}" = "dolphin" ]; then
+                if [ "${EMU}" = "dolphin-gc" ]; then
             set_kill_keys "dolphin-emu-nogui"
-            RUNTHIS='${TBASH} dolphin.sh "${ROMNAME}"'
+            RUNTHIS='${TBASH} start_dolphin_gc.sh "${ROMNAME}"'
+                elif [ "${EMU}" = "dolphin-wii" ]; then
+            set_kill_keys "dolphin-emu-nogui"
+            RUNTHIS='${TBASH} start_dolphin_wii.sh "${ROMNAME}"'
                 fi
                 ;;
         "pc")
@@ -410,13 +413,10 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
 		fi
 		;;
-		"saturn")
-        if [ "${EMU}" == "yabasanshiroSA_1_11" ]; then
-            set_kill_keys "yabasanshiro"
-            RUNTHIS='yabasanshiro.sh "${ROMNAME}"'
-        elif [ "${EMU}" == "yabasanshiroSA_1_5" ]; then
-            set_kill_keys "yabasanshiro1_5"
-            RUNTHIS='yabasanshiro1_5.sh "${ROMNAME}"'
+        "saturn")
+        if [ "${EMU}" = "mednafen" ]; then
+            set_kill_keys "mednafen"
+            RUNTHIS='${TBASH} start_mednafen.sh "${ROMNAME}" ss saturn'
         fi
         ;;
         esac

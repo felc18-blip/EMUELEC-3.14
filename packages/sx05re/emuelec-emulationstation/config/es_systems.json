@@ -1427,8 +1427,11 @@
           "name": "dolphin",
           "cores": [
             {
-              "name": "dolphin",
+              "name": "dolphin-wii",
               "default": true
+            },
+            {
+              "name": "dolphin-gc"
             }
           ]
         }
@@ -4512,36 +4515,22 @@
           "name": "libretro",
           "cores": [
             {
-              "name": "yabasanshiro-lr",
+              "name": "mednafen_saturn",
               "default": true
             },
             {
-              "name": "yabause"
-            },
-            {
-              "name": "yabasanshiro"
-            },
-            {
-              "name": "mednafen_saturn"
-            },
-            {
               "name": "kronos"
+            },
+            {
+              "name": "yabause"
             }
           ]
         },
         {
-          "name": "yabasanshiroSA_1_11",
+          "name": "mednafen",
           "cores": [
             {
-              "name": "yabasanshiroSA_1_11"
-            }
-          ]
-        },
-        {
-          "name": "yabasanshiroSA_1_5",
-          "cores": [
-            {
-              "name": "yabasanshiroSA_1_5"
+              "name": "mednafen"
             }
           ]
         }
@@ -4770,10 +4759,18 @@
           ]
         },
         {
-          "name": "duckstation",
+          "name": "duckstation-sa",
           "cores": [
             {
-              "name": "duckstation"
+              "name": "duckstation-sa"
+            }
+          ]
+        },
+        {
+          "name": "mednafen",
+          "cores": [
+            {
+              "name": "mednafen"
             }
           ]
         }

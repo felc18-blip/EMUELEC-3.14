@@ -181,7 +181,7 @@ pre_configure_target() {
   esac
 
   PKG_CONFIGURE_OPTS_TARGET="${DISABLED_FEATURES} ${ENABLED_FEATURES}"
-  export LDFLAGS="${LDFLAGS} -lresolv -fopenmp -Wl,-rpath,../src/.libs"
+  export LDFLAGS="${LDFLAGS} -lresolv -fopenmp"
 }
 
 post_makeinstall_target() {
