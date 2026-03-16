@@ -194,4 +194,20 @@ post_makeinstall_target() {
   mkdir -p ${INSTALL}/usr/config
     mv -f ${INSTALL}/usr/lib/vlc ${INSTALL}/usr/config
     ln -sf /storage/.config/vlc ${INSTALL}/usr/lib/vlc
+
+  # --- INÍCIO DA FAXINA GLOBAL DO VLC ---
+  echo "--- Sanitizando binários e plugins do VLC (Limpando rastros do PC) ---"
+  find ${INSTALL} -type f -exec sh -c '
+    if readelf -h "$1" 2>/dev/null | grep -qE "EXEC|DYN"; then
+      # Remove RPATH/RUNPATH
+      patchelf --remove-rpath "$1" 2>/dev/null
+      
+      # Substitui caminhos absolutos pelo nome puro da lib
+      for lib_path in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
+        lib_name=$(basename "$lib_path")
+        echo "  > Corrigindo em $(basename $1): $lib_name"
+        patchelf --replace-needed "$lib_path" "$lib_name" "$1" 2>/dev/null
+      done
+    fi
+  ' _ {} \;
 }

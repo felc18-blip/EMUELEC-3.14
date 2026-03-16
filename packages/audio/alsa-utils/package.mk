@@ -33,9 +33,29 @@ post_makeinstall_target() {
 
   mkdir -p ${INSTALL}/.noinstall
   for i in aconnect amidi aplaymidi arecordmidi aseqdump aseqnet iecset; do
-    mv ${INSTALL}/usr/bin/${i} ${INSTALL}/.noinstall
+    if [ -f "${INSTALL}/usr/bin/${i}" ]; then
+      mv ${INSTALL}/usr/bin/${i} ${INSTALL}/.noinstall
+    fi
   done
 
   mkdir -p ${INSTALL}/usr/lib/udev
-    cp ${PKG_DIR}/scripts/soundconfig ${INSTALL}/usr/lib/udev
+  cp ${PKG_DIR}/scripts/soundconfig ${INSTALL}/usr/lib/udev
+
+  # --- LIMPEZA PESADA (Modo Global para ALSA) ---
+  echo "--- Sanitizando binários do ALSA-UTILS (Limpando rastros do PC) ---"
+  
+  # Varre tudo dentro de ${INSTALL} para garantir que playsound e outros em pastas ocultas sejam pegos
+  find ${INSTALL} -type f -exec sh -c '
+    if readelf -h "$1" 2>/dev/null | grep -qE "EXEC|DYN"; then
+      # Remove RPATH/RUNPATH
+      patchelf --remove-rpath "$1" 2>/dev/null
+      
+      # Substitui caminhos absolutos (/home/felipe/...) pelo nome puro da lib
+      for lib_path in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
+        lib_name=$(basename "$lib_path")
+        echo "  > Corrigindo dependência em $(basename $1): $lib_name"
+        patchelf --replace-needed "$lib_path" "$lib_name" "$1" 2>/dev/null
+      done
+    fi
+  ' _ {} \;
 }

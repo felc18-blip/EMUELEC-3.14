@@ -6,7 +6,7 @@ index 6a24732..a287703 100644
  
  std::string GetProgramPath()
  {
-+  return "/storage/.config/duckstation";
++  return "/emuelec/configs/duckstation";
 +
    std::wstring buffer;
    buffer.resize(MAX_PATH);
@@ -15,7 +15,7 @@ index 6a24732..a287703 100644
  
  std::string GetProgramPath()
  {
-+  return "/storage/.config/duckstation";
++  return "/emuelec/configs/duckstation";
 +
  #if defined(__linux__)
    static const char* exeFileName = "/proc/self/exe";

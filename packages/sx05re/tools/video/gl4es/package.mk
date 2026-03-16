@@ -31,9 +31,16 @@ ln -sf libGL.so ${INSTALL}/usr/lib/libGL.so.1
 
 # If we want to install gl4es to toolchain uncomment the following lines, keep in mind GL will now be available fore the build system and some programs might break, like Scummvm Stand Alone
 
-#post_makeinstall_target() {
-#cp -rf ${INSTALL}/usr/lib/libGL.so.1 ${SYSROOT_PREFIX}/usr/lib/libGL.so
-#ln -sf ${SYSROOT_PREFIX}/usr/lib/libGL.so ${SYSROOT_PREFIX}/usr/lib/libGL.so.1
-#cp -rf ${PKG_BUILD}/include/* ${SYSROOT_PREFIX}/usr/include
-#cp -rf ${PKG_DIR}/pkgconfig/gl.pc ${SYSROOT_PREFIX}/usr/lib/pkgconfig
-#}
+post_makeinstall_target() {
+  # 1. Instala a biblioteca no Sysroot do Toolchain para que outros pacotes a vejam
+  cp -rf ${INSTALL}/usr/lib/libGL.so ${SYSROOT_PREFIX}/usr/lib/libGL.so
+  ln -sf libGL.so ${SYSROOT_PREFIX}/usr/lib/libGL.so.1
+
+  # 2. Copia os headers (essencial para o PPSSPP compilar)
+  mkdir -p ${SYSROOT_PREFIX}/usr/include/GL
+  cp -rf ${PKG_BUILD}/include/* ${SYSROOT_PREFIX}/usr/include/
+
+  # 3. Copia o pkgconfig para o CMake não se perder
+  mkdir -p ${SYSROOT_PREFIX}/usr/lib/pkgconfig
+  cp -rf ${PKG_DIR}/pkgconfig/gl.pc ${SYSROOT_PREFIX}/usr/lib/pkgconfig/
+}

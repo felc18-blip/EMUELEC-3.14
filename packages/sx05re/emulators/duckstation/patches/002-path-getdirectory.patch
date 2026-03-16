@@ -7,7 +7,7 @@ index ceb2f08..0fa5a04 100644
  std::string_view GetPathDirectory(const std::string_view& path)
  {
 +
-+  return "/storage/.config/duckstation";
++  return "/emuelec/configs/duckstation";
 +
    std::string::size_type pos = GetLastSeperatorPosition(path, false);
    if (pos == std::string_view::npos)

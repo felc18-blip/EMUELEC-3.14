@@ -5,7 +5,7 @@ PKG_NAME="emuelec"
 PKG_LICENSE="GPLv2"
 PKG_SITE=""
 PKG_URL=""
-PKG_DEPENDS_TARGET="toolchain ${OPENGLES} emuelec-emulationstation retroarch duckstation-sa"
+PKG_DEPENDS_TARGET="toolchain ${OPENGLES} emuelec-emulationstation retroarch duckstation"
 PKG_SECTION="emuelec"
 PKG_LONGDESC="EmuELEC Meta Package"
 PKG_TOOLCHAIN="manual"
@@ -64,7 +64,7 @@ if [ "${ARCH}" == "aarch64" ]; then
     done
     
     # ADICIONAMOS os novos e garantimos que os de Saturn estejam na lista
-    PKG_DEPENDS_TARGET+=" duckstation-sa dolphinSA same_cdi"
+    PKG_DEPENDS_TARGET+=" duckstation dolphinSA same_cdi"
     
     # Dica: O ee_s905 ajuda o sistema a identificar que é um hardware antigo
     echo "s905" > ${INSTALL}/ee_s905

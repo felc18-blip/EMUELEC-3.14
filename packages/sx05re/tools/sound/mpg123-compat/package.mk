@@ -17,3 +17,24 @@ if [ "${PULSEAUDIO_SUPPORT}" = yes ]; then
 else
   PKG_CONFIGURE_OPTS_TARGET="--with-default-audio=alsa --with-audio=alsa"
 fi
+
+# --- ADICIONANDO A SANITIZAÇÃO NO POST_MAKEINSTALL ---
+post_makeinstall_target() {
+  echo "--- Sanitizando mpg123-compat (O Fim do Vilão Final) ---"
+  
+  find ${INSTALL} -type f -exec sh -c '
+    if readelf -d "$1" 2>/dev/null | grep -q "/home/felipe"; then
+      echo "  > Limpando plugin: $(basename $1)"
+      
+      # Zera RPATH/RUNPATH
+      patchelf --set-rpath "" "$1" 2>/dev/null || patchelf --remove-rpath "$1" 2>/dev/null
+      
+      # Corrige links viciados
+      for lib_full in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
+        lib_nome=$(basename "$full_lib")
+        echo "    >> Corrigindo link: $lib_nome"
+        patchelf --replace-needed "$lib_full" "$lib_nome" "$1" 2>/dev/null
+      done
+    fi
+  ' _ {} \;
+}

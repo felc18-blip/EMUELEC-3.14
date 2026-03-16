@@ -31,4 +31,20 @@ unpack() {
 post_makeinstall_target() {
   safe_remove ${INSTALL}/usr/include
   mv ${INSTALL}/usr/lib ${INSTALL}/usr/lib32
+
+  # --- INÍCIO DA FAXINA (Focado na pasta lib32) ---
+  echo "--- Sanitizando lib32-libusb (Limpando rastros do PC) ---"
+  find ${INSTALL}/usr/lib32 -type f -exec sh -c '
+    if readelf -h "$1" 2>/dev/null | grep -qE "EXEC|DYN"; then
+      # Remove o RPATH viciado
+      patchelf --remove-rpath "$1" 2>/dev/null
+      
+      # Corrige as dependências que apontam para o seu home
+      for lib_path in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
+        lib_name=$(basename "$lib_path")
+        echo "  > Corrigindo dependência em $(basename $1): $lib_name"
+        patchelf --replace-needed "$lib_path" "$lib_name" "$1" 2>/dev/null
+      done
+    fi
+  ' _ {} \;
 }

@@ -20,8 +20,7 @@ fi
 
 BLUEZ_CONFIG="$BLUEZ_CONFIG --enable-monitor --enable-test"
 
-# SINTAXE CORRIGIDA: Sem aspas simples para evitar erro de EOF, e com ltinfow para a readline
-PKG_MAKE_OPTS_TARGET="LIBS=-lncursesw"
+# Mantendo sua correção de libs para readline
 PKG_MAKE_OPTS_TARGET="LIBS=-ltinfow"
 
 PKG_CONFIGURE_OPTS_TARGET="--disable-dependency-tracking \
@@ -54,16 +53,34 @@ post_makeinstall_target() {
   rm -rf $INSTALL/usr/bin/bluemoon
   rm -rf $INSTALL/usr/bin/ciptool
   rm -rf $INSTALL/usr/share/dbus-1
+  
   mkdir -p $INSTALL/etc/bluetooth
     cp src/main.conf $INSTALL/etc/bluetooth
     sed -i $INSTALL/etc/bluetooth/main.conf \
         -e "s|^#\[Policy\]|\[Policy\]|g" \
         -e "s|^#AutoEnable.*|AutoEnable=true|g"
+  
   mkdir -p $INSTALL/usr/share/services
     cp -P $PKG_DIR/default.d/*.conf $INSTALL/usr/share/services
     ln -sf /usr/lib/firmware $INSTALL/etc/firmware
     sed -i 's/-lbluetooth//g' ${PKG_BUILD}/lib/bluez.pc
     cp -P ${PKG_BUILD}/lib/bluez.pc ${SYSROOT_PREFIX}/usr/lib/pkgconfig
+
+  # --- A VACINA AGRESSIVA AQUI ---
+  echo "--- Sanitizando BlueZ 5.50 (Versão OLD) ---"
+  find ${INSTALL} -type f -exec sh -c '
+    if readelf -h "$1" 2>/dev/null | grep -qE "EXEC|DYN"; then
+      # Limpa RPATH e RUNPATH
+      patchelf --set-rpath "" "$1" 2>/dev/null || patchelf --remove-rpath "$1" 2>/dev/null
+      
+      # Corrige links viciados ao seu /home/felipe
+      for full_lib in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
+        lib_only=$(basename "$full_lib")
+        echo "  > Corrigindo: $lib_only em $(basename $1)"
+        patchelf --replace-needed "$full_lib" "$lib_only" "$1" 2>/dev/null
+      done
+    fi
+  ' _ {} \;
 }
 
 post_install() {

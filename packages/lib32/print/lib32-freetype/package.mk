@@ -41,4 +41,17 @@ post_makeinstall_target() {
   safe_remove ${INSTALL}/usr/include
   safe_remove ${INSTALL}/usr/share
   mv ${INSTALL}/usr/lib ${INSTALL}/usr/lib32
+
+  # --- LIMPEZA PESADA (Focado na pasta lib32) ---
+  echo "--- Sanitizando bibliotecas do lib32-freetype (Limpando rastros do PC) ---"
+  find ${INSTALL}/usr/lib32 -type f -name "*.so*" -exec sh -c '
+    if readelf -h "$1" 2>/dev/null | grep -qE "EXEC|DYN"; then
+      patchelf --remove-rpath "$1" 2>/dev/null
+      for lib_path in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
+        lib_name=$(basename "$lib_path")
+        echo "  > Corrigindo dependência em $(basename $1): $lib_name"
+        patchelf --replace-needed "$lib_path" "$lib_name" "$1" 2>/dev/null
+      done
+    fi
+  ' _ {} \;
 }

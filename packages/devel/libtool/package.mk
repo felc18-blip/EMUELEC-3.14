@@ -16,9 +16,23 @@ PKG_CONFIGURE_OPTS_HOST="--enable-static --disable-shared"
 
 post_unpack() {
   chmod u+w ${PKG_BUILD}/build-aux/ltmain.sh
+  
+  # --- O TIRO DE MISERICÓRDIA NO LIBTOOL ---
+  # Este sed impede que o libtool adicione RPATHs que apontem para fora do sysroot
+  echo "--- Corrigindo ltmain.sh para evitar contaminação de RPATH ---"
+  sed -i -e 's|compiler_flags +=.*-rpath.*|compiler_flags += |g' \
+         -e 's|allow_libtool_libs_with_static_runtimes=no|allow_libtool_libs_with_static_runtimes=yes|g' \
+         ${PKG_BUILD}/build-aux/ltmain.sh
 }
 
 post_makeinstall_target() {
   rm -rf ${INSTALL}/usr/bin
   rm -rf ${INSTALL}/usr/share
+
+  # Mesmo sendo um pacote de ferramentas, vamos garantir que nada escape
+  find ${INSTALL} -type f -exec sh -c '
+    if readelf -h "$1" 2>/dev/null | grep -qE "EXEC|DYN"; then
+      patchelf --remove-rpath "$1" 2>/dev/null
+    fi
+  ' _ {} \;
 }

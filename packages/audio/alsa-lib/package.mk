@@ -29,8 +29,23 @@ post_configure_target() {
 }
 
 post_makeinstall_target() {
+  # Remove binários residuais que o alsa-lib costuma criar (ex: aserver)
   rm -rf ${INSTALL}/usr/bin
 
   mkdir -p ${INSTALL}/usr/config
-    cp -PR ${PKG_DIR}/config/modprobe.d ${INSTALL}/usr/config
+  cp -PR ${PKG_DIR}/config/modprobe.d ${INSTALL}/usr/config
+
+  # --- LIMPEZA DE RPATH NAS BIBLIOTECAS (CRUCIAL) ---
+  echo "--- Sanitizando bibliotecas do alsa-lib ---"
+  find ${INSTALL}/usr/lib -type f -name "*.so*" -exec sh -c '
+    # Remove RPATH das libs para não buscar no PC do Felipe
+    patchelf --remove-rpath "$1" 2>/dev/null
+    
+    # Corrige dependências absolutas
+    for lib_path in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
+      lib_name=$(basename "$lib_path")
+      echo "  > Corrigindo lib: $lib_name"
+      patchelf --replace-needed "$lib_path" "$lib_name" "$1" 2>/dev/null
+    done
+  ' _ {} \;
 }

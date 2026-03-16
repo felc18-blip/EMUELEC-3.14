@@ -26,7 +26,7 @@ case "${LINUX}" in
     OPT_ENABLE_KERNEL=5.4.0
     ;;
   amlogic-3.14)
-    OPT_ENABLE_KERNEL=3.0.0
+    OPT_ENABLE_KERNEL=3.14.29
     ;;
   *)
     OPT_ENABLE_KERNEL=6.1.0
@@ -34,7 +34,7 @@ case "${LINUX}" in
 esac
 
 if [ "${TARGET_ARCH}" = "arm" ] || [ "${TARGET_ARCH}" = "aarch64" ]; then
-  PKG_PATCH_DIRS="widevine-arm"
+  PKG_PATCH_DIRS="widevine-arm arm"
 fi
 
 PKG_CONFIGURE_OPTS_TARGET="BASH_SHELL=/bin/sh \
@@ -54,6 +54,7 @@ PKG_CONFIGURE_OPTS_TARGET="BASH_SHELL=/bin/sh \
                            --enable-kernel=${OPT_ENABLE_KERNEL} \
                            --without-cvs \
                            --without-gd \
+						   --enable-kernel=3.14.0 \
                            --disable-build-nscd \
                            --disable-nscd \
                            --disable-timezone-tools"

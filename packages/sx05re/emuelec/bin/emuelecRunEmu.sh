@@ -204,9 +204,9 @@ case ${PLATFORM} in
                 fi
                 ;;
         "psx")
-                if [ "${EMU}" = "duckstation-sa" ]; then
+                if [ "${EMU}" = "duckstation" ]; then
             set_kill_keys "duckstation-nogui"
-            RUNTHIS='${TBASH} start_duckstation.sh "${ROMNAME}"'
+            RUNTHIS='${TBASH} duckstation.sh "${ROMNAME}"'
         fi
                 ;;
         "mame"|"arcade"|"cps1"|"cps2"|"cps3")

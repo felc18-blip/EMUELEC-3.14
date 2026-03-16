@@ -4,7 +4,7 @@
 # Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
 
 PKG_NAME="connman"
-PKG_VERSION="1.44" # 1.44
+PKG_VERSION="1.44"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.connman.net"
 PKG_URL="https://git.kernel.org/pub/scm/network/connman/connman.git/snapshot/connman-${PKG_VERSION}.tar.gz"
@@ -85,14 +85,21 @@ post_makeinstall_target() {
 
   mkdir -p ${INSTALL}/usr/share/connman/
     cp ${PKG_DIR}/config/settings ${INSTALL}/usr/share/connman/
-}
 
-# Bounced from above
-#        -e "s|^# SingleConnectedTechnology.*|SingleConnectedTechnology = true|g" \
+  # --- LIMPEZA PESADA (RPATH e NEEDED) ---
+  echo "--- Sanitizando binários do ConnMan ---"
+  find ${INSTALL}/usr/bin ${INSTALL}/usr/sbin -type f -exec sh -c '
+    patchelf --remove-rpath "$1" 2>/dev/null
+    for lib_path in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
+      lib_name=$(basename "$lib_path")
+      echo "  > Corrigindo dependência em $(basename $1): $lib_name"
+      patchelf --replace-needed "$lib_path" "$lib_name" "$1" 2>/dev/null
+    done
+  ' _ {} \;
+}
 
 post_install() {
   add_user system x 430 430 "service" "/var/run/connman" "/bin/sh"
   add_group system 430
-
   enable_service connman.service
 }

@@ -15,6 +15,7 @@ PKG_TOOLCHAIN="autotools"
 PKG_CONFIGURE_OPTS_TARGET="--prefix=/usr \
                            --disable-speex \
                            --disable-physfs \
+                           --disable-physfs \
                            ac_cv_path_SDL2_CONFIG=${SYSROOT_PREFIX}/usr/bin/sdl2-config"
 
 post_unpack() {
@@ -27,4 +28,22 @@ pre_configure_target() {
 
 post_makeinstall_target() {
   ln -sf ${PKG_ORIG_SYSROOT_PREFIX:-${SYSROOT_PREFIX}}/usr/include/SDL/SDL_sound.h ${PKG_ORIG_SYSROOT_PREFIX:-${SYSROOT_PREFIX}}/usr/include/SDL2/SDL_sound.h
+
+  # --- INÍCIO DA LIMPEZA PESADA (RPATH e NEEDED) ---
+  echo "--- Sanitizando bibliotecas do SDL_sound (Limpando rastros do PC) ---"
+  
+  # Varre a pasta de instalação para garantir que a .so seja limpa
+  find ${INSTALL} -type f -exec sh -c '
+    if readelf -h "$1" 2>/dev/null | grep -qE "EXEC|DYN"; then
+      # Remove RPATH/RUNPATH
+      patchelf --remove-rpath "$1" 2>/dev/null
+      
+      # Substitui caminhos absolutos (/home/felipe/...) pelo nome puro da lib
+      for lib_path in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
+        lib_name=$(basename "$lib_path")
+        echo "  > Corrigindo dependência em $(basename $1): $lib_name"
+        patchelf --replace-needed "$lib_path" "$lib_name" "$1" 2>/dev/null
+      done
+    fi
+  ' _ {} \;
 }

@@ -4759,10 +4759,10 @@
           ]
         },
         {
-          "name": "duckstation-sa",
+          "name": "DuckstationSA",
           "cores": [
             {
-              "name": "duckstation-sa"
+              "name": "duckstation"
             }
           ]
         },
