@@ -35,6 +35,25 @@ mkpkg-temp
 .DS_Store
 .directory
 
+# Windows lixo (muito importante)
+*:Zone.Identifier
+
+# arquivos temporários / testes
+a.out
+test
+test.c
+
+# arquivos compactados baixados
+*.tar.gz
+*.tar.gz.*
+*.orig.tar.*
+
+# logs extras
+*.log
+
+# editor / sistema
+*~
+
 # ignore git repos from update scripts
 tools/mkpkg/*.git
 
