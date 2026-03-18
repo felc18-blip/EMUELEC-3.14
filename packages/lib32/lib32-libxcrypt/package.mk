@@ -1,43 +1,50 @@
-# SPDX-License-Identifier: GPL-2.0-or-later
-
 PKG_NAME="lib32-libxcrypt"
-PKG_VERSION="4.4.36"
-PKG_SHA256="e5e1f4caee0a01de2aee26e3138807d6d3ca2b8e67287966d1fefd65e1fd8943"
-PKG_LICENSE="LGPL"
-PKG_SITE="https://github.com/besser82/libxcrypt"
-PKG_URL="https://github.com/besser82/libxcrypt/releases/download/v${PKG_VERSION}/libxcrypt-${PKG_VERSION}.tar.xz"
+PKG_VERSION="$(get_pkg_version libxcrypt)"
+PKG_NEED_UNPACK="$(get_pkg_directory libxcrypt)"
+PKG_URL=""
+PKG_ARCH="aarch64"
 
 PKG_DEPENDS_TARGET="lib32-toolchain"
-PKG_LONGDESC="libxcrypt provides modern crypt() replacement"
+PKG_TOOLCHAIN="configure"
+PKG_BUILD_FLAGS="lib32"
 
-PKG_CONFIGURE_OPTS_TARGET="--host=${LIB32_TARGET_NAME} \
-                           --build=${HOST_NAME} \
-                           --prefix=/usr \
-                           --libdir=/usr/lib32 \
-                           --enable-shared \
-                           --disable-static \
-                           --enable-hashes=all \
-                           --enable-obsolete-api=glibc \
-                           --disable-werror"
-
+PKG_CONFIGURE_OPTS_TARGET="\
+  --host=${LIB32_TARGET_NAME} \
+  --build=${HOST_NAME} \
+  --prefix=/usr \
+  --libdir=/usr/lib32 \
+  --enable-shared \
+  --disable-static \
+  --enable-hashes=all \
+  --enable-obsolete-api=glibc \
+  --disable-werror \
+"
+unpack() {
+  ${SCRIPTS}/get libxcrypt
+  mkdir -p ${PKG_BUILD}
+  tar --strip-components=1 -xf ${SOURCES}/libxcrypt/libxcrypt-${PKG_VERSION}.tar.xz -C ${PKG_BUILD}
+}
 makeinstall_target() {
 
   mkdir -p ${INSTALL}/usr/lib32
-  mkdir -p ${SYSROOT_PREFIX}/usr/lib
-  mkdir -p ${SYSROOT_PREFIX}/usr/include
+  mkdir -p ${LIB32_SYSROOT_PREFIX}/usr/lib
+  mkdir -p ${LIB32_SYSROOT_PREFIX}/usr/include
 
-  # instalar biblioteca no sistema final
-  cp -P ${PKG_BUILD}/.${TARGET_NAME}/.libs/libcrypt.so* ${INSTALL}/usr/lib32/
+  # copiar libs
+  cp -P ${PKG_BUILD}/.${LIB32_TARGET_NAME}/.libs/libcrypt.so* \
+        ${INSTALL}/usr/lib32/
 
-  # instalar biblioteca no sysroot (para linker)
-  cp -P ${PKG_BUILD}/.${TARGET_NAME}/.libs/libcrypt.so* ${SYSROOT_PREFIX}/usr/lib/
+  cp -P ${PKG_BUILD}/.${LIB32_TARGET_NAME}/.libs/libcrypt.so* \
+        ${LIB32_SYSROOT_PREFIX}/usr/lib/
 
-  # instalar header no sysroot (para compilador)
-  cp -v ${PKG_BUILD}/.${TARGET_NAME}/crypt.h ${SYSROOT_PREFIX}/usr/include/
+  # header
+  cp -v ${PKG_BUILD}/.${LIB32_TARGET_NAME}/crypt.h \
+        ${LIB32_SYSROOT_PREFIX}/usr/include/
 
-  # garantir symlink padrão para -lcrypt
-  ln -sf libcrypt.so.1 ${SYSROOT_PREFIX}/usr/lib/libcrypt.so
+  # symlink no sysroot
+  ln -sf libcrypt.so.1 ${LIB32_SYSROOT_PREFIX}/usr/lib/libcrypt.so
+
+  # 🔥 IMPORTANTE: symlink também no rootfs
+  cd ${INSTALL}/usr/lib32
+  ln -sf libcrypt.so.1 libcrypt.so
 }
-
-
-

@@ -2,8 +2,7 @@
 # Copyright (C) 2019 Trond Haugland (trondah@gmail.com)
 
 PKG_NAME="mame"
-PKG_VERSION="6cdc40fc53ba5574073d4009b531fda07156ff49"
-PKG_SHA256="ea494a44d69e7a075e6271e7a9a987aca208e3b018718984e20b5739eb8a2114"
+PKG_VERSION="lrmame0286"
 PKG_ARCH="any"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/mame"
@@ -12,8 +11,12 @@ PKG_DEPENDS_TARGET="toolchain zlib flac sqlite expat"
 PKG_SECTION="libretro"
 PKG_SHORTDESC="MAME - Multiple Arcade Machine Emulator"
 PKG_TOOLCHAIN="make"
+PKG_BUILD_FLAGS="+pic"
 
 pre_configure_target() {
+
+export CFLAGS="${CFLAGS} -mcpu=cortex-a53 -mtune=cortex-a53"
+export CXXFLAGS="${CXXFLAGS} -mcpu=cortex-a53 -mtune=cortex-a53"
 
 PTR64="1"
 NOASM="0"
@@ -25,9 +28,12 @@ fi
 PKG_MAKE_OPTS_TARGET="REGENIE=1 \
 		      VERBOSE=1 \
 		      NOWERROR=1 \
-		      OPENMP=1 \
+		      OPENMP=0 \
 		      CROSS_BUILD=1 \
 		      TOOLS=0 \
+			  PROFILER=0 \
+			  SYMBOLS=0 \
+			  DEBUG=0 \
 		      RETRO=1 \
 		      PTR64=${PTR64} \
 		      NOASM=${NOASM} \
@@ -39,7 +45,7 @@ PKG_MAKE_OPTS_TARGET="REGENIE=1 \
 		      ARCH= \
 		      TARGET=mame \
 		      SUBTARGET=mame \
-		      OPTIMIZE=fast \
+		      OPTIMIZE=3 \
 		      OSD=retro \
 		      USE_SYSTEM_LIB_EXPAT=1 \
 		      USE_SYSTEM_LIB_ZLIB=1 \

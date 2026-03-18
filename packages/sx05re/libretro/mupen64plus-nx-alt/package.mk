@@ -20,9 +20,14 @@ PKG_EE_UPDATE="no"
 
 pre_configure_target() {
 
+  # evitar EGL tentando incluir X11
+  export CFLAGS="${CFLAGS} -DMESA_EGL_NO_X11_HEADERS"
+  export CXXFLAGS="${CXXFLAGS} -DMESA_EGL_NO_X11_HEADERS"
+
   sed -e "s|^GIT_VERSION ?.*$|GIT_VERSION := \"${PKG_VERSION:0:7}\"|" -i Makefile
 
   PKG_MAKE_OPTS_TARGET+=" HAVE_PARALLEL_RDP=1 HAVE_PARALLEL_RSP=1 HAVE_THR_AL=1 LLE=1"
+  PKG_MAKE_OPTS_TARGET+=" HAVE_OPENGL=0 HAVE_OPENGLES=1 HAVE_OPENGLES2=1 HAVE_EGL=1"
 
   if [ "${ARCH}" = "arm" ]; then
     if [ "${DEVICE}" = "Amlogic-old" ]; then

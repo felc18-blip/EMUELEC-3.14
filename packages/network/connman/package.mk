@@ -1,23 +1,17 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
 # Copyright (C) 2019-present Team LibreELEC (https://libreelec.tv)
-# Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
 
 PKG_NAME="connman"
-PKG_VERSION="1.44"
+PKG_VERSION="1.44" # 1.44
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.connman.net"
 PKG_URL="https://git.kernel.org/pub/scm/network/connman/connman.git/snapshot/connman-${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain glib ncurses readline dbus iptables wpa_supplicant"
+PKG_DEPENDS_TARGET="toolchain glib readline dbus iptables"
 PKG_LONGDESC="A modular network connection manager."
 PKG_TOOLCHAIN="autotools"
 
-pre_configure_target() {
-  export LDFLAGS="${LDFLAGS} -lncursesw -ltinfow"
-}
-
-PKG_CONFIGURE_OPTS_TARGET="WPASUPPLICANT=/usr/bin/wpa_supplicant \
-                           --srcdir=.. \
+PKG_CONFIGURE_OPTS_TARGET="--srcdir=.. \
                            --disable-debug \
                            --disable-hh2serial-gps \
                            --disable-openconnect \
@@ -35,7 +29,6 @@ PKG_CONFIGURE_OPTS_TARGET="WPASUPPLICANT=/usr/bin/wpa_supplicant \
                            --enable-loopback \
                            --enable-ethernet \
                            --disable-gadget \
-                           --enable-wifi \
                            --disable-bluetooth \
                            --disable-ofono \
                            --disable-dundee \
@@ -50,15 +43,33 @@ PKG_CONFIGURE_OPTS_TARGET="WPASUPPLICANT=/usr/bin/wpa_supplicant \
                            --with-systemdunitdir=/usr/lib/systemd/system \
                            --disable-silent-rules"
 
-if [ "$WIREGUARD_SUPPORT" = "yes" ]; then
+if [ "${WIREGUARD_SUPPORT}" = "yes" ]; then
   PKG_CONFIGURE_OPTS_TARGET+=" --enable-wireguard=builtin"
 else
   PKG_CONFIGURE_OPTS_TARGET+=" --disable-wireguard"
 fi
 
+case "${WIRELESS_DAEMON}" in
+  wpa_supplicant)
+    PKG_DEPENDS_TARGET+=" wpa_supplicant"
+    PKG_CONFIGURE_OPTS_TARGET+=" WPASUPPLICANT=/usr/bin/wpa_supplicant \
+                                 --enable-wifi \
+                                 --disable-iwd"
+    ;;
+  iwd)
+    PKG_DEPENDS_TARGET+=" iwd"
+    PKG_CONFIGURE_OPTS_TARGET+=" --disable-wifi \
+                                 --enable-iwd"
+    ;;
+esac
+
 PKG_MAKE_OPTS_TARGET="storagedir=/storage/.cache/connman \
                       vpn_storagedir=/storage/.config/wireguard \
                       statedir=/run/connman"
+
+post_configure_target() {
+  libtool_remove_rpath libtool
+}
 
 post_makeinstall_target() {
   rm -rf ${INSTALL}/usr/lib/systemd
@@ -78,28 +89,21 @@ post_makeinstall_target() {
         -e "s|^# FallbackNameservers.*|FallbackNameservers = 8.8.8.8,8.8.4.4|g" \
         -e "s|^# FallbackTimeservers.*|FallbackTimeservers = 0.pool.ntp.org,1.pool.ntp.org,2.pool.ntp.org,3.pool.ntp.org|g" \
         -e "s|^# PreferredTechnologies.*|PreferredTechnologies = ethernet,wifi,cellular|g" \
-        -e "s|^# TetheringTechnologies.*|TetheringTechnologies = wifi|g" \
+        -e "s|^# TetheringTechnologies.*|TetheringTechnologies = ethernet,wifi|g" \
         -e "s|^# AllowHostnameUpdates.*|AllowHostnameUpdates = false|g" \
         -e "s|^# PersistentTetheringMode.*|PersistentTetheringMode = true|g" \
-        -e "s|^# NetworkInterfaceBlacklist = vmnet,vboxnet,virbr,ifb|NetworkInterfaceBlacklist = vmnet,vboxnet,virbr,ifb,docker,veth,zt,p2p|g"
+        -e "s|^# NetworkInterfaceBlacklist = vmnet,vboxnet,virbr,ifb|NetworkInterfaceBlacklist = vmnet,vboxnet,virbr,ifb,docker,veth,zt|g"
 
   mkdir -p ${INSTALL}/usr/share/connman/
     cp ${PKG_DIR}/config/settings ${INSTALL}/usr/share/connman/
-
-  # --- LIMPEZA PESADA (RPATH e NEEDED) ---
-  echo "--- Sanitizando binários do ConnMan ---"
-  find ${INSTALL}/usr/bin ${INSTALL}/usr/sbin -type f -exec sh -c '
-    patchelf --remove-rpath "$1" 2>/dev/null
-    for lib_path in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
-      lib_name=$(basename "$lib_path")
-      echo "  > Corrigindo dependência em $(basename $1): $lib_name"
-      patchelf --replace-needed "$lib_path" "$lib_name" "$1" 2>/dev/null
-    done
-  ' _ {} \;
 }
 
 post_install() {
   add_user system x 430 430 "service" "/var/run/connman" "/bin/sh"
   add_group system 430
+
   enable_service connman.service
+  if [ "${WIREGUARD_SUPPORT}" = "yes" ]; then
+    enable_service connman-vpn.service
+  fi
 }

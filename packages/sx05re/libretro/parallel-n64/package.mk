@@ -25,21 +25,23 @@ pre_configure_target() {
 if [[ "${ARCH}" == "arm" ]]; then
 	PKG_PATCH_DIRS="arm"
 	PKG_MAKE_OPTS_TARGET=" platform=${DEVICE}"
+
+	# 🔥 força GLES
+	PKG_MAKE_OPTS_TARGET+=" HAVE_OPENGL=0 HAVE_OPENGLES=1 FORCE_GLES=1"
 	
 	if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ]; then
-		PKG_MAKE_OPTS_TARGET=" platform=Odroidgoa"
+		PKG_MAKE_OPTS_TARGET=" platform=Odroidgoa HAVE_OPENGL=0 HAVE_OPENGLES=1 FORCE_GLES=1"
 	fi
 	
 	if [ "${DEVICE}" == "RK356x" ] || [ "${DEVICE}" == "OdroidM1" ]; then
-		PKG_MAKE_OPTS_TARGET=" platform=Odroidgoa-RK356x"
+		PKG_MAKE_OPTS_TARGET=" platform=Odroidgoa-RK356x HAVE_OPENGL=0 HAVE_OPENGLES=1 FORCE_GLES=1"
 	fi
 else
 	PKG_PATCH_DIRS="emuelec-aarch64"
-	PKG_MAKE_OPTS_TARGET=" platform=emuelec64-armv8"
+	PKG_MAKE_OPTS_TARGET=" platform=emuelec64-armv8 HAVE_OPENGL=0 HAVE_OPENGLES=1 FORCE_GLES=1"
 	
 	if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ]; then
-		#todo add odroidgoadvance to 64bits
-		PKG_MAKE_OPTS_TARGET=" platform=emuelec64-armv8"
+		PKG_MAKE_OPTS_TARGET=" platform=emuelec64-armv8 HAVE_OPENGL=0 HAVE_OPENGLES=1 FORCE_GLES=1"
 	fi
 fi
 }

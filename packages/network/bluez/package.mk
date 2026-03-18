@@ -77,38 +77,8 @@ post_makeinstall_target() {
   
   # copy bluezutils.py  
     mkdir -p ${INSTALL}/usr/lib/${PKG_PYTHON_VERSION}
-  cp -rf ${INSTALL}/usr/lib/bluez/test/bluezutils.py ${INSTALL}/usr/lib/${PKG_PYTHON_VERSION}
-  rm -rf ${INSTALL}/usr/lib/bluez/test
-
-  # --- HIGIENIZAÇÃO AGRESSIVA E FINAL ---
-  echo "--- Sanitizando binários do BlueZ (mpris-proxy, bluetoothctl, etc) ---"
-  
-  # Remove arquivos .la primeiro (eles são a fonte da contaminação do Libtool)
-  find ${INSTALL} -name "*.la" -delete
-
-  # Varredura completa por RPATH e caminhos absolutos
-  find ${INSTALL} -type f -exec sh -c '
-    if readelf -h "$1" 2>/dev/null | grep -qE "EXEC|DYN"; then
-      # Tenta zerar o RPATH e o RUNPATH (set-rpath "" é mais eficaz que remove-rpath)
-      patchelf --set-rpath "" "$1" 2>/dev/null || patchelf --remove-rpath "$1" 2>/dev/null
-      
-      # Procura especificamente por dependências NEEDED que apontam para o seu PC
-      for full_lib in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
-        lib_only=$(basename "$full_lib")
-        echo "  > Higienizando: $(basename $1) (vinculado a $lib_only)"
-        patchelf --replace-needed "$full_lib" "$lib_only" "$1" 2>/dev/null
-      done
-    fi
-  ' _ {} \;
-
-  # Verificação direta nos binários problemáticos
-  for binario in mpris-proxy bluetoothctl obexd bluetoothd; do
-    target_bin=$(find ${INSTALL} -name "$binario")
-    if [ -n "$target_bin" ]; then
-       echo "  > Aplicando trava de segurança em: $binario"
-       patchelf --set-rpath "" "$target_bin" 2>/dev/null
-    fi
-  done
+	cp -rf ${INSTALL}/usr/lib/bluez/test/bluezutils.py ${INSTALL}/usr/lib/${PKG_PYTHON_VERSION}
+	rm -rf ${INSTALL}/usr/lib/bluez/test
 }
 
 post_install() {

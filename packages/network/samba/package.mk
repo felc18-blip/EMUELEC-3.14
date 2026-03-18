@@ -3,12 +3,11 @@
 # Copyright (C) 2017-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="samba"
-PKG_VERSION="4.17.12"
-PKG_SHA256="6129a7f967b822b308c57152326e7302711c2d0b9830a82d0c21832b648741f4"
+PKG_VERSION="4.18.8"
 PKG_LICENSE="GPLv3+"
 PKG_SITE="https://www.samba.org"
 PKG_URL="https://download.samba.org/pub/samba/stable/${PKG_NAME}-${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain attr heimdal:host e2fsprogs Python3 libunwind zlib readline ncurses popt libaio connman gnutls"
+PKG_DEPENDS_TARGET="toolchain attr heimdal:host e2fsprogs Python3 libunwind zlib readline popt libaio connman gnutls"
 PKG_NEED_UNPACK="$(get_pkg_directory heimdal) $(get_pkg_directory e2fsprogs)"
 PKG_LONGDESC="A free SMB / CIFS fileserver and client."
 
@@ -96,7 +95,7 @@ pre_configure_target() {
     rm -rf .${TARGET_NAME}
 
 # work around link issues
-  export LDFLAGS="${LDFLAGS} -lreadline -lncursesw -ltinfow"
+  export LDFLAGS="${LDFLAGS} -lreadline -lncurses"
 
 # support 64-bit offsets and seeks on 32-bit platforms
   if [ "${TARGET_ARCH}" = "arm" ]; then

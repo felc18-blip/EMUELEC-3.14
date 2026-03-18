@@ -16,4 +16,15 @@ PKG_CMAKE_OPTS_TARGET="-DBUILD_SHARED_LIBS=0 \
                        -Denable-libsndfile=1 \
                        -Denable-pkgconfig=1 \
                        -Denable-pulseaudio=0 \
+					   -Denable-systemd=1 \
                        -Denable-readline=0"
+
+pre_configure_target() {
+  if [[ "$PROJECT" == "Amlogic-ng" ]]; then
+    PKG_CMAKE_OPTS_TARGET="$PKG_CMAKE_OPTS_TARGET -Denable-systemd=1"
+  elif [[ "$PROJECT" == "Amlogic" ]]; then
+    PKG_CMAKE_OPTS_TARGET="$PKG_CMAKE_OPTS_TARGET -Denable-systemd=0"
+  else
+    PKG_CMAKE_OPTS_TARGET="$PKG_CMAKE_OPTS_TARGET -Denable-systemd=0"
+  fi
+}

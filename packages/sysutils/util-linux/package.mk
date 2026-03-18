@@ -8,7 +8,7 @@ PKG_VERSION="2.39.2"
 PKG_LICENSE="GPL"
 PKG_URL="https://www.kernel.org/pub/linux/utils/util-linux/v$(get_pkg_version_maj_min)/${PKG_NAME}-${PKG_VERSION}.tar.xz"
 PKG_DEPENDS_HOST="ccache:host autoconf:host automake:host intltool:host libtool:host pkg-config:host"
-PKG_DEPENDS_TARGET="toolchain"
+PKG_DEPENDS_TARGET="toolchain ncurses"
 PKG_DEPENDS_INIT="toolchain"
 PKG_LONGDESC="A large variety of low-level system utilities that are necessary for a Linux system to function."
 PKG_TOOLCHAIN="autotools"
@@ -81,8 +81,9 @@ fi
 
 post_makeinstall_target() {
   if [ "${SWAP_SUPPORT}" = "yes" ]; then
-    mkdir -p ${INSTALL}/usr/lib/unofficialos
-      cp -PR ${PKG_DIR}/scripts/mount-swap ${INSTALL}/usr/lib/unofficialos
+    mkdir -p ${INSTALL}/usr/lib/libreelec
+      cp -PR ${PKG_DIR}/scripts/mount-swap ${INSTALL}/usr/lib/libreelec
+      chmod +x ${INSTALL}/usr/lib/libreelec/mount-swap
 
     mkdir -p ${INSTALL}/etc
       cat ${PKG_DIR}/config/swap.conf | \
@@ -96,4 +97,6 @@ post_install () {
   if [ "${SWAP_SUPPORT}" = "yes" ]; then
     enable_service swap.service
   fi
+
+  enable_service fstrim.timer
 }

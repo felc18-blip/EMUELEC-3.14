@@ -58,18 +58,18 @@ if [ -e /storage/.please_resize_me ] ; then
     DISK_NAME=$(basename $DISK)
     DISK_SECTORS=$(cat "/sys/block/$DISK_NAME/size") # Obtain the disk sectors count, each sector is always 512 Bytes large, independent of the underlying device, according to https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/linux/types.h#n117
     DISK_SIZE=$(( $DISK_SECTORS * 512 )) # Calculate the disk actual size, in byte
-    if [ $DISK_SIZE -gt 4294967296 ]; then # Se o disco for maior que 4GB (2GB Sistema + 2GB Storage)
+    if [ $DISK_SIZE -gt 8589934592 ]; then # The optimal behaviour, this will leave 6GiB to storage, and create the EEROMS partition
       ROMS_CREATE='yes'
-      STORAGE_END='4GiB' # Trava o fim da 2ª partição em 4GB totais (sobrando 2GB para Storage)
-    elif [ $DISK_SIZE -gt 3221225472 ]; then  # Para cartões de 4GB, usa 100% sem criar a 3ª partição
+      STORAGE_END='8GiB'
+    elif [ $DISK_SIZE -gt 3221225472 ]; then  # Optionaly omit the EEROMS partition for 4GB cards/drives
       ROMS_CREATE=''
       ROMS_OMIT_MANUAL=''
       STORAGE_END='100%'
     else
-      # O mínimo para o EmuELEC imagem é ~2GB, cartões menores que 4GB são bloqueados por segurança
+      # The bare minumum a EmuELEC image itself needs is 2186280960, but after adding in user configs things become uncontrollable, so we don't care about disks with size between 2085MiB and 3GiB
       echo 'ERROR: You disk is too small! You need to use a USB drive/SD card that is at least 4GB!'
       echo 'ERROR: You should NOT try to boot up this drive as it is NOT properly resized!'
-      StartProgress countdown "Powering off in 30s...      " 30 "NOW"
+      StartProgress countdown "Powering off in 30s...     " 30 "NOW"
       poweroff
     fi
 

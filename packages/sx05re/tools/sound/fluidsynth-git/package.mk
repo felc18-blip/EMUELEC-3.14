@@ -2,13 +2,12 @@
 # Copyright (C) 2018-present Frank Hartung (supervisedthinking (@) gmail.com)
 
 PKG_NAME="fluidsynth-git"
-PKG_VERSION="2.0.6"
-PKG_SHA256="e97e63c1045e102465f1aa848f9d712c5528c58685b8d40062e4aaf6af7edb75"
-PKG_LICENSE="LGPL"
+PKG_VERSION="2.3.4"
+PKG_LICENSE="GPL"
 PKG_SITE="http://fluidsynth.org/"
 PKG_URL="https://github.com/FluidSynth/fluidsynth/archive/v${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain glib soundfont-generaluser"
-PKG_LONGDESC="FluidSynth is a software real-time synthesizer based on the Soundfont 2 specifications."
+PKG_DEPENDS_TARGET="toolchain glib libsndfile"
+PKG_LONGDESC="FluidSynth renders midi music files as raw audio data, for playing or conversion."
 PKG_BUILD_FLAGS="+pic"
 
 pre_configure_target() {

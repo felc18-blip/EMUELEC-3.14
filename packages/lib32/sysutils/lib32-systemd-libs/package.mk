@@ -147,6 +147,13 @@ pre_configure_target() {
 
   export TARGET_CFLAGS="${TARGET_CFLAGS} -fno-schedule-insns -fno-schedule-insns2 -Wno-format-truncation"
   export LC_ALL=en_US.UTF-8
+  
+  SYSROOT32="${TOOLCHAIN}/armv8a-emuelec-linux-gnueabihf/sysroot"
+
+if [ ! -f ${SYSROOT32}/usr/include/crypt.h ]; then
+  cp ${TOOLCHAIN}/aarch64-libreelec-linux-gnu/sysroot/usr/include/crypt.h \
+     ${SYSROOT32}/usr/include/
+fi
 }
 
 

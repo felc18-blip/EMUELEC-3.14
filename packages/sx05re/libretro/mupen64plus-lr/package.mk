@@ -1,14 +1,4 @@
-################################################################################
-#      This file is part of OpenELEC - http://www.openelec.tv
-#      Copyright (C) 2009-2012 Stephan Raue (stephan@openelec.tv)
-#      Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
-#
-#  This Program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2, or (at your option)
-#  any later version.
-#
-################################################################################
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 PKG_NAME="mupen64plus-lr"
 PKG_VERSION="ab8134ac90a567581df6de4fc427dd67bfad1b17"
@@ -16,7 +6,7 @@ PKG_REV="1"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/mupen64plus-libretro"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain nasm:host"
+PKG_DEPENDS_TARGET="toolchain nasm:host ${OPENGLES}"
 PKG_PRIORITY="optional"
 PKG_SECTION="libretro"
 PKG_SHORTDESC="mupen64plus + RSP-HLE + GLideN64 + libretro"
@@ -25,35 +15,24 @@ PKG_TOOLCHAIN="make"
 PKG_BUILD_FLAGS="-lto"
 PKG_PATCH_DIRS+=" ${DEVICE}"
 
-if [ ! "${OPENGL}" = "no" ]; then
-  PKG_DEPENDS_TARGET+=" ${OPENGL} glu"
-fi
-
-if [ "${OPENGLES_SUPPORT}" = yes ]; then
-  PKG_DEPENDS_TARGET+=" ${OPENGLES}"
-fi
-
 pre_make_target() {
   export CFLAGS="${CFLAGS} -fcommon"
 }
 
 pre_configure_target() {
 
+  # força GLES (CRÍTICO)
+  PKG_MAKE_OPTS_TARGET+=" HAVE_OPENGL=0 HAVE_OPENGLES=1 FORCE_GLES=1"
+
   case ${DEVICE} in
-    RK3*)
-      PKG_MAKE_OPTS_TARGET=" platform=${DEVICE}"
+    RK3*|S922X*)
+      PKG_MAKE_OPTS_TARGET+=" platform=${DEVICE}"
       CFLAGS="${CFLAGS} -DLINUX -DEGL_API_FB"
       CPPFLAGS="${CPPFLAGS} -DLINUX -DEGL_API_FB"
-    ;;
-    *)
-      PKG_MAKE_OPTS_TARGET="GLES=1 GLES3=0"
     ;;
   esac
 
   sed -i 's/\-O[23]/-Ofast/' ${PKG_BUILD}/Makefile
-
-  # Remove GL desktop
-  sed -i 's/-lGL//g' ${PKG_BUILD}/Makefile
 }
 
 makeinstall_target() {

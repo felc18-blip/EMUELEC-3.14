@@ -3,16 +3,18 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="systemd"
-PKG_VERSION="252.6"
-PKG_SHA256="5f0b391f7e481f9ce0798515f34e85963990d42a27f9f80fc9e7321610b69784"
+PKG_VERSION="255.13"
+PKG_SHA256="b24bbfc18e27339f02bdef12d2be95b747c766e7eb9248554e53ad8979c01f2c"
 PKG_LICENSE="LGPL2.1+"
 PKG_SITE="http://www.freedesktop.org/wiki/Software/systemd"
 PKG_URL="https://github.com/systemd/systemd-stable/archive/v${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain libcap kmod util-linux entropy libidn2 wait-time-sync Jinja2:host libxcrypt"
 PKG_LONGDESC="A system and session manager for Linux, compatible with SysV and LSB init scripts."
 
+# CFLAGS vitais para o Kernel 4.9 (Impede o Kernel Panic no boot)
+PKG_CFLAGS="-DAUTOFS_V5_PACKET_UNION -Dautofs_ptype_missing_direct=5 -Dautofs_ptype_expire_direct=6"
+
 PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
-                       -Drootprefix=/usr \
                        -Dsplit-usr=false \
                        -Dsplit-bin=true \
                        -Ddefault-hierarchy=hybrid \
@@ -100,8 +102,9 @@ PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Dumount-path=/usr/bin/umount \
                        -Ddebug-tty=${DEBUG_TTY} \
                        -Dversion-tag=${PKG_VERSION}"
-
-if [ "${PROJECT}" = "Generic" ]; then
+					   
+# Arrumando o erro de sintaxe do IF
+if [[ "${PROJECT}" == "Generic" ]]; then
   PKG_MESON_OPTS_TARGET+=" -Defi=true"
 else
   PKG_MESON_OPTS_TARGET+=" -Defi=false"
@@ -145,12 +148,9 @@ post_makeinstall_target() {
   safe_remove ${INSTALL}/usr/lib/systemd/systemd-update-done
   safe_remove ${INSTALL}/usr/lib/systemd/system/systemd-update-done.service
   safe_remove ${INSTALL}/usr/lib/systemd/system/*.target.wants/systemd-update-done.service
-  #
+
   safe_remove ${INSTALL}/usr/lib/systemd/system/dev-hugepages.mount
   safe_remove ${INSTALL}/usr/lib/systemd/system/*.target.wants/dev-hugepages.mount
-  #
-  safe_remove ${INSTALL}/usr/lib/systemd/system/systemd-journald-audit.socket
-  safe_remove ${INSTALL}/usr/lib/systemd/system/*.target.wants/systemd-journald-audit.socket
 
   # adjust systemd-hwdb-update (we have read-only /etc).
   sed '/^ConditionNeedsUpdate=.*$/d' -i ${INSTALL}/usr/lib/systemd/system/systemd-hwdb-update.service
@@ -202,12 +202,8 @@ post_makeinstall_target() {
   sed -e "s,^.*SystemMaxUse=.*$,SystemMaxUse=10M,g" -i ${INSTALL}/etc/systemd/journald.conf
 
   # tune logind.conf
-  sed -e "s,^.*HandleLidSwitch=.*$,HandleLidSwitch=ignore,g" -i ${INSTALL}/etc/systemd/logind.conf
-  if [ "${DISPLAYSERVER}" == "no" && ${DISTRO} != "EmuELEC" ]; then
-    sed -e "s,^.*HandlePowerKey=.*$,HandlePowerKey=poweroff,g" -i ${INSTALL}/etc/systemd/logind.conf
-  else
-    sed -e "s,^.*HandlePowerKey=.*$,HandlePowerKey=ignore,g" -i ${INSTALL}/etc/systemd/logind.conf
-  fi
+  sed -e "s,^.*HandleLidSwitch=.*$,HandleLidSwitch=suspend,g" -i ${INSTALL}/etc/systemd/logind.conf
+  sed -e "s,^.*HandlePowerKey=.*$,HandlePowerKey=suspend,g" -i ${INSTALL}/etc/systemd/logind.conf
 
   # replace systemd-machine-id-setup with ours
   safe_remove ${INSTALL}/usr/lib/systemd/system/systemd-machine-id-commit.service
@@ -217,19 +213,19 @@ post_makeinstall_target() {
   cp ${PKG_DIR}/scripts/systemd-machine-id-setup ${INSTALL}/usr/bin
   cp ${PKG_DIR}/scripts/userconfig-setup ${INSTALL}/usr/bin
   cp ${PKG_DIR}/scripts/usercache-setup ${INSTALL}/usr/bin
-  cp ${PKG_DIR}/scripts/environment-setup ${INSTALL}/usr/bin
-
-  # use systemd to set cpufreq governor and tunables
-  find_file_path scripts/cpufreq && cp -PRv ${FOUND_PATH} ${INSTALL}/usr/bin
 
   mkdir -p ${INSTALL}/usr/sbin
   cp ${PKG_DIR}/scripts/network-base-setup ${INSTALL}/usr/sbin
   cp ${PKG_DIR}/scripts/systemd-timesyncd-setup ${INSTALL}/usr/sbin
-
+  
+  mkdir -p ${INSTALL}/usr/bin
+  cp ${PKG_DIR}/scripts/environment-setup ${INSTALL}/usr/bin/
+  chmod +x ${INSTALL}/usr/bin/environment-setup
+  ln -sf /run/libreelec/environment ${INSTALL}/etc/environment
+  
   # /etc/resolv.conf and /etc/hosts must be writable
   ln -sf /run/libreelec/resolv.conf ${INSTALL}/etc/resolv.conf
   ln -sf /run/libreelec/hosts ${INSTALL}/etc/hosts
-  ln -sf /run/libreelec/environment ${INSTALL}/etc/environment
 
   # provide 'halt', 'shutdown', 'reboot' & co.
   ln -sf /usr/bin/systemctl ${INSTALL}/usr/sbin/halt
@@ -259,12 +255,22 @@ post_makeinstall_target() {
   ln -sf /storage/.config/hwdb.d ${INSTALL}/etc/udev/hwdb.d
   safe_remove ${INSTALL}/etc/udev/rules.d
   ln -sf /storage/.config/udev.rules.d ${INSTALL}/etc/udev/rules.d
+  
+  # 🔥 REMOVE COMPLETAMENTE O SERVIÇO PROBLEMÁTICO
+  safe_remove ${INSTALL}/usr/lib/systemd/system/systemd-tmpfiles-setup-dev.service
+  safe_remove ${INSTALL}/usr/lib/systemd/system/*.target.wants/systemd-tmpfiles-setup-dev.service
 
+  # 🔒 GARANTE QUE NUNCA VOLTE
+  mkdir -p ${INSTALL}/etc/systemd/system
+  ln -sf /dev/null ${INSTALL}/etc/systemd/system/systemd-tmpfiles-setup-dev.service
   # journald
   ln -sf /storage/.cache/journald.conf.d ${INSTALL}/usr/lib/systemd/journald.conf.d
+  find ${INSTALL}/usr/sbin -type f -exec chmod +x {} \;
+ 
 }
 
 post_install() {
+  # ===== GRUPOS BASE =====
   add_group systemd-journal 190
 
   add_group systemd-timesync 191
@@ -273,7 +279,7 @@ post_install() {
   add_group systemd-network 193
   add_user systemd-network x 193 193 "systemd-network" "/" "/bin/sh"
 
-  add_group audio 63 pipewire
+  add_group audio 63 pipewire 2>/dev/null || true
   add_group cdrom 11
   add_group dialout 18
   add_group disk 6
@@ -284,18 +290,33 @@ post_install() {
   add_group render 12
   add_group tape 33
   add_group tty 5
-  add_group video 39 pipewire
+  add_group video 39 pipewire 2>/dev/null || true
   add_group utmp 22
   add_group input 199
 
+  # ===== SERVIÇOS ESSENCIAIS =====
   enable_service machine-id.service
   enable_service debugconfig.service
   enable_service userconfig.service
   enable_service usercache.service
-  enable_service envconfig.service
-  enable_service cpufreq.service
+
+  # ===== AMBIENTE =====
+  enable_service envconfig.service 2>/dev/null || true
+
+  # ===== CPU =====
+  enable_service cpufreq.service 2>/dev/null || true
+
+  # ===== REDE =====
   enable_service network-base.service
+
+  # ===== TEMPO =====
   enable_service systemd-timesyncd.service
   enable_service systemd-timesyncd-setup.service
+
+  # ===== DEBUG =====
   enable_service debug-shell.service
+
+  # ===== OPCIONAL (se quiser expandir depois) =====
+  # enable_service sshd.service 2>/dev/null || true
+  # enable_service bluetooth.service 2>/dev/null || true
 }

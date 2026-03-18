@@ -21,12 +21,18 @@ pre_configure_target() {
                            -DUSE_X11=OFF \
                            -DENABLE_WAYLAND=OFF \
                            -DUSE_GLES2=ON \
+                           -DUSE_EGL=ON \
+                           -DUSE_OPENGL=OFF \
                            -DUSE_SYSTEM_LIBS=OFF \
                            -DUSE_BUNDLED_ZSTD=ON"
 
+  # 🔥 força ambiente GLES puro
+  export CFLAGS="${CFLAGS} -DMESA_EGL_NO_X11_HEADERS"
+  export CXXFLAGS="${CXXFLAGS} -DMESA_EGL_NO_X11_HEADERS"
+
   if [ "${TARGET_ARCH}" = "aarch64" ]; then
-    CFLAGS+=" -mcpu=cortex-a53 -Ofast"
-    CXXFLAGS+=" -mcpu=cortex-a53 -Ofast"
+    CFLAGS+=" -mcpu=cortex-a73.cortex-a53 -Ofast"
+    CXXFLAGS+=" -mcpu=cortex-a73.cortex-a53 -Ofast"
   fi
 }
 

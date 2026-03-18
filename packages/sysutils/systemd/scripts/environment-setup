@@ -1,6 +1,4 @@
 #!/bin/sh
-# SPDX-License-Identifier: GPL-2.0
-# Copyright (C) 2019-present Team LibreELEC (https://libreelec.tv)
 
 # read config files
 for config in /etc/profile.d/*; do
@@ -8,6 +6,9 @@ for config in /etc/profile.d/*; do
     . $config
   fi
 done
+
+# garantir diretório
+mkdir -p /run/libreelec
 
 # generate system-wide environment file
 cat <<EOF >/run/libreelec/environment

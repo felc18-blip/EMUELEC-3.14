@@ -1,31 +1,22 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
 
 PKG_NAME="mupen64plus-nx-lr"
 PKG_VERSION="222acbd3f98391458a047874d0372fe78e14fe94"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/mupen64plus-libretro-nx"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain nasm:host"
+PKG_DEPENDS_TARGET="toolchain nasm:host ${OPENGLES}"
 PKG_SECTION="libretro"
 PKG_SHORTDESC="mupen64plus NX"
 PKG_LONGDESC="mupen64plus NX"
 PKG_TOOLCHAIN="make"
-PKG_MAKEINSTALL_TARGET=""
 PKG_BUILD_FLAGS="-lto"
 
 PKG_PATCH_DIRS+="${DEVICE}"
 
-if [ ! "${OPENGL}" = "no" ]; then
-  PKG_DEPENDS_TARGET+=" ${OPENGL} glu libglvnd"
-fi
-
-if [ "${OPENGLES_SUPPORT}" = yes ]; then
-  PKG_DEPENDS_TARGET+=" ${OPENGLES}"
-fi
-
 pre_configure_target() {
 
+  # Fix build
   for SOURCE in ${PKG_BUILD}/mupen64plus-rsp-paraLLEl/rsp_disasm.cpp ${PKG_BUILD}/mupen64plus-rsp-paraLLEl/rsp_disasm.hpp
   do
     sed -i '/include <string>/a #include <cstdint>' ${SOURCE}
@@ -34,12 +25,14 @@ pre_configure_target() {
   sed -e "s|^GIT_VERSION ?.*$|GIT_VERSION := \" ${PKG_VERSION:0:7}\"|" -i Makefile
   sed -i 's/\-O[23]/-Ofast/' ${PKG_BUILD}/Makefile
 
-  # Força GLES2 e desativa OpenGL desktop
-  PKG_MAKE_OPTS_TARGET="GLES=1 GLES3=0 HAVE_LIBGL=0"
+  # FORÇA GLES (CRÍTICO)
+  PKG_MAKE_OPTS_TARGET+=" HAVE_OPENGL=0 HAVE_OPENGLES=1 FORCE_GLES=1"
 
-  # Remove qualquer referência a GL desktop
-  sed -i 's/-lGL//g' ${PKG_BUILD}/Makefile
-  export LDFLAGS="${LDFLAGS//-lGL/}"
+  case ${DEVICE} in
+    RK3*|S922X*)
+      PKG_MAKE_OPTS_TARGET+=" platform=${DEVICE}"
+    ;;
+  esac
 }
 
 makeinstall_target() {

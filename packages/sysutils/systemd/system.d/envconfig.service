@@ -1,7 +1,7 @@
 [Unit]
 Description=Generate system-wide /etc/environment file
 DefaultDependencies=no
-After=systemd-tmpfiles-setup.service
+After=local-fs.target systemd-remount-fs.service
 
 [Service]
 Type=oneshot
