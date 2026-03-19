@@ -37,14 +37,21 @@ else
 fi
 
 post_makeinstall_target() {
-  # Remove the Python3 demo - useless for us
+  # Remove Python demo
   rm -f ${INSTALL}/usr/bin/pyCecClient
 
-  # Remove the sysmlink and redirect to /var/lib so that we can change libcec versions at run time
-  rm -f ${INSTALL}/usr/lib/libcec.so.6
-  ln -sf /var/lib/libcec.so.6 ${INSTALL}/usr/lib/libcec.so.6
+  cd ${INSTALL}/usr/lib
 
-	PYTHON_DIR=${INSTALL}/usr/lib/${PKG_PYTHON_VERSION}
+  # Corrigir symlinks corretamente
+  rm -f libcec.so libcec.so.6
+
+  real_lib=$(ls libcec.so.6.* | head -n1)
+
+  ln -sf ${real_lib} libcec.so.6
+  ln -sf libcec.so.6 libcec.so
+
+  # Python path fix
+  PYTHON_DIR=${INSTALL}/usr/lib/${PKG_PYTHON_VERSION}
   if [ -d ${PYTHON_DIR}/dist-packages ]; then
     mv ${PYTHON_DIR}/dist-packages ${PYTHON_DIR}/site-packages
   fi

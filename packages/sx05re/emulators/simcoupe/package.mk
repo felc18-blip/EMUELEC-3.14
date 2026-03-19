@@ -24,11 +24,17 @@ makeinstall_target() {
   chmod +x ${INSTALL}/usr/bin/simcoupestart.sh
   
   mkdir -p $INSTALL/usr/lib
-  cp $PKG_BUILD/.$TARGET_NAME/_deps/saasound-build/libSAASound.so* $INSTALL/usr/lib/
+
+  # FIX SAASOUND (corrige symlinks corretamente)
+  LIB=$(ls $PKG_BUILD/.$TARGET_NAME/_deps/saasound-build/libSAASound.so.* | sort -V | tail -n1)
+  cp $LIB $INSTALL/usr/lib/
+
+  cd $INSTALL/usr/lib
+  ln -sf $(basename $LIB) libSAASound.so.3
+  ln -sf libSAASound.so.3 libSAASound.so
   
   mkdir -p $INSTALL/usr/share/simcoupe
   cp $PKG_BUILD/Resource/*.rom $INSTALL/usr/share/simcoupe/ 2>/dev/null || true
   cp $PKG_BUILD/Resource/*.zx82 $INSTALL/usr/share/simcoupe/ 2>/dev/null || true
   cp $PKG_BUILD/Resource/*.bin $INSTALL/usr/share/simcoupe/ 2>/dev/null || true
-  
 }
