@@ -2,9 +2,9 @@
 # Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
 # Copyright (C) 2017-present Team LibreELEC (https://libreelec.tv)
 
+
 PKG_NAME="squashfs-tools"
-PKG_VERSION="4.5.1"
-PKG_SHA256="277b6e7f75a4a57f72191295ae62766a10d627a4f5e5f19eadfbc861378deea7"
+PKG_VERSION="4.6.1"
 PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/plougher/squashfs-tools"
 PKG_URL="https://github.com/plougher/squashfs-tools/archive/${PKG_VERSION}.tar.gz"
