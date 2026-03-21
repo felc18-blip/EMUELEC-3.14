@@ -1,43 +1,53 @@
-# SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2018-present Team CoreELEC (https://coreelec.org)
-
+# SPDX-License-Identifier: GPL-2.0
 PKG_NAME="RTL8821CU"
+PKG_VERSION="git"
 PKG_LICENSE="GPL"
-PKG_SITE="https://github.com/smp79/rtl8821CU"
+PKG_SITE="https://github.com/brektrou/rtl8821CU"
+PKG_URL="https://github.com/brektrou/rtl8821CU/archive/refs/heads/master.zip"
 PKG_DEPENDS_TARGET="toolchain linux"
-PKG_NEED_UNPACK="$LINUX_DEPENDS"
-PKG_SECTION="driver"
-PKG_LONGDESC="Realtek RTL8821CU Linux driver"
-PKG_IS_KERNEL_PKG="yes"
+PKG_TOOLCHAIN="manual"
+PKG_LONGDESC="Realtek RTL8821CU USB WiFi driver"
 
-case "$LINUX" in
-  amlogic-3.14)
-    PKG_VERSION="178fcbf4f1bf5b94580b5708016d0b2c2ded1720"
-    PKG_SHA256="29d3e053dd1fad37ee03de65e4ed2b25a4fb9aaf8bb6bd435da477753d03ad26"
-    PKG_URL="https://github.com/smp79/rtl8821CU/archive/$PKG_VERSION.tar.gz"
-    PKG_SOURCE_DIR="rtl8821CU-$PKG_VERSION*"
-    ;;
-  amlogic-4.9|odroid-go-a-4.4)
-    PKG_VERSION="f7910283478ac1b508ff163d30e4b374bf99f7cb"
-    PKG_SHA256="b2128cbc23ecf9b17bbbd9652a2453d73403276a56b11eb8a795d168156cd53e"
-    PKG_URL="https://github.com/smp79/rtl8821CU/archive/$PKG_VERSION.tar.gz"
-    PKG_SOURCE_DIR="rtl8821CU-$PKG_VERSION*"
-    ;;
-esac
+get_driver_dir() {
+  find $PKG_BUILD -maxdepth 1 -type d -iname "rtl8821cu*"
+}
 
 pre_make_target() {
-  unset LDFLAGS
+  DRIVER_DIR=$(get_driver_dir)
+
+  echo "Driver dir: $DRIVER_DIR"
+
+  if [ -z "$DRIVER_DIR" ]; then
+    echo "ERRO: driver dir não encontrado"
+    exit 1
+  fi
+
+  sed -i 's/-Werror//g' $DRIVER_DIR/Makefile
+
+  sed -i 's/CONFIG_PLATFORM_I386_PC = y/CONFIG_PLATFORM_I386_PC = n/g' $DRIVER_DIR/Makefile
+  sed -i 's/CONFIG_PLATFORM_ARM_RPI = y/CONFIG_PLATFORM_ARM_RPI = n/g' $DRIVER_DIR/Makefile
+  sed -i 's/CONFIG_PLATFORM_ARM64_RPI = y/CONFIG_PLATFORM_ARM64_RPI = n/g' $DRIVER_DIR/Makefile
+
+  echo "CONFIG_PLATFORM_ARM64_GENERIC = y" >> $DRIVER_DIR/Makefile
+
+  sed -i 's/CONFIG_IOCTL_CFG80211 = y/CONFIG_IOCTL_CFG80211 = n/g' $DRIVER_DIR/Makefile
 }
 
 make_target() {
+  DRIVER_DIR=$(get_driver_dir)
+
+  cd $DRIVER_DIR
+
   make \
-       ARCH=$TARGET_KERNEL_ARCH \
-       KSRC=$(kernel_path) \
-       CROSS_COMPILE=$TARGET_KERNEL_PREFIX \
-       CONFIG_POWER_SAVING=n
+    ARCH=$TARGET_KERNEL_ARCH \
+    CROSS_COMPILE=$TARGET_KERNEL_PREFIX \
+    KSRC=$(kernel_path) \
+    KVER=$(kernel_version)
 }
 
 makeinstall_target() {
-  mkdir -p $INSTALL/$(get_full_module_dir)/$PKG_NAME
-    cp *.ko $INSTALL/$(get_full_module_dir)/$PKG_NAME
+  DRIVER_DIR=$(get_driver_dir)
+
+  mkdir -p $INSTALL/usr/lib/modules/$(kernel_version)/kernel/drivers/net/wireless
+  cp $DRIVER_DIR/8821cu.ko $INSTALL/usr/lib/modules/$(kernel_version)/kernel/drivers/net/wireless/
 }

@@ -20,8 +20,7 @@ fi
 
 BLUEZ_CONFIG="$BLUEZ_CONFIG --enable-monitor --enable-test"
 
-# Mantendo sua correção de libs para readline
-PKG_MAKE_OPTS_TARGET="LIBS=-ltinfow"
+PKG_MAKE_OPTS_TARGET="LIBS=-lncursesw"
 
 PKG_CONFIGURE_OPTS_TARGET="--disable-dependency-tracking \
                            --disable-silent-rules \

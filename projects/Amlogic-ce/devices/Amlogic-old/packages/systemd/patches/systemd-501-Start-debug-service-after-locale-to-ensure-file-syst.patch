@@ -1,0 +1,11 @@
+diff -rupN systemd.orig/units/debug-shell.service.in systemd/units/debug-shell.service.in
+--- systemd.orig/units/debug-shell.service.in	2025-06-05 16:44:46.350978244 +0000
++++ systemd/units/debug-shell.service.in	2025-06-05 16:48:30.025700764 +0000
+@@ -14,6 +14,7 @@ DefaultDependencies=no
+ IgnoreOnIsolate=yes
+ ConditionPathExists={{DEBUGTTY}}
+ After=systemd-vconsole-setup.service
++After=locale.service
+ 
+ [Service]
+ Environment=TERM=linux

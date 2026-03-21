@@ -23,22 +23,4 @@ pre_configure_target() {
 
 post_makeinstall_target() {
   python_remove_source
-
-  # --- INÍCIO DA LIMPEZA PESADA (Focado em módulos Python .so) ---
-  echo "--- Sanitizando bindings do dbus-python (Limpando rastros do PC) ---"
-  
-  # Varre toda a pasta de instalação (essencial para achar os .so em site-packages)
-  find ${INSTALL} -type f -name "*.so*" -exec sh -c '
-    if readelf -h "$1" 2>/dev/null | grep -qE "EXEC|DYN"; then
-      # Remove RPATH/RUNPATH
-      patchelf --remove-rpath "$1" 2>/dev/null
-      
-      # Substitui caminhos absolutos (/home/felipe/...) pelo nome puro da lib
-      for lib_path in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
-        lib_name=$(basename "$lib_path")
-        echo "  > Corrigindo dependência em $(basename $1): $lib_name"
-        patchelf --replace-needed "$lib_path" "$lib_name" "$1" 2>/dev/null
-      done
-    fi
-  ' _ {} \;
 }

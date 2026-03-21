@@ -2,17 +2,15 @@
 # Copyright (C) 2022-present JELOS
 
 PKG_NAME="portmaster"
-PKG_VERSION="2026.01.19-0955"
+PKG_VERSION="2026.03.09-2312"
 PKG_SITE="https://github.com/PortsMaster/PortMaster-GUI"
 PKG_URL="${PKG_SITE}/releases/download/${PKG_VERSION}/PortMaster.zip"
 COMPAT_URL="https://github.com/RetroGFX/UnofficialOSAddOns/raw/main/compat.zip"
-
 PKG_LICENSE="MIT"
 PKG_ARCH="arm aarch64"
-
-PKG_DEPENDS_TARGET="toolchain gptokeyb gamecontrollerdb wget control-gen unzip libmali"
+PKG_DEPENDS_TARGET="toolchain gptokeyb gamecontrollerdb wget control-gen"
 PKG_TOOLCHAIN="manual"
-PKG_LONGDESC="PortMaster - a simple tool that allows you to download various game ports"
+PKG_LONGDESC="Portmaster - a simple tool that allows you to download various game ports"
 
 makeinstall_target() {
   export STRIP=true
@@ -31,7 +29,7 @@ makeinstall_target() {
     cp -rf ${PKG_DIR}/scripts/* ${INSTALL}/usr/bin/
   fi
 
-  chmod +x ${INSTALL}/usr/bin/*.sh 2>/dev/null
+  chmod +x ${INSTALL}/usr/bin/* 2>/dev/null || true
 
   # Baixa o PortMaster
   mkdir -p ${INSTALL}/usr/config/PortMaster/release
@@ -53,17 +51,20 @@ makeinstall_target() {
 
 post_install() {
 
-  case ${DEVICE} in
-    Amlogic-old)
-      LIBEGL="export SDL_VIDEO_GL_DRIVER=/usr/lib/libGLESv2.so export SDL_VIDEO_EGL_DRIVER=/usr/lib/libEGL.so"
-    ;;
-    S922X)
-      LIBEGL="export SDL_VIDEO_GL_DRIVER=/usr/lib/egl/libGL.so.1 export SDL_VIDEO_EGL_DRIVER=/usr/lib/egl/libEGL.so.1"
-    ;;
-    *)
-      LIBEGL=""
-    ;;
-  esac
+case ${DEVICE} in
+  Amlogic-old)
+    LIBEGL=""
+  ;;
+  Amlogic-ng)
+    LIBEGL=""
+  ;;
+  S922X)
+    LIBEGL="SDL_VIDEO_GL_DRIVER=/usr/lib/egl/libGL.so.1 SDL_VIDEO_EGL_DRIVER=/usr/lib/egl/libEGL.so.1"
+  ;;
+  *)
+    LIBEGL=""
+  ;;
+esac
 
   if [ -f "${INSTALL}/usr/bin/start_portmaster.sh" ]; then
     sed -e "s|@LIBEGL@|${LIBEGL}|g" \

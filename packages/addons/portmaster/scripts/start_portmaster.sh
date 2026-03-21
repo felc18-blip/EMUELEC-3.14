@@ -31,7 +31,12 @@ chmod +x mapper.txt
 
 # 3. Link do banco de controles SDL
 rm -f gamecontrollerdb.txt
-ln -sf /storage/.config/SDL-GameControllerDB/gamecontrollerdb.txt gamecontrollerdb.txt
+
+if [ -f /storage/.config/SDL-GameControllerDB/gamecontrollerdb.txt ]; then
+    ln -sf /storage/.config/SDL-GameControllerDB/gamecontrollerdb.txt gamecontrollerdb.txt
+else
+    ln -sf /usr/config/SDL-GameControllerDB/gamecontrollerdb.txt gamecontrollerdb.txt
+fi
 
 # 4. Garantir estrutura de diretórios
 mkdir -p "$PORTS_DIR"
@@ -42,8 +47,9 @@ chmod 775 "$PORTS_DIR"
 chmod 775 "$PORTS_SCRIPTS_DIR"
 
 # 5. Instalação inicial do PortMaster
-if [ ! -d "$PM_DIR" ]; then
-    unzip -o /usr/config/PortMaster/release/PortMaster.zip -d "$PORTS_DIR"
+if [ ! -f "$PM_DIR/PortMaster.sh" ]; then
+    rm -rf "$PM_DIR"
+    unzip -o /usr/config/PortMaster/release/PortMaster.zip -d "$PORTS_DIR" || exit 1
     chmod +x "$PM_DIR/PortMaster.sh"
 fi
 

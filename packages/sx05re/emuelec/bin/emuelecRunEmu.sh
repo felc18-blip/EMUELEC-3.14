@@ -314,11 +314,12 @@ case ${PLATFORM} in
                 fi
                 ;;
         "psp"|"pspminis")
-                if [ "${EMU}" = "PPSSPPSDL" ]; then
+                if [ "$EMU" = "PPSSPPSDL" ]; then
             set_kill_keys "PPSSPPSDL"
             RUNTHIS='${TBASH} ppsspp.sh "${ROMNAME}"'
-                elif [ "${EMU}" = "ppsspp-sa" ]; then
-            set_kill_keys "ppsspp-sa"
+                fi
+                if [ "$EMU" = "PPSSPPSA" ]; then
+            set_kill_keys "PPSSPPSA"
             RUNTHIS='${TBASH} start_ppsspp.sh "${ROMNAME}"'
                 fi
                 ;;

@@ -4940,10 +4940,10 @@
           ]
         },
         {
-          "name": "ppsspp-sa",
+          "name": "PPSSPPSA",
           "cores": [
             {
-              "name": "ppsspp-sa"
+              "name": "PPSSPPSA"
             }
           ]
         },
@@ -4952,9 +4952,6 @@
           "cores": [
             {
               "name": "ppsspp"
-            },
-            {
-              "name": "ppsspp_lr"
             }
           ]
         }
@@ -4971,17 +4968,28 @@
       "theme": "pspminis",
       "command": "default",
       "extensions": [
+        ".7z",
+        ".zip",
         ".cso",
         ".iso",
-        ".pbp"
+        ".pbp",
+        ".chd"
       ],
       "emulators": [
         {
-          "name": "PPSSPPSDL",
+          "name": "ppsspp",
           "cores": [
             {
-              "name": "PPSSPPSDL",
+              "name": "ppsspp",
               "default": true
+            }
+          ]
+        },
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "ppsspp"
             }
           ]
         }
