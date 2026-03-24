@@ -3,13 +3,13 @@
 # Copyright (C) 2024-present EmuELEC (https://github.com/EmuELEC)
 
 PKG_NAME="zmusic"
-PKG_VERSION="7476a189755d2665b24a58182640752b82b3a66d"
+PKG_VERSION="1.3.0"
 PKG_LICENSE="GPL"
-PKG_SITE="https://github.com/ZDoom/ZMusic"
-PKG_URL="${PKG_SITE}.git"
-PKG_DEPENDS_HOST="toolchain:host glib:host"
+PKG_SITE="https://github.com/coelckers/ZMusic"
+PKG_URL="https://github.com/ZDoom/ZMusic/archive/refs/tags/${PKG_VERSION}.tar.gz"
+PKG_DEPENDS_HOST="toolchain"
 PKG_DEPENDS_TARGET="toolchain zmusic:host"
-PKG_LONGDESC="GZDoom's music system as a standalone library"
+PKG_SHORTDESC="GZDoom's music system as a standalone library"
 PKG_TOOLCHAIN="cmake-make"
 
 pre_build_host() {

@@ -3,11 +3,10 @@
 # Copyright (C) 2024-present EmuELEC (https://github.com/EmuELEC)
 
 PKG_NAME="gzdoom"
-PKG_VERSION="71c40432e5e893c629a1c9c76a523a0ab22bd56a"
-PKG_LICENSE="GPL"
+PKG_VERSION="g4.14.2"
+PKG_LICENSE="GPLv3"
 PKG_SITE="https://github.com/ZDoom/gzdoom"
-PKG_URL="${PKG_SITE}.git"
-PKG_GIT_CLONE_BRANCH="g4.12"
+PKG_URL="https://github.com/ZDoom/gzdoom/archive/refs/tags/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_HOST="toolchain SDL2:host zmusic:host libwebp:host"
 PKG_DEPENDS_TARGET="toolchain SDL2 gzdoom:host zmusic libwebp"
 PKG_LONGDESC="GZDoom is a modder-friendly OpenGL and Vulkan source port based on the DOOM engine"
