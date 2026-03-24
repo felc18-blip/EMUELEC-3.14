@@ -1,6 +1,7 @@
 ################################################################################
 #      This file is part of OpenELEC - http://www.openelec.tv
 #      Copyright (C) 2009-2012 Stephan Raue (stephan@openelec.tv)
+#      Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
 #
 #  This Program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -18,18 +19,18 @@
 #  http://www.gnu.org/copyleft/gpl.html
 ################################################################################
 
-PKG_NAME="glsl-shaders"
-PKG_VERSION="6d5c3fe803d2ebe2b44ef42d2b421f5b6df3e045"
+PKG_NAME="slang-shaders"
+PKG_VERSION="75173e413dac3e6ce5ba9570cb712ddcf9b93d1d"
 PKG_REV="1"
-PKG_ARCH="aarch64"
+PKG_ARCH="any"
 PKG_LICENSE="GPL"
-PKG_SITE="https://github.com/libretro/glsl-shaders"
+PKG_SITE="https://github.com/libretro/slang-shaders"
 PKG_URL="${PKG_SITE}.git"
 PKG_DEPENDS_TARGET="toolchain"
 PKG_PRIORITY="optional"
 PKG_SECTION="libretro"
-PKG_SHORTDESC="Common GSLS shaders for RetroArch"
-PKG_LONGDESC="Common GSLS shaders for RetroArch"
+PKG_SHORTDESC="Common SLANG shaders for RetroArch"
+PKG_LONGDESC="Common SLANG shaders for RetroArch"
 
 PKG_IS_ADDON="no"
 PKG_TOOLCHAIN="make"
@@ -40,5 +41,6 @@ configure_target() {
 }
 
 makeinstall_target() {
-  make install INSTALLDIR="${INSTALL}/usr/share/common-shaders"
+  mkdir -p ${INSTALL}/usr/share/slang-shaders
+  cp -rf ${PKG_BUILD}/* ${INSTALL}/usr/share/slang-shaders/
 }

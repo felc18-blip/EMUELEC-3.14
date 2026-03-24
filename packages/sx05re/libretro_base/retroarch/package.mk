@@ -32,7 +32,7 @@ if [ "${DEVICE}" = "Amlogic-ng" ] || [ "${DEVICE}" = "Amlogic-no" ] || [ "${DEVI
 fi
 
 if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ] || [ "${DEVICE}" == "RK356x" ] || [ "${DEVICE}" == "OdroidM1" ]; then
-PKG_DEPENDS_TARGET+=" libdrm librga"
+PKG_DEPENDS_TARGET+=" libdrm librga retropie-shaders slang-shaders"
 PKG_PATCH_DIRS="OdroidGoAdvance"
 fi
 

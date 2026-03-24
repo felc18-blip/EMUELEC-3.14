@@ -1086,6 +1086,14 @@
               "default": true
             }
           ]
+        },
+        {
+          "name": "viceSA",
+          "cores": [
+            {
+              "name": "viceSA"
+            }
+          ]
         }
       ]
     },
@@ -1119,6 +1127,14 @@
             },
             {
               "name": "vice_x64sc"
+            }
+          ]
+        },
+        {
+          "name": "viceSA",
+          "cores": [
+            {
+              "name": "viceSA"
             }
           ]
         }
@@ -1252,6 +1268,14 @@
               "default": true
             }
           ]
+        },
+        {
+          "name": "viceSA",
+          "cores": [
+            {
+              "name": "viceSA"
+            }
+          ]
         }
       ]
     },
@@ -1279,6 +1303,14 @@
             {
               "name": "vice_xvic",
               "default": true
+            }
+          ]
+        },
+        {
+          "name": "viceSA",
+          "cores": [
+            {
+              "name": "viceSA"
             }
           ]
         }
@@ -1432,6 +1464,14 @@
             },
             {
               "name": "dolphin-gc"
+            }
+          ]
+        },
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "dolphin"
             }
           ]
         }
@@ -2183,6 +2223,12 @@
             },
             {
               "name": "mupen64plus-lr"
+            },
+            {
+              "name": "mupen64plus_next"
+            },
+            {
+              "name": "mupen64plus_next_alt"
             }
           ]
         },
@@ -2458,6 +2504,9 @@
             },
             {
               "name": "mesen-s"
+            },
+            {
+              "name": "doublecherrygb"
             }
           ]
         }
@@ -2506,6 +2555,9 @@
             },
             {
               "name": "mesen-s"
+            },
+            {
+              "name": "doublecherrygb"
             }
           ]
         }
@@ -2693,6 +2745,9 @@
             },
             {
               "name": "mesen-s"
+            },
+            {
+              "name": "doublecherrygb"
             }
           ]
         }
@@ -2742,6 +2797,9 @@
             },
             {
               "name": "mesen-s"
+            },
+            {
+              "name": "doublecherrygb"
             }
           ]
         }
@@ -2791,6 +2849,9 @@
             },
             {
               "name": "mesen-s"
+            },
+            {
+              "name": "doublecherrygb"
             }
           ]
         }
@@ -2839,6 +2900,9 @@
             },
             {
               "name": "mesen-s"
+            },
+            {
+              "name": "doublecherrygb"
             }
           ]
         }
@@ -2910,6 +2974,9 @@
               "name": "snes9x2002"
             },
             {
+              "name": "snes9x2005"
+            },
+            {
               "name": "snes9x2005_plus"
             },
             {
@@ -2919,7 +2986,16 @@
               "name": "mednafen_supafaust"
             },
             {
+              "name": "bsnes_hd"
+            },
+            {
               "name": "bsnes_mercury_performance"
+            },
+            {
+              "name": "bsnes_mercury_balanced"
+            },
+            {
+              "name": "bsnes_mercury_accuracy"
             }
           ]
         }
@@ -2964,6 +3040,9 @@
               "name": "snes9x2002"
             },
             {
+              "name": "snes9x2005"
+            },
+            {
               "name": "snes9x2005_plus"
             },
             {
@@ -2974,6 +3053,15 @@
             },
             {
               "name": "bsnes_hd"
+            },
+            {
+              "name": "bsnes_mercury_performance"
+            },
+            {
+              "name": "bsnes_mercury_balanced"
+            },
+            {
+              "name": "bsnes_mercury_accuracy"
             }
           ]
         }
@@ -3018,6 +3106,9 @@
               "name": "snes9x2002"
             },
             {
+              "name": "snes9x2005"
+            },
+            {
               "name": "snes9x2005_plus"
             },
             {
@@ -3028,6 +3119,15 @@
             },
             {
               "name": "bsnes_hd"
+            },
+            {
+              "name": "bsnes_mercury_performance"
+            },
+            {
+              "name": "bsnes_mercury_balanced"
+            },
+            {
+              "name": "bsnes_mercury_accuracy"
             }
           ]
         }
@@ -3072,6 +3172,9 @@
               "name": "snes9x2002"
             },
             {
+              "name": "snes9x2005"
+            },
+            {
               "name": "snes9x2005_plus"
             },
             {
@@ -3082,6 +3185,15 @@
             },
             {
               "name": "bsnes_hd"
+            },
+            {
+              "name": "bsnes_mercury_performance"
+            },
+            {
+              "name": "bsnes_mercury_balanced"
+            },
+            {
+              "name": "bsnes_mercury_accuracy"
             }
           ]
         }
@@ -3419,35 +3531,6 @@
       ]
     },
     {
-      "name": "3ds",
-      "fullname": "Nintendo 3DS",
-      "manufacturer": "Nintendo",
-      "release": "2011",
-      "hardware": "portable",
-      "path": "/storage/roms/3ds",
-      "platform": "3ds",
-      "theme": "3ds",
-      "command": "default",
-      "extensions": [
-        ".3ds",
-        ".cci",
-        ".cxi",
-        ".cia",
-        ".zip"
-      ],
-      "emulators": [
-        {
-          "name": "libretro",
-          "cores": [
-            {
-              "name": "panda3ds",
-              "default": true
-            }
-          ]
-        }
-      ]
-    },
-    {
       "name": "ports",
       "fullname": "Ports",
       "manufacturer": "Ports",
@@ -3649,6 +3732,9 @@
             {
               "name": "mednafen_ngp",
               "default": true
+            },
+            {
+              "name": "race"
             }
           ]
         }
@@ -3676,6 +3762,9 @@
             {
               "name": "mednafen_ngp",
               "default": true
+            },
+            {
+              "name": "race"
             }
           ]
         }
@@ -4111,6 +4200,9 @@
             },
             {
               "name": "picodrive"
+            },
+            {
+              "name": "smsplus"
             }
           ]
         }
@@ -4145,6 +4237,9 @@
             },
             {
               "name": "picodrive"
+            },
+            {
+              "name": "smsplus"
             }
           ]
         }
@@ -4523,6 +4618,9 @@
             },
             {
               "name": "yabause"
+            },
+            {
+              "name": "yabasanshiro"
             }
           ]
         },
@@ -4757,22 +4855,6 @@
               "name": "duckstation"
             }
           ]
-        },
-        {
-          "name": "DuckstationSA",
-          "cores": [
-            {
-              "name": "duckstation"
-            }
-          ]
-        },
-        {
-          "name": "mednafen",
-          "cores": [
-            {
-              "name": "mednafen"
-            }
-          ]
         }
       ]
     },
@@ -4952,6 +5034,9 @@
           "cores": [
             {
               "name": "ppsspp"
+            },
+            {
+              "name": "ppssppsa"
             }
           ]
         }

@@ -1,6 +1,8 @@
 ################################################################################
 #      This file is part of OpenELEC - http://www.openelec.tv
 #      Copyright (C) 2009-2012 Stephan Raue (stephan@openelec.tv)
+#      Copyright (C) 2020 351ELEC team (https://github.com/fewtarius/351ELEC)
+#      Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
 #
 #  This Program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -18,27 +20,30 @@
 #  http://www.gnu.org/copyleft/gpl.html
 ################################################################################
 
-PKG_NAME="glsl-shaders"
-PKG_VERSION="6d5c3fe803d2ebe2b44ef42d2b421f5b6df3e045"
+PKG_NAME="retropie-shaders"
+PKG_VERSION="43eaf9b91857eb8515310c74ae750895d77b20f8"
 PKG_REV="1"
-PKG_ARCH="aarch64"
+PKG_ARCH="any"
 PKG_LICENSE="GPL"
-PKG_SITE="https://github.com/libretro/glsl-shaders"
+PKG_SITE="https://github.com/RetroPie/common-shaders"
 PKG_URL="${PKG_SITE}.git"
-PKG_DEPENDS_TARGET="toolchain"
+PKG_GIT_CLONE_BRANCH="rpi"
+PKG_DEPENDS_TARGET="toolchain glsl-shaders"
 PKG_PRIORITY="optional"
 PKG_SECTION="libretro"
-PKG_SHORTDESC="Common GSLS shaders for RetroArch"
-PKG_LONGDESC="Common GSLS shaders for RetroArch"
+PKG_SHORTDESC="Libretro common shaders from retropie"
+PKG_LONGDESC="Libretro common shaders from retropie"
+PKG_TOOLCHAIN="manual"
 
-PKG_IS_ADDON="no"
-PKG_TOOLCHAIN="make"
-PKG_AUTORECONF="no"
-
-configure_target() {
-  cd ${PKG_BUILD}
+make_target() {
+  :
 }
 
 makeinstall_target() {
-  make install INSTALLDIR="${INSTALL}/usr/share/common-shaders"
+  mkdir -p ${INSTALL}/usr/share/common-shaders/retropie
+
+  rsync -a ${PKG_BUILD}/* \
+    ${INSTALL}/usr/share/common-shaders/retropie/
+
+  rm -f ${INSTALL}/usr/share/common-shaders/retropie/{Makefile,configure}
 }
