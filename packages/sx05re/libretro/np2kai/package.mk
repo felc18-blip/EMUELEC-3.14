@@ -19,33 +19,22 @@
 ################################################################################
 
 PKG_NAME="np2kai"
-PKG_VERSION="3ccfef9d7a4779591f72ff5ea7db13a1e7f3b137"
+PKG_VERSION="c2ca4046860264cb307e768f529f180caee5e224"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="MIT"
-PKG_SITE="https://github.com/libretro/NP2kai"
-PKG_URL="${PKG_SITE}.git"
+PKG_SITE="https://github.com/AZO234/NP2kai"
+PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain"
 PKG_PRIORITY="optional"
 PKG_SECTION="libretro"
 PKG_SHORTDESC="Neko Project II kai"
 PKG_TOOLCHAIN="make"
 
-pre_make_target() {
-  # Fix 1: Remove the -municode flag using the absolute package build path
-  if [ -f "${PKG_BUILD}/Makefile.libretro" ]; then
-    sed -i 's/-municode//g' "${PKG_BUILD}/Makefile.libretro"
-  fi
-
-  # Fix 2: Comment out the s_window line in the correct path
-  if [ -f "${PKG_BUILD}/sdl/scrnmng.c" ]; then
-    sed -i 's/.*SDL_SetWindowFullscreen(s_window.*/\/\/ &/' "${PKG_BUILD}/sdl/scrnmng.c"
-  fi
-}
-
 make_target() {
-cd ${PKG_BUILD}/sdl
-    make
+  VERSION="${PKG_VERSION:0:7}"
+  cd ${PKG_BUILD}/sdl
+  make NP2KAI_VERSION=$VERSION NP2KAI_HASH=$VERSION
 }
 
 makeinstall_target() {

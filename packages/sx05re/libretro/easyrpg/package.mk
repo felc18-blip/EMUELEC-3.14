@@ -48,8 +48,4 @@ pre_make_target() {
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro
   cp ${PKG_BUILD}/.${TARGET_NAME}/easyrpg_libretro.so ${INSTALL}/usr/lib/libretro/
-
-  mkdir -p ${INSTALL}/usr/bin
-  cp ${PKG_DIR}/easyrpg.sh ${INSTALL}/usr/bin
-  chmod 0755 ${INSTALL}/usr/bin/easyrpg.sh
 }

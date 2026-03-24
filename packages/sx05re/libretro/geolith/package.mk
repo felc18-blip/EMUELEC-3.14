@@ -2,13 +2,13 @@
 # Copyright (C) 2024-present EmuELEC (https://github.com/emuelec)
 
 PKG_NAME="geolith"
-PKG_VERSION="b683c2f712a6647c69326961a90cf1990e25ccea"
-PKG_SHA256="8a18d404e2e3c6304cc2fc52aa1b816ba147b83963b3a576ad2ac1b13ee45c2b"
-PKG_LICENSE="GPLv3"
+PKG_VERSION="a137836711bbbd6e279310dc6e91bedc03904016"
+PKG_ARCH="aarch64"
+PKG_LICENSE="BSD"
 PKG_SITE="https://github.com/libretro/geolith-libretro"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain"
-PKG_LONGDESC="Highly accurate emulator for the Neo Geo AES and MVS Cartridge Systems"
+PKG_LONGDESC="Geolith is a highly accurate emulator for the Neo Geo AES and MVS."
 PKG_TOOLCHAIN="make"
 
 make_target() {

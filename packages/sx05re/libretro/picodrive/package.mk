@@ -19,15 +19,15 @@
 ################################################################################
 
 PKG_NAME="picodrive"
-PKG_VERSION="3cd193ed1c7a2ffa94e69334367c64c136de0c7d"
+PKG_VERSION="3365b1774bc8680be9899968fe45b224ad2f11c1"
 PKG_LICENSE="MAME"
-PKG_SITE="https://github.com/irixxxx/picodrive"
+PKG_SITE="https://github.com/libretro/picodrive"
 PKG_URL="${PKG_SITE}.git"
 PKG_DEPENDS_TARGET="toolchain"
 PKG_PRIORITY="optional"
 PKG_SECTION="libretro"
 PKG_SHORTDESC="Libretro implementation of PicoDrive. (Sega Megadrive/Genesis/Sega Master System/Sega GameGear/Sega CD/32X)"
-PKG_LONGDESC="This is yet another Megadrive / Genesis / Sega CD / Mega CD / 32X / SMS emulator, which was written having ARM-based handheld devices in mind (such as smartphones and handheld consoles like GP2X and Pandora), but also runs on non-ARM little-endian hardware too."
+PKG_LONGDESC="This is yet another Megadrive / Genesis / Sega CD / Mega CD / 32X / SMS emulator, which was written having ARM-based AMD64 devices in mind (such as smartphones and AMD64 consoles like GP2X and Pandora), but also runs on non-ARM little-endian hardware too."
 GET_HANDLER_SUPPORT="git"
 PKG_BUILD_FLAGS="-gold"
 PKG_TOOLCHAIN="make"

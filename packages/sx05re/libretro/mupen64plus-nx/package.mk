@@ -17,32 +17,32 @@ PKG_TOOLCHAIN="make"
 PKG_BUILD_FLAGS="-lto"
 
 pre_configure_target() {
+  sed -e "s|^GIT_VERSION ?.*$|GIT_VERSION := \" ${PKG_VERSION:0:7}\"|" -i Makefile
 
-  # evitar EGL puxando X11
-  export CFLAGS="${CFLAGS} -DMESA_EGL_NO_X11_HEADERS"
-  export CXXFLAGS="${CXXFLAGS} -DMESA_EGL_NO_X11_HEADERS"
+PKG_MAKE_OPTS_TARGET+=" HAVE_PARALLEL_RDP=1 HAVE_PARALLEL_RSP=1 HAVE_THR_AL=1 LLE=1"
 
-  sed -e "s|^GIT_VERSION ?.*$|GIT_VERSION := \"${PKG_VERSION:0:7}\"|" -i Makefile
-
-  # 🔥 FORÇA GLES (ESSENCIAL)
-  PKG_MAKE_OPTS_TARGET+=" HAVE_OPENGL=0 HAVE_OPENGLES=1 HAVE_OPENGLES2=1 HAVE_EGL=1 FORCE_GLES=1"
-
-  # ❌ DESATIVA PARALLEL (incompatível com seu sistema)
-  PKG_MAKE_OPTS_TARGET+=" HAVE_PARALLEL_RDP=0 HAVE_PARALLEL_RSP=0 LLE=0"
-
-  if [ "${ARCH}" = "arm" ]; then
-    if [ "${DEVICE}" = "Amlogic-old" ]; then
-      PKG_MAKE_OPTS_TARGET+=" platform=emuelec BOARD=OLD32BIT"
-    else
-      PKG_MAKE_OPTS_TARGET+=" platform=AMLG12B"
-    fi
-  else
-    if [ "${DEVICE}" = "Amlogic-old" ]; then
-      PKG_MAKE_OPTS_TARGET+=" platform=emuelec BOARD=OLD"
-    else
-      PKG_MAKE_OPTS_TARGET+=" platform=odroid64 BOARD=N2"
-    fi
-  fi
+if [ ${ARCH} == "arm" ]; then
+	if [ "${DEVICE}" = "Amlogic-old" ]; then
+		PKG_MAKE_OPTS_TARGET+=" platform=emuelec BOARD=OLD32BIT"
+	elif [ "${DEVICE}" = "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ]; then
+		sed -i "s|cortex-a53|cortex-a35|g" Makefile
+		PKG_MAKE_OPTS_TARGET+=" platform=odroidgoa"
+	elif [ "${DEVICE}" == "OdroidM1" ] || [ "${DEVICE}" == "RK356x" ]; then
+		PKG_MAKE_OPTS_TARGET+=" platform=emuelec BOARD=NGRK32BIT"
+	else
+		PKG_MAKE_OPTS_TARGET+=" platform=AMLG12B"
+	fi
+else
+	if [ "${DEVICE}" = "Amlogic-old" ]; then 
+		PKG_MAKE_OPTS_TARGET+=" platform=emuelec BOARD=OLD"
+	elif [ "${DEVICE}" == "OdroidM1" ] || [ "${DEVICE}" == "RK356x" ]; then
+		PKG_MAKE_OPTS_TARGET+=" platform=emuelec BOARD=NGRK"
+	elif [ "${DEVICE}" = "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ]; then
+		PKG_MAKE_OPTS_TARGET+=" platform=emuelec BOARD=NGHH"
+	else
+		PKG_MAKE_OPTS_TARGET+=" platform=odroid64 BOARD=N2"
+	fi
+fi
 }
 
 makeinstall_target() {

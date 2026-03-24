@@ -16,9 +16,19 @@ PKG_GIT_CLONE_SINGLE="yes"
 
 pre_make_target() {
   export PATH="${SYSROOT_PREFIX}/usr/bin:${PATH}"
+
   mkdir -p sys
   : > sys/io.h
+
   sed -i 's|-I/usr/include/SDL2||g' Makefile.libretro
+
+  echo "Building host bin2c..."
+
+  # FORÇA HOST (ESSA É A CHAVE)
+  gcc tools/bin2c/bin2c.c -o tools/bin2c/bin2c || exit 1
+  chmod +x tools/bin2c/bin2c
+
+  g++ tools/dasm7801/dasm7801.cpp -o tools/dasm7801/dasm7801 || exit 1
 }
 
 make_target() {

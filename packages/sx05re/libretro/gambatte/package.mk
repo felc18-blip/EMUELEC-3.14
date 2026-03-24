@@ -19,8 +19,7 @@
 ################################################################################
 
 PKG_NAME="gambatte"
-PKG_VERSION="b75225203ffea8b65124bb31acb598e91e7f22d9"
-PKG_SHA256="52352417d719221ae2813b3dec8277508319171fe74e35196a9765881fb109bd"
+PKG_VERSION="d3c39fa18476ddce05027db3d29abba813fa74e2"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPLv2"
@@ -31,6 +30,7 @@ PKG_PRIORITY="optional"
 PKG_SECTION="libretro"
 PKG_SHORTDESC="libretro implementation of libgambatte"
 PKG_LONGDESC="Gambatte is an open-source Game Boy Color emulator written for fun and made available in the hope that it will be useful."
+
 
 PKG_IS_ADDON="no"
 PKG_TOOLCHAIN="make"

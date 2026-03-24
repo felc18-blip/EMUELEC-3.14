@@ -19,8 +19,7 @@
 ################################################################################
 
 PKG_NAME="tyrquake"
-PKG_VERSION="dfdae65c0ab5cf5d459155e8fefe796105229959"
-PKG_SHA256="9c4b07794357293b874ac46e18f3929a16baf8b958cbb41e47dbe55bb151c671"
+PKG_VERSION="471f2a72d2a7b0416f6a21eb945e5af831df06a4"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPLv2"
@@ -31,6 +30,7 @@ PKG_PRIORITY="optional"
 PKG_SECTION="libretro"
 PKG_SHORTDESC="Libretro port of Tyrquake (Quake 1 engine)"
 PKG_LONGDESC="Libretro port of Tyrquake (Quake 1 engine)"
+PKG_PATCH_DIRS+="${DEVICE}"
 
 PKG_IS_ADDON="no"
 PKG_TOOLCHAIN="make"

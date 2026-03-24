@@ -19,24 +19,26 @@
 ################################################################################
 
 PKG_NAME="bnes"
-PKG_VERSION="8e26e89a93bef8eb8992d1921b539dce1792660a"
-PKG_SHA256="c151e1296b8f6c035014dc62919692097feeebb19ae73294f1b9781edf1921b1"
-PKG_REV="1"
-PKG_ARCH="any"
-PKG_LICENSE="GPLv3"
-PKG_SITE="https://github.com/libretro/bnes-libretro"
+PKG_VERSION="d0a61b2c679bc73286be5471b222b1f1ebfb67b9"
+PKG_LICENSE="GPLv2"
+PKG_SITE="https://github.com/libretro/bsnes-libretro"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain"
-PKG_PRIORITY="optional"
 PKG_SECTION="libretro"
-PKG_SHORTDESC="libretro implementation of bNES/higan. (Nintendo Entertainment System)"
-PKG_LONGDESC="libretro implementation of bNES/higan. (Nintendo Entertainment System)"
-
+PKG_SHORTDESC="BSNES Super Nintendo Libretro Core"
 PKG_IS_ADDON="no"
 PKG_TOOLCHAIN="make"
 PKG_AUTORECONF="no"
 
+if [ ! "${OPENGL}" = "no" ]; then
+  PKG_DEPENDS_TARGET+=" ${OPENGL} glu libglvnd"
+fi
+
+if [ "${OPENGLES_SUPPORT}" = yes ]; then
+  PKG_DEPENDS_TARGET+=" ${OPENGLES}"
+fi
+
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro
-  cp bnes_libretro.so ${INSTALL}/usr/lib/libretro/bnes_libretro.so
+  cp bsnes_libretro.so ${INSTALL}/usr/lib/libretro/bnes_libretro.so
 }

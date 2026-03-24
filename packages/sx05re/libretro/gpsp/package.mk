@@ -19,12 +19,14 @@
 ################################################################################
 
 PKG_NAME="gpsp"
-PKG_VERSION="74db5e5c73020626a1118b97d3735b5636d65d9d"
+PKG_VERSION="602512d7c687acb84cd56265cbcf2d7b7c75fb37"
+PKG_ARCH="arm aarch64"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/gpsp"
 PKG_URL="${PKG_SITE}.git"
 PKG_DEPENDS_TARGET="toolchain"
-PKG_LONGDESC="gpSP for libretro"
+PKG_LONGDESC="gameplaySP is a Gameboy Advance emulator for Playstation Portable"
+PKG_PATCH_DIRS+="${DEVICE}"
 PKG_TOOLCHAIN="make"
 
 pre_make_target() {

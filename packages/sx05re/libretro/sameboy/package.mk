@@ -1,6 +1,7 @@
 ################################################################################
 #      This file is part of OpenELEC - http://www.openelec.tv
 #      Copyright (C) 2009-2012 Stephan Raue (stephan@openelec.tv)
+#      Copyright (C) 2020      351ELEC team (https://github.com/fewtarius/351ELEC)
 #
 #  This Program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,15 +20,14 @@
 ################################################################################
 
 PKG_NAME="sameboy"
-PKG_VERSION="51433012a871a44555492273fd22f29867d12655"
-PKG_SHA256="cb1b914ce29d250ed1b170b317c114106bdd9208d69100f3f761eeddd5fb472d"
+PKG_VERSION="be2c3529c775d670d9575623fae9e2f135048aa2"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="MIT"
-PKG_SITE="https://github.com/libretro/sameboy"
-PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
+PKG_SITE="https://git.libretro.com/libretro/SameBoy"
+PKG_URL="${PKG_SITE}/-/archive/${PKG_VERSION}/SameBoy-${PKG_VERSION}.tar.gz"
 PKG_GIT_CLONE_BRANCH="buildbot"
-PKG_DEPENDS_TARGET="toolchain"
+PKG_DEPENDS_TARGET="toolchain util-linux:host"
 PKG_PRIORITY="optional"
 PKG_SECTION="libretro"
 PKG_SHORTDESC="Gameboy and Gameboy Color emulator written in C"
@@ -38,10 +38,10 @@ PKG_TOOLCHAIN="make"
 PKG_AUTORECONF="no"
 
 make_target() {
-  make -C libretro
+  make -C libretro BOOTROMS_DIR=${PKG_BUILD}/BootROMs/prebuilt
 }
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro
-  cp libretro/sameboy_libretro.so ${INSTALL}/usr/lib/libretro/
+  cp ${PKG_BUILD}/sameboy_libretro.so ${INSTALL}/usr/lib/libretro/
 }

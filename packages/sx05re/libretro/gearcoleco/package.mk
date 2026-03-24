@@ -19,16 +19,17 @@
 ################################################################################
 
 PKG_NAME="gearcoleco"
-PKG_VERSION="b09cd197551c8a4cfd64673c498cfa68c84dc02a"
-PKG_SHA256="ad107b942c271dd366348c9f1970d61187d0269b73910da1487ca99b84eef605"
+PKG_VERSION="5454b5d0f30cc213bb3f767ab24e6205ae90da7d"
 PKG_REV="1"
 PKG_ARCH="any"
-PKG_LICENSE="GPLv3"
+PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/drhelius/Gearcoleco"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain"
+PKG_PRIORITY="optional"
 PKG_SECTION="libretro"
-PKG_LONGDESC="Gearcoleco is a very accurate cross-platform ColecoVision emulator written in C++"
+PKG_SHORTDESC="Gearcoleco is a very accurate cross-platform ColecoVision emulator written in C++ that runs on Windows, macOS, Linux, BSD, Raspberry Pi and RetroArch."
+PKG_LONGDESC="Gearcoleco is a very accurate cross-platform ColecoVision emulator written in C++ that runs on Windows, macOS, Linux, BSD, Raspberry Pi and RetroArch."
 PKG_TOOLCHAIN="make"
 
 make_target() {

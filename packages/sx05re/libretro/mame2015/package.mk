@@ -18,7 +18,6 @@
 
 PKG_NAME="mame2015"
 PKG_VERSION="316cd06349f2b34b4719f04f7c0d07569a74c764"
-PKG_SHA256="45c5bda01876545c5a2b39ec700baab43c34ce38ab710e14abe14aae3b33afc4"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPLv2"
@@ -37,40 +36,13 @@ pre_make_target() {
 }
 
 pre_configure_target() {
-  case ${PROJECT} in
-    RPi|Slice)
-     PKG_MAKE_OPTS_TARGET=" platform=armv6-hardfloat-arm1176jzf-s"
-      ;;
-    RPi2|Slice3)
-      PKG_MAKE_OPTS_TARGET=" platform=armv7-neon-hardfloat-cortex-a7"
-      ;;
-    imx6)
-     PKG_MAKE_OPTS_TARGET=" platform=armv7-neon-hardfloat-cortex-a9"
-      ;;
-    WeTek_Play)
-      PKG_MAKE_OPTS_TARGET=" platform=armv7-neon-hardfloat-cortex-a9"
-      ;;
-    Odroid_C2|WeTek_Hub|WeTek_Play_2)
-      PKG_MAKE_OPTS_TARGET=" platform=armv-neon-hardfloat"
-      ;;
-    Amlogic*)
-     PKG_MAKE_OPTS_TARGET=" platform=armv8-neon-hardfloat-cortex-a53"
-      ;;
-    Generic)
-      PKG_MAKE_OPTS_TARGET=""
-      ;;
-    *)
-      PKG_MAKE_OPTS_TARGET=" platform=armv"
-      ;;
+  case ${ARCH} in
+    arm|aarch64)
+      PKG_MAKE_OPTS_TARGET=" platform=armv8-neon-hardfloat-cortex-a53"
+      sed -i 's/LDFLAGS += -Wl,--fix-cortex-a8 -Wl,--no-as-needed//g' Makefile
+      sed -i 's/CCOMFLAGS += -mstructure-size-boundary=32//g' Makefile
+    ;;
   esac
-  
-  if [ "${DEVICE}" == "Amlogic"* ]; then 
-	PKG_MAKE_OPTS_TARGET=" platform=armv8-neon-hardfloat-cortex-a53"
-  fi
-
-  if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ]; then 
-	PKG_MAKE_OPTS_TARGET=" platform=armv8-neon-hardfloat-cortex-a35"
-  fi
 }
 
 makeinstall_target() {

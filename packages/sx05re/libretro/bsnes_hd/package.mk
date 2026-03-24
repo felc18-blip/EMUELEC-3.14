@@ -19,15 +19,13 @@
 ################################################################################
 
 PKG_NAME="bsnes_hd"
-PKG_VERSION="591b7e13b6914beffaa01084e4c0b7a5d9cc0673"
-PKG_REV="1"
-PKG_ARCH="any"
-PKG_LICENSE="GPLv3"
-PKG_SITE="https://github.com/libretro/bsnes"
+PKG_VERSION="fc26b25ea236f0f877f0265d2a2c37dfd93dfde9"
+PKG_LICENSE="GPLv2"
+PKG_SITE="https://github.com/DerKoun/bsnes-hd"
 PKG_URL="${PKG_SITE}.git"
-#PKG_GIT_CLONE_BRANCH="hd"
 PKG_DEPENDS_TARGET="toolchain"
-PKG_SHORTDESC="Super Nintendo (Super Famicom) emulator"
+PKG_SECTION="libretro"
+PKG_SHORTDESC="bsnes-hd is a fork of bsnes that adds HD video features such as widescreen, HD Mode 7 and true color"
 GET_HANDLER_SUPPORT="git"
 PKG_TOOLCHAIN="make"
 
@@ -40,5 +38,5 @@ make_target() {
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro
-  cp bsnes/out/bsnes_libretro.so ${INSTALL}/usr/lib/libretro/
+  cp bsnes/out/bsnes_hd_beta_libretro.so ${INSTALL}/usr/lib/libretro/bsnes_hd_libretro.so
 }
