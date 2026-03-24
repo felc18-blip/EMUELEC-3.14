@@ -5,14 +5,14 @@ PKG_NAME="emuelec"
 PKG_LICENSE="GPLv2"
 PKG_SITE=""
 PKG_URL=""
-PKG_DEPENDS_TARGET="toolchain ${OPENGLES} emuelec-emulationstation retroarch duckstation"
+PKG_DEPENDS_TARGET="toolchain ${OPENGLES} emuelec-emulationstation retroarch"
 PKG_SECTION="emuelec"
 PKG_LONGDESC="EmuELEC Meta Package"
 PKG_TOOLCHAIN="manual"
 
-PKG_EXPERIMENTAL="nestopiaCV moonlight mednafen fileman portmaster quasi88 xmil np2kai hypseus-singe same_cdi ikemen-go" 
-PKG_EMUS="${LIBRETRO_CORES} mupen64plus-adv drastic-advanced vircon32-lr mu-lr mojozork-lr gametank-lr gametank32-lr emuscv-lr duckstation-lr crocods-lr bsnes-hd-lr b2-lr drastic-sa mame2003-xtreme-lr mame2015-lr mame2003-midway-lr opera-lr bsnes-mercury-performance-lr mupen64plus-nx-lr mupen64plus-lr morpheuscast-xtreme32-lr fbalpha2019-lr ludicrousn64-xtreme32-lr ludicrousn64-xtreme-lr beetle-psx-lr desmume-2015 ppsspp PPSSPPSDL PPSSPPSA desmume melonds advancemame amiberry amiberry-lite hatarisa openbor dosbox-staging mupen64plus-nx mupen64plus-nx-alt scummvmsa stellasa solarus dosbox-pure pcsx_rearmed potator freej2me flycastsa fmsx-libretro jzintv mupen64plussa xroar x16 simcoupe ti99sim oricutron"
-PKG_COMPRESS="gzip minizip"
+PKG_EXPERIMENTAL="nestopiaCV smsplus-gx wasm4 snes9x2005_plus snes9x2005 race moonlight ecwolf fileman portmaster quasi88 xmil np2kai hypseus-singe same_cdi ikemen-go viceSA doublecherrygb play yabasanshiro" 
+PKG_EMUS="${LIBRETRO_CORES} mupen64plus-adv drastic-advanced vircon32-lr mu mojozork gametank-lr gametank32-lr emuscv duckstation-lr crocods bsnes_hd b2 drastic-sa mame2003-xtreme-lr mame2015 mame2003-midway-lr opera bsnes-mercury-performance-lr bsnes-mercury-accuracy-lr mupen64plus-nx-lr bsnes-mercury-balanced-lr mupen64plus-lr morpheuscast-xtreme32-lr fbalpha2019-lr ludicrousn64-xtreme32-lr ludicrousn64-xtreme-lr beetle-psx-lr desmume-2015 ppsspp ppssppsa PPSSPPSDL PPSSPPSA desmume melonds advancemame amiberry amiberry-lite hatarisa openbor dosbox-staging mupen64plus-nx mupen64plus-nx-alt scummvmsa stellasa solarus dosbox-pure pcsx_rearmed potator freej2me flycastsa fmsx-libretro jzintv mupen64plussa xroar x16 simcoupe ti99sim oricutron"
+PKG_COMPRESS="gzip minizip idtech"
 PKG_DEPENDS_TARGET+=" emuelec-tools ${PKG_EMUS} ${PKG_EXPERIMENTAL} ${PKG_COMPRESS}"
 
 # These packages are only meant for S922x, S905x2 and A311D devices as they run poorly on S905" 
@@ -59,12 +59,12 @@ if [ "${ARCH}" == "aarch64" ]; then
   if [ "${DEVICE}" == "Amlogic-old" ]; then
     # Removemos APENAS o duckstation original para usar o seu novo -sa
     # O resto (Saturn/Yabasanshiro e CDI) deixamos passar para a build
-    for discore in duckstation yabasanshiro yabasanshiroSA_1_5 ; do
-      PKG_DEPENDS_TARGET=$(echo ${PKG_DEPENDS_TARGET} | sed "s|${discore} | |")
-    done
+for discore in yabasanshiro yabasanshiroSA_1_5 yabasanshiro-libretro; do
+  PKG_DEPENDS_TARGET=$(echo ${PKG_DEPENDS_TARGET} | sed "s|${discore}| |g")
+done
     
     # ADICIONAMOS os novos e garantimos que os de Saturn estejam na lista
-    PKG_DEPENDS_TARGET+=" duckstation dolphinSA same_cdi"
+    PKG_DEPENDS_TARGET+=" dolphinSA same_cdi"
     
     # Dica: O ee_s905 ajuda o sistema a identificar que é um hardware antigo
     echo "s905" > ${INSTALL}/ee_s905

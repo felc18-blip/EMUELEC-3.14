@@ -372,6 +372,33 @@ case ${PLATFORM} in
             RUNTHIS='jzintv.sh "${ROMNAME}"'
         fi
 		;;
+        "c64")
+        if [ "${EMU}" = "viceSA" ]; then
+            set_kill_keys "x64sc"
+            RUNTHIS='${TBASH} /usr/bin/start_x64sc.sh "${ROMNAME}"'
+        fi
+        ;;
+
+        "vic20")
+        if [ "${EMU}" = "viceSA" ]; then
+            set_kill_keys "xvic"
+            RUNTHIS='${TBASH} /usr/bin/start_xvic.sh "${ROMNAME}"'
+        fi
+        ;;
+
+        "c16")
+        if [ "${EMU}" = "viceSA" ]; then
+            set_kill_keys "xplus4"
+            RUNTHIS='${TBASH} /usr/bin/start_xplus4.sh "${ROMNAME}"'
+        fi
+        ;;
+
+        "c128")
+        if [ "${EMU}" = "viceSA" ]; then
+            set_kill_keys "x128"
+            RUNTHIS='${TBASH} /usr/bin/start_x128.sh "${ROMNAME}"'
+        fi
+        ;;
 		"x16")
         if [ "${EMU}" = "x16emu" ]; then
             set_kill_keys "x16emu"
