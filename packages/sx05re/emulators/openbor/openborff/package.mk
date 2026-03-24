@@ -13,13 +13,14 @@ PKG_LONGDESC="OpenBOR is the ultimate 2D side scrolling engine for beat em' ups,
 PKG_TOOLCHAIN="make"
 
 if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ]; then
-  PKG_PATCH_DIRS="OdroidGoAdvance"
+PKG_PATCH_DIRS="OdroidGoAdvance"
 fi
 
+
 if [[ "${ARCH}" == "arm" ]]; then
-  PKG_PATCH_DIRS="${ARCH}"
+	PKG_PATCH_DIRS="${ARCH}"
 else
-  PKG_PATCH_DIRS="emuelec-aarch64"
+	PKG_PATCH_DIRS="emuelec-aarch64"
 fi
 
 pre_configure_target() {
@@ -30,30 +31,14 @@ pre_configure_target() {
 }
 
 pre_make_target() {
-  cd ${PKG_BUILD}/engine
-  ./version.sh
+cd ${PKG_BUILD}/engine
+./version.sh
 }
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/bin
-  cp $(find . -name "OpenBOR.elf" | head -n 1) ${INSTALL}/usr/bin/OpenBORff
-  chmod +x ${INSTALL}/usr/bin/*
-  mkdir -p ${INSTALL}/usr/config/emuelec/configs/openbor
-  cp ${PKG_DIR}/config/master.cfg ${INSTALL}/usr/config/emuelec/configs/openbor/masterff.cfg
-}
-
-# FUNÇÃO DE LIMPEZA PESADA (RPATH e NEEDED)
-post_makeinstall_target() {
-  echo "--- Sanitizando binário do OpenBORff (Limpando rastros do PC) ---"
-  find ${INSTALL}/usr/bin -type f -exec sh -c '
-    # Remove RPATH/RUNPATH
-    patchelf --remove-rpath "$1" 2>/dev/null
-    
-    # Substitui caminhos absolutos (/home/felipe/...) pelo nome puro da lib
-    for lib_path in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
-      lib_name=$(basename "$lib_path")
-      echo "  > Corrigindo dependência em OpenBORff: $lib_name"
-      patchelf --replace-needed "$lib_path" "$lib_name" "$1" 2>/dev/null
-    done
-  ' _ {} \;
-}
+    cp `find . -name "OpenBOR.elf" | xargs echo` ${INSTALL}/usr/bin/OpenBORff
+    chmod +x ${INSTALL}/usr/bin/*
+    mkdir -p ${INSTALL}/usr/config/emuelec/configs/openbor
+	cp ${PKG_DIR}/config/master.cfg ${INSTALL}/usr/config/emuelec/configs/openbor/masterff.cfg
+   } 
