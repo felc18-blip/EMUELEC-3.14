@@ -42,6 +42,13 @@ pre_make_target() {
   find ${PKG_BUILD} -name build.ninja -exec sed -i "s:isystem :I:g" \{} \;
 }
 
+pre_configure_target() {
+  cd ${PKG_BUILD}
+  git submodule update --init --recursive
+
+  PKG_CMAKE_OPTS_TARGET+=" -DUSE_GLES=ON -DUSE_VULKAN=OFF"
+}
+
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro
   if [ "${ARCH}" == "arm" ]; then

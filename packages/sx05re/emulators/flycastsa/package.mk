@@ -11,6 +11,10 @@ PKG_LONGDESC="Flycast is a multiplatform Sega Dreamcast, Naomi and Atomiswave em
 PKG_TOOLCHAIN="cmake"
 PKG_GIT_CLONE_BRANCH="master"
 
+post_unpack() {
+  cd ${PKG_BUILD}
+  git submodule update --init --recursive
+}
 
 if [ "${ARCH}" == "arm" ]; then
 	PKG_PATCH_DIRS="arm"

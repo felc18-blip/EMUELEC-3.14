@@ -1,13 +1,21 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
-# Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
-# Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
+# Copyright (C) 2009-2016 Stephan Raue
+# Copyright (C) 2018-present Team LibreELEC
 
 PKG_NAME="binutils"
-PKG_VERSION="2.40"
+
+if [[ "$DEVICE" == *"Amlogic-old"* ]] || [[ "$LINUX" = "amlogic-3.14" ]]; then
+  PKG_VERSION="2.39"
+  PKG_SHA256="645c25f563b8adc0a81dbd6a41cffbf4d37083a382e02d5d3df4f65c09516d00"
+else
+  PKG_VERSION="2.41"
+  PKG_SHA256="ae9a5789e23459e59606e6714723f2d3ffc31c03174191ef0d015bdf06007450"
+fi
+
 PKG_LICENSE="GPL"
 PKG_SITE="https://www.gnu.org/software/binutils/"
 PKG_URL="https://ftp.gnu.org/gnu/binutils/${PKG_NAME}-${PKG_VERSION}.tar.xz"
+
 PKG_DEPENDS_HOST="ccache:host bison:host flex:host linux:host"
 PKG_DEPENDS_TARGET="toolchain zlib binutils:host"
 PKG_LONGDESC="A GNU collection of binary utilities."

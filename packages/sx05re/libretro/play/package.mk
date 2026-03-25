@@ -32,6 +32,11 @@ PKG_CMAKE_OPTS_TARGET+=" -DBUILD_LIBRETRO_CORE=yes \
                          -DENABLE_AMAZON_S3=no \
                          -DCMAKE_BUILD_TYPE=Release"
 
+post_unpack() {
+  cd ${PKG_BUILD}
+  git submodule update --init --recursive
+}
+
 pre_make_target() {
   find ${PKG_BUILD} -name flags.make -exec sed -i "s:isystem :I:g" \{} \;
   find ${PKG_BUILD} -name build.ninja -exec sed -i "s:isystem :I:g" \{} \;
