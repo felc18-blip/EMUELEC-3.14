@@ -13,6 +13,12 @@ PKG_DEPENDS_TARGET="toolchain SDL2 libzip zstd"
 PKG_LONGDESC="A PSP emulator for Android, Windows, Mac, Linux and Blackberry 10, written in C++."
 GET_HANDLER_SUPPORT="git"
 
+
+post_unpack() {
+  cd ${PKG_BUILD}
+  git submodule update --init --recursive --force
+}
+
 pre_configure_target() {
   # O CMake sempre gera o arquivo com este nome padrão
   PKG_LIBPATH="lib/ppsspp_libretro.so"

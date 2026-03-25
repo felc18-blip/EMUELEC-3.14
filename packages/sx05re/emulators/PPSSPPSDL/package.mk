@@ -15,11 +15,17 @@ GET_HANDLER_SUPPORT="git"
 PKG_GIT_SUBMODULES="yes"
 PKG_BUILD_FLAGS="-lto"
 
+post_unpack() {
+  cd ${PKG_BUILD}
+  git submodule update --init --recursive --force
+}
+
 PKG_CMAKE_OPTS_TARGET+="-DUSE_SYSTEM_FFMPEG=OFF \
                         -DUSING_FBDEV=ON \
                         -DUSING_EGL=ON \
                         -DUSING_GLES2=ON \
                         -DUSING_X11_VULKAN=OFF \
+						-DUSE_VULKAN=OFF \
                         -DUSE_DISCORD=OFF"
 
 if [ $ARCH == "aarch64" ]; then
@@ -30,10 +36,6 @@ fi
 
 
 pre_configure_target() {
-
-  # garante submodules (FFmpeg interno)
-  git -C ${PKG_BUILD} submodule update --init --recursive
-
   if [ "$DEVICE" == "OdroidGoAdvance" ] || [ "$DEVICE" == "GameForce" ]; then
     sed -i "s|include_directories(/usr/include/drm)|include_directories(${SYSROOT_PREFIX}/usr/include/drm)|" $PKG_BUILD/CMakeLists.txt
   fi

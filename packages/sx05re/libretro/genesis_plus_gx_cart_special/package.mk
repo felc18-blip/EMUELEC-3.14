@@ -41,6 +41,9 @@ make_target() {
   if [ "${ARCH}" == "arm" ]; then
     CFLAGS="${CFLAGS} -DALIGN_LONG"
   fi
+
+  CFLAGS="${CFLAGS} -O3 -march=armv8-a -mtune=cortex-a53 -DARM_NEON -ffast-math -fomit-frame-pointer -DNDEBUG"
+
   make -f Makefile.libretro
 }
 

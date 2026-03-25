@@ -21,6 +21,11 @@ GET_HANDLER_SUPPORT="git"
 ### directory in the root of this project, OFL.txt.
 ###
 
+post_unpack() {
+  cd ${PKG_BUILD}
+  git submodule update --init --recursive --force
+}
+
 PKG_PATCH_DIRS+="${DEVICE}"
 
 PKG_CMAKE_OPTS_TARGET=" -DUSE_SYSTEM_FFMPEG=OFF \
