@@ -9,12 +9,10 @@ PKG_SITE="https://github.com/sfzhi/fbterm"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
 
 PKG_DEPENDS_TARGET="toolchain freetype fontconfig libiconv"
-
 PKG_LONGDESC="fbterm is a framebuffer based terminal emulator for linux"
-
 PKG_TOOLCHAIN="configure"
 
-# força link com libiconv
+# garante encoding correto
 PKG_MAKE_OPTS_TARGET+=" LIBS=-liconv"
 
 pre_configure_target() {
@@ -23,10 +21,18 @@ pre_configure_target() {
 }
 
 makeinstall_target() {
+  # binário
   mkdir -p ${INSTALL}/usr/bin
   cp ${PKG_BUILD}/src/fbterm ${INSTALL}/usr/bin/
 
+  # terminfo
   mkdir -p ${INSTALL}/usr/share/terminfo
+
+  # 🔥 fallback JELOS (se existir)
+  if [ -d "${PKG_DIR}/terminfo" ]; then
+    cp -rf ${PKG_DIR}/terminfo/* ${INSTALL}/usr/share/terminfo/
+  fi
+
+  # gerar terminfo (principal)
   tic ${PKG_BUILD}/terminfo/fbterm -o ${INSTALL}/usr/share/terminfo
 }
-

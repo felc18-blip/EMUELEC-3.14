@@ -3,11 +3,10 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="libmicrohttpd"
-PKG_VERSION="0.9.75"
-PKG_SHA256="9278907a6f571b391aab9644fd646a5108ed97311ec66f6359cebbedb0a4e3bb"
+PKG_VERSION="0.9.77"
 PKG_LICENSE="LGPLv2.1"
 PKG_SITE="http://www.gnu.org/software/libmicrohttpd/"
-PKG_URL="http://ftpmirror.gnu.org/libmicrohttpd/${PKG_NAME}-${PKG_VERSION}.tar.gz"
+PKG_URL="http://ftp.gnu.org/gnu/libmicrohttpd/${PKG_NAME}-${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain gnutls"
 PKG_LONGDESC="A small C library that is supposed to make it easy to run an HTTP server as part of another application."
 

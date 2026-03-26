@@ -38,12 +38,16 @@ pre_configure_target() {
 
   git submodule update --init --recursive
 
-  PKG_CMAKE_OPTS_TARGET=" \
+PKG_CMAKE_OPTS_TARGET=" \
   -DENABLE_EMUELEC=1 \
   -DDISABLE_KODI=1 \
-  -DENABLE_FILEMANAGER=1 \
+  -DENABLE_FILEMANAGER=0 \
   -DGLES2=1 \
-  -DENABLE_TTS=1"
+  -DENABLE_TTS=0 \
+  -DENABLE_UPDATES=1 \
+  -DCEC=0 \
+  -DENABLE_PULSE=1 \
+  -DUSE_SYSTEM_PUGIXML=1"
 
   if [ -f ${PKG_DIR}/api_keys.txt ]; then
     while IFS="" read -r p || [ -n "${p}" ]; do
