@@ -234,21 +234,16 @@ case ${PLATFORM} in
                 fi
                 ;;
         "n64")
+                set_kill_keys "mupen64plus"
+
                 if [ "${EMU}" = "rice" ]; then
-            set_kill_keys "mupen64plus"
-            RUNTHIS='${TBASH} m64p.sh "${ROMNAME}"'
-                elif [ "${EMU}" = "glide64mk2" ]; then
-            set_kill_keys "mupen64plus"
-            RUNTHIS='${TBASH} m64p.sh "${ROMNAME}" m64p_gl64mk2'
-                elif [ "${EMU}" = "rice-adv" ]; then
-            set_kill_keys "mupen64plus-adv"
-            RUNTHIS='${TBASH} start_mupen64plus-adv.sh "${ROMNAME}"'
-                elif [ "${EMU}" = "glide64mk2-adv" ]; then
-            set_kill_keys "mupen64plus-adv"
-            RUNTHIS='${TBASH} start_mupen64plus-adv.sh "${ROMNAME}" m64p_gl64mk2'
-                elif [ "${EMU}" = "gliden64-adv" ]; then
-            set_kill_keys "mupen64plus-adv"
-            RUNTHIS='${TBASH} start_mupen64plus-adv.sh "${ROMNAME}" m64p_gliden64'
+                    RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}" rice'
+                elif [ "${EMU}" = "gl64mk2" ]; then
+                    RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}" gl64mk2'
+                elif [ "${EMU}" = "gliden64" ]; then
+                    RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}" gliden64'
+                else
+                    RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}"'
                 fi
                 ;;
         "amiga"|"amigacd32")
@@ -264,7 +259,7 @@ case ${PLATFORM} in
                 else
                 if [ "${EMU}" = "SCUMMVMSA" ]; then
             set_kill_keys "scummvm"
-            RUNTHIS='${TBASH} scummvm.start sa "${ROMNAME}"'
+            RUNTHIS='${TBASH} start_scummvm.sh "${ROMNAME}"'
                 else
             RUNTHIS='${TBASH} scummvm.start libretro'
                 fi
@@ -336,9 +331,14 @@ case ${PLATFORM} in
                 RUNTHIS='${TBASH} fbterm.sh mplayer_video "${ROMNAME}" "${EMU}"'
                 ;;
         "pico8")
-                set_kill_keys "pico8_dyn"
-                RUNTHIS='${TBASH} pico8.sh "${ROMNAME}"'
-                        ;;
+                if [ "${EMU}" = "Pico-8" ]; then
+             set_kill_keys "pico8_dyn"
+             RUNTHIS='${TBASH} pico8.sh "${ROMNAME}"'
+                elif [ "${EMU}" = "Pico-8-SA" ]; then
+             set_kill_keys "pico8_64"
+             RUNTHIS='${TBASH} start_pico8.sh "${ROMNAME}"'
+                fi
+                ;;
         "prboom")
         if [ "${EMU}" = "Chocolate-Doom" ]; then
             set_kill_keys "chocolate-doom"

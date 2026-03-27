@@ -2233,27 +2233,16 @@
           ]
         },
         {
-          "name": "mupen64plussa",
+          "name": "mupen64plus",
           "cores": [
             {
               "name": "rice"
             },
             {
-              "name": "glide64mk2"
-            }
-          ]
-        },
-        {
-          "name": "mupen64plus-adv",
-          "cores": [
-            {
-              "name": "rice-adv"
+              "name": "gl64mk2"
             },
             {
-              "name": "glide64mk2-adv"
-            },
-            {
-              "name": "gliden64-adv"
+              "name": "gliden64"
             }
           ]
         }
@@ -2986,7 +2975,7 @@
               "name": "mednafen_supafaust"
             },
             {
-              "name": "bsnes_hd"
+              "name": "bsnes_hd_beta"
             },
             {
               "name": "bsnes_mercury_performance"
@@ -3052,7 +3041,7 @@
               "name": "mednafen_supafaust"
             },
             {
-              "name": "bsnes_hd"
+              "name": "bsnes_hd_beta"
             },
             {
               "name": "bsnes_mercury_performance"
@@ -3118,7 +3107,7 @@
               "name": "mednafen_supafaust"
             },
             {
-              "name": "bsnes_hd"
+              "name": "bsnes_hd_beta"
             },
             {
               "name": "bsnes_mercury_performance"
@@ -3184,7 +3173,7 @@
               "name": "mednafen_supafaust"
             },
             {
-              "name": "bsnes_hd"
+              "name": "bsnes_hd_beta"
             },
             {
               "name": "bsnes_mercury_performance"
@@ -5151,6 +5140,9 @@
             {
               "name": "Pico-8",
               "default": true
+            },
+            {
+              "name": "Pico-8-SA"
             }
           ]
         },

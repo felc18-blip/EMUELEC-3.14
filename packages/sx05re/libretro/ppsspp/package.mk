@@ -29,6 +29,11 @@ PKG_LONGDESC="A PSP emulator for Android, Windows, Mac, Linux and Blackberry 10,
 GET_HANDLER_SUPPORT="git"
 
 
+post_unpack() {
+  cd ${PKG_BUILD}
+  git submodule update --init --recursive --force
+}
+
 pre_configure_target() {
   PKG_LIBNAME="ppsspp_libretro.so"
   PKG_LIBPATH="lib/${PKG_LIBNAME}"
