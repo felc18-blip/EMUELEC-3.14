@@ -124,22 +124,13 @@ unpack() {
 pre_configure_target() {
   SYSROOT="$(${TARGET_PREFIX}gcc -print-sysroot)"
 
-  # garantir librt.so (meson procura esse nome)
+  # garantir librt.so
   if [ -f ${SYSROOT}/usr/lib/librt.so.1 ] && [ ! -f ${SYSROOT}/usr/lib/librt.so ]; then
     ln -sf librt.so.1 ${SYSROOT}/usr/lib/librt.so
   fi
 
-  # garantir libcrypt no sysroot usado pelo toolchain
-  if [ ! -f ${SYSROOT}/usr/lib/libcrypt.so ]; then
-    cp ${TOOLCHAIN}/aarch64-libreelec-linux-gnu/sysroot/usr/lib/libcrypt.so* \
-       ${SYSROOT}/usr/lib/ 2>/dev/null || true
-  fi
-
-  # garantir header crypt.h
-  if [ ! -f ${SYSROOT}/usr/include/crypt.h ]; then
-    cp ${PKG_BUILD}/.aarch64-libreelec-linux-gnu/crypt.h \
-       ${SYSROOT}/usr/include/ 2>/dev/null || true
-  fi
+  # ❌ NÃO copiar libcrypt manualmente
+  # ❌ NÃO copiar crypt.h manualmente
 
   export CFLAGS="${CFLAGS} --sysroot=${SYSROOT}"
   export CXXFLAGS="${CXXFLAGS} --sysroot=${SYSROOT}"
@@ -147,13 +138,6 @@ pre_configure_target() {
 
   export TARGET_CFLAGS="${TARGET_CFLAGS} -fno-schedule-insns -fno-schedule-insns2 -Wno-format-truncation"
   export LC_ALL=en_US.UTF-8
-  
-  SYSROOT32="${TOOLCHAIN}/armv8a-emuelec-linux-gnueabihf/sysroot"
-
-if [ ! -f ${SYSROOT32}/usr/include/crypt.h ]; then
-  cp ${TOOLCHAIN}/aarch64-libreelec-linux-gnu/sysroot/usr/include/crypt.h \
-     ${SYSROOT32}/usr/include/
-fi
 }
 
 

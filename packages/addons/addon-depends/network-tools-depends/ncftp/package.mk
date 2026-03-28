@@ -1,12 +1,11 @@
 # SPDX-License-Identifier: GPL-2.0
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
-
 PKG_NAME="ncftp"
-PKG_VERSION="3.2.6"
-PKG_SHA256="5f200687c05d0807690d9fb770327b226f02dd86155b49e750853fce4e31098d"
+PKG_VERSION="3.3.0"
+PKG_SHA256="7920f884c2adafc82c8e41c46d6f3d22698785c7b3f56f5677a8d5c866396386"
 PKG_LICENSE="GPLv3"
 PKG_SITE="http://www.ncftp.com/ncftp/"
-PKG_URL="ftp://ftp.ncftp.com/ncftp/ncftp-${PKG_VERSION}-src.tar.xz"
+PKG_URL="https://www.ncftp.com/public_ftp/ncftp/ncftp-${PKG_VERSION}-src.tar.gz"
 PKG_DEPENDS_TARGET="toolchain"
 PKG_LONGDESC="NcFTP is a set of application programs implementing the File Transfer Protocol."
 PKG_BUILD_FLAGS="-sysroot"

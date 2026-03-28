@@ -1,38 +1,24 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
-# Copyright (C) 2019-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="libtool"
-PKG_VERSION="2.4.7"
-PKG_SHA256="04e96c2404ea70c590c546eba4202a4e12722c640016c12b9b2f1ce3d481e9a8"
+PKG_VERSION="2.5.4"
+PKG_SHA256="f81f5860666b0bc7d84baddefa60d1cb9fa6fceb2398cc3baca6afaa60266675"
 PKG_LICENSE="GPL"
-PKG_SITE="http://www.gnu.org/software/libtool/"
-PKG_URL="http://ftp.gnu.org/gnu/libtool/${PKG_NAME}-${PKG_VERSION}.tar.gz"
+PKG_SITE="https://www.gnu.org/software/libtool/"
+PKG_URL="https://mirrors.kernel.org/gnu/libtool/${PKG_NAME}-${PKG_VERSION}.tar.xz"
+
 PKG_DEPENDS_HOST="ccache:host autoconf:host automake:host intltool:host"
 PKG_DEPENDS_TARGET="toolchain"
 PKG_LONGDESC="A generic library support script."
+PKG_TOOLCHAIN="autotools"
 
 PKG_CONFIGURE_OPTS_HOST="--enable-static --disable-shared"
 
 post_unpack() {
   chmod u+w ${PKG_BUILD}/build-aux/ltmain.sh
-  
-  # --- O TIRO DE MISERICÓRDIA NO LIBTOOL ---
-  # Este sed impede que o libtool adicione RPATHs que apontem para fora do sysroot
-  echo "--- Corrigindo ltmain.sh para evitar contaminação de RPATH ---"
-  sed -i -e 's|compiler_flags +=.*-rpath.*|compiler_flags += |g' \
-         -e 's|allow_libtool_libs_with_static_runtimes=no|allow_libtool_libs_with_static_runtimes=yes|g' \
-         ${PKG_BUILD}/build-aux/ltmain.sh
 }
 
 post_makeinstall_target() {
   rm -rf ${INSTALL}/usr/bin
   rm -rf ${INSTALL}/usr/share
-
-  # Mesmo sendo um pacote de ferramentas, vamos garantir que nada escape
-  find ${INSTALL} -type f -exec sh -c '
-    if readelf -h "$1" 2>/dev/null | grep -qE "EXEC|DYN"; then
-      patchelf --remove-rpath "$1" 2>/dev/null
-    fi
-  ' _ {} \;
 }

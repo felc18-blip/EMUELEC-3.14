@@ -25,32 +25,31 @@ makeinstall_host() {
 }
 
 make_target() {
-  # Garante que o dtbTool que acabamos de compilar esteja acessível
   export PATH=$TOOLCHAIN/bin:$PATH
 
-  # Enter kernel directory
   pushd $BUILD/build/linux-$(kernel_version) > /dev/null
 
-  # Device trees already present in kernel tree we want to include
+  # 🔥 CORREÇÃO AQUI
+  kernel_make olddefconfig
+
   EXTRA_TREES=( \
                 gxbb_p200 gxbb_p200_2G gxbb_p201 gxbb_p200_1G_wetek_hub gxbb_p200_2G_wetek_play_2 \
                 gxl_p212_1g gxl_p212_2g gxl_p230_2g gxl_p281_1g gxm_q200_2g gxm_q201_1g gxm_q201_2g \
               )
 
-  # Add trees to the list
   for f in ${EXTRA_TREES[@]}; do
     DTB_LIST="$DTB_LIST $f.dtb"
   done
 
-  # Copy all device trees to kernel source folder and create a list
   cp -f $PKG_BUILD/*.dts* arch/$TARGET_KERNEL_ARCH/boot/dts/amlogic/
+
   for f in $PKG_BUILD/*.dts; do
     DTB_NAME="$(basename $f .dts).dtb"
     DTB_LIST="$DTB_LIST $DTB_NAME"
   done
 
-  # Compile device trees
   kernel_make $DTB_LIST
+
   cp arch/$TARGET_KERNEL_ARCH/boot/dts/amlogic/*.dtb $PKG_BUILD
 
   popd > /dev/null

@@ -3,7 +3,8 @@
 # Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
 
 PKG_NAME="zstd"
-PKG_VERSION="1.5.5"
+PKG_VERSION="1.5.7"
+PKG_SHA256="5b331d961d6989dc21bb03397fc7a2a4d86bc65a14adc5ffbbce050354e30fd2"
 PKG_LICENSE="BSD/GPLv2"
 PKG_SITE="http://www.zstd.net"
 PKG_URL="https://github.com/facebook/zstd/releases/download/v${PKG_VERSION}/${PKG_NAME}-${PKG_VERSION}.tar.zst"

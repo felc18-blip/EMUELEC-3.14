@@ -1,10 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2009-2016 Lukas Rusak (lrusak@libreelec.tv)
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="containerd"
-PKG_VERSION="1.7.1"
-PKG_SHA256="fd844af82afda7242d8eba5e0086c5a0d54ddc3041c1bbdd4d3c62bfee844e3a"
+PKG_VERSION="2.1.3"
+PKG_SHA256="f5fd43b9eefd71ddef100e7070016f9e40a1d689251bc885a2d2a87750da26b5"
 PKG_LICENSE="APL"
 PKG_SITE="https://containerd.io"
 PKG_URL="https://github.com/containerd/containerd/archive/v${PKG_VERSION}.tar.gz"
@@ -13,7 +12,7 @@ PKG_LONGDESC="A daemon to control runC, built for performance and density."
 PKG_TOOLCHAIN="manual"
 
 # Git commit of the matching release https://github.com/containerd/containerd/releases
-PKG_GIT_COMMIT="78f51771157abb6c9ed224c22013cdf09962315d"
+export PKG_GIT_COMMIT="c787fb98911740dd3ff2d0e45ce88cdf01410486"
 
 pre_make_target() {
 
@@ -21,7 +20,7 @@ pre_make_target() {
 
   export CONTAINERD_VERSION="${PKG_VERSION}"
   export CONTAINERD_REVISION="${PKG_GIT_COMMIT}"
-  export CONTAINERD_PKG="github.com/containerd/containerd"
+  export CONTAINERD_PKG="github.com/containerd/containerd/v2"
   export LDFLAGS="-w -extldflags -static -X ${CONTAINERD_PKG}/version.Version=${CONTAINERD_VERSION} -X ${CONTAINERD_PKG}/version.Revision=${CONTAINERD_REVISION} -X ${CONTAINERD_PKG}/version.Package=${CONTAINERD_PKG} -extld ${CC}"
   export GO111MODULE=off
 
@@ -30,12 +29,13 @@ pre_make_target() {
     mv ${PKG_BUILD}/vendor ${GOPATH}/src
   fi
 
-  ln -fs ${PKG_BUILD} ${GOPATH}/src/github.com/containerd/containerd
+  mv ${GOPATH}/src/github.com/containerd/containerd/api ${PKG_BUILD}/api-vendor-duplicate
+  ln -fs ${PKG_BUILD} ${GOPATH}/src/github.com/containerd/containerd/v2
+  ln -fs ${PKG_BUILD}/api ${GOPATH}/src/github.com/containerd/containerd/api
 }
 
 make_target() {
   mkdir -p bin
   ${GOLANG} build -v -o bin/containerd              -a -tags "static_build no_btrfs" -ldflags "${LDFLAGS}" ./cmd/containerd
-  ${GOLANG} build -v -o bin/containerd-shim         -a -tags "static_build no_btrfs" -ldflags "${LDFLAGS}" ./cmd/containerd-shim
   ${GOLANG} build -v -o bin/containerd-shim-runc-v2 -a -tags "static_build no_btrfs" -ldflags "${LDFLAGS}" ./cmd/containerd-shim-runc-v2
 }

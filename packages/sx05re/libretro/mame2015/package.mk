@@ -33,6 +33,11 @@ pre_make_target() {
   export REALCC=${CC}
   export CC=${CXX}
   export LD=${CXX}
+
+  # 🔥 FIX DEFINITIVO (race condition do MAME)
+  mkdir -p obj/mame/machine
+  mkdir -p obj/mame/drivers
+  mkdir -p obj/mame
 }
 
 pre_configure_target() {

@@ -2,8 +2,8 @@
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="fdupes"
-PKG_VERSION="2.2.1"
-PKG_SHA256="846bb79ca3f0157856aa93ed50b49217feb68e1b35226193b6bc578be0c5698d"
+PKG_VERSION="2.4.0"
+PKG_SHA256="527b27a39d031dcbe1d29a220b3423228c28366c2412887eb72c25473d7b1736"
 PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/adrianlopezroche/fdupes"
 PKG_URL="https://github.com/adrianlopezroche/fdupes/releases/download/v${PKG_VERSION}/fdupes-${PKG_VERSION}.tar.gz"

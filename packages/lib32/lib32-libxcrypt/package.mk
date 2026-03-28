@@ -24,27 +24,23 @@ unpack() {
   mkdir -p ${PKG_BUILD}
   tar --strip-components=1 -xf ${SOURCES}/libxcrypt/libxcrypt-${PKG_VERSION}.tar.xz -C ${PKG_BUILD}
 }
+
 makeinstall_target() {
 
-  mkdir -p ${INSTALL}/usr/lib32
-  mkdir -p ${LIB32_SYSROOT_PREFIX}/usr/lib
-  mkdir -p ${LIB32_SYSROOT_PREFIX}/usr/include
+  # instala rootfs (lib32)
+  make DESTDIR=${INSTALL} install
 
-  # copiar libs
-  cp -P ${PKG_BUILD}/.${LIB32_TARGET_NAME}/.libs/libcrypt.so* \
-        ${INSTALL}/usr/lib32/
+  # instala no sysroot (🔥 FORÇA /usr/lib)
+  make DESTDIR=${LIB32_SYSROOT_PREFIX} install
 
-  cp -P ${PKG_BUILD}/.${LIB32_TARGET_NAME}/.libs/libcrypt.so* \
-        ${LIB32_SYSROOT_PREFIX}/usr/lib/
+  # 🔥 mover libs do sysroot de lib32 → lib
+  if [ -d ${LIB32_SYSROOT_PREFIX}/usr/lib32 ]; then
+    cp -P ${LIB32_SYSROOT_PREFIX}/usr/lib32/libcrypt.so* \
+          ${LIB32_SYSROOT_PREFIX}/usr/lib/
+  fi
 
-  # header
-  cp -v ${PKG_BUILD}/.${LIB32_TARGET_NAME}/crypt.h \
-        ${LIB32_SYSROOT_PREFIX}/usr/include/
-
-  # symlink no sysroot
-  ln -sf libcrypt.so.1 ${LIB32_SYSROOT_PREFIX}/usr/lib/libcrypt.so
-
-  # 🔥 IMPORTANTE: symlink também no rootfs
-  cd ${INSTALL}/usr/lib32
-  ln -sf libcrypt.so.1 libcrypt.so
+  # garantir symlink
+  if [ -f ${LIB32_SYSROOT_PREFIX}/usr/lib/libcrypt.so.1 ]; then
+    ln -sf libcrypt.so.1 ${LIB32_SYSROOT_PREFIX}/usr/lib/libcrypt.so
+  fi
 }

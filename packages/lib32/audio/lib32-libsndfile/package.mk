@@ -33,7 +33,7 @@ PKG_CMAKE_OPTS_TARGET="-DBUILD_PROGRAMS=OFF \
 unpack() {
   ${SCRIPTS}/get libsndfile
   mkdir -p ${PKG_BUILD}
-  tar --strip-components=1 -xf ${SOURCES}/libsndfile/libsndfile-${PKG_VERSION}.tar.gz -C ${PKG_BUILD}
+  tar --strip-components=1 -xf ${SOURCES}/libsndfile/libsndfile-${PKG_VERSION}.tar.xz -C ${PKG_BUILD}
 }
 
 post_makeinstall_target() {

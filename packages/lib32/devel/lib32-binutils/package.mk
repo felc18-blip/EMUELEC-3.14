@@ -50,9 +50,21 @@ make_host() {
 }
 
 makeinstall_host() {
+  # 1. headers (usar sysroot correto do lib32)
+  mkdir -p ${LIB32_SYSROOT_PREFIX}/usr/include
   cp -v ../include/libiberty.h ${LIB32_SYSROOT_PREFIX}/usr/include
-  make -C bfd install # fix parallel build with libctf requiring bfd
-  make MAKEINFO=true install
+
+  # 2. instalar libsframe no sysroot lib32
+  make DESTDIR="${LIB32_SYSROOT_PREFIX}" -C libsframe install
+
+  # 3. garantir que o linker encontre libsframe
+  export LDFLAGS="-L${LIB32_SYSROOT_PREFIX}/usr/lib"
+
+  # 4. instalar bfd (depende de libsframe)
+  make DESTDIR="${LIB32_SYSROOT_PREFIX}" -C bfd install
+
+  # 5. restante
+  make HELP2MAN=true MAKEINFO=true install
 }
 
 configure_target() {

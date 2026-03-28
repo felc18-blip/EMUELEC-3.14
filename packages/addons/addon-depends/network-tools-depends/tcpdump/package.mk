@@ -2,8 +2,8 @@
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="tcpdump"
-PKG_VERSION="4.99.3"
-PKG_SHA256="ad75a6ed3dc0d9732945b2e5483cb41dc8b4b528a169315e499c6861952e73b3"
+PKG_VERSION="4.99.5"
+PKG_SHA256="8c75856e00addeeadf70dad67c9ff3dd368536b2b8563abf6854d7c764cd3adb"
 PKG_SITE="https://www.tcpdump.org/"
 PKG_URL="https://www.tcpdump.org/release/tcpdump-${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain libpcap libtirpc"

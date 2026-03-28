@@ -13,7 +13,7 @@ PKG_DEPENDS_TARGET="toolchain nasm:host ${OPENGLES}"
 PKG_SECTION="libretro"
 PKG_LONGDESC="Improved mupen64plus libretro core reimplementation"
 PKG_TOOLCHAIN="make"
-PKG_BUILD_FLAGS="-lto"
+PKG_BUILD_FLAGS=""
 PKG_EE_UPDATE=no
 
 pre_configure_target() {

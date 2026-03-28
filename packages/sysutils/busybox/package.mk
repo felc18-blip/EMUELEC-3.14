@@ -75,7 +75,7 @@ configure_target() {
 
     LDFLAGS+=" -fwhole-program"
 
-    make oldconfig
+    yes "" | make oldconfig
 }
 
 configure_init() {
@@ -93,7 +93,7 @@ configure_init() {
 
     LDFLAGS+=" -fwhole-program"
 
-    make oldconfig
+    yes "" | make oldconfig
 }
 
 makeinstall_target() {

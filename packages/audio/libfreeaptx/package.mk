@@ -2,8 +2,8 @@
 # Copyright (C) 2021-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="libfreeaptx"
-PKG_VERSION="0.1.1"
-PKG_SHA256="7acf514446cae59585d9bc21e4f98f4a3856f4741c3a7a09d06e8ac5bf2f7315"
+PKG_VERSION="0.2.2"
+PKG_SHA256="5ab5ebddf3f2eb7ce47a505b87460b00fc1ede99c70010796d3575ab31ea80bf"
 PKG_LICENSE="LGPL"
 PKG_SITE="https://github.com/iamthehorker/libfreeaptx"
 PKG_URL="https://github.com/iamthehorker/libfreeaptx/archive/${PKG_VERSION}.tar.gz"
@@ -25,7 +25,7 @@ makeinstall_target() {
     cp -a ${PKG_NAME##*lib}.h ${SYSROOT_PREFIX}/usr/include/
 
   mkdir -p ${SYSROOT_PREFIX}/usr/lib/pkgconfig
-    cat > ${SYSROOT_PREFIX}/usr/lib/pkgconfig/${PKG_NAME}.pc << EOF
+    cat >${SYSROOT_PREFIX}/usr/lib/pkgconfig/${PKG_NAME}.pc <<EOF
 prefix=/usr
 exec_prefix=\${prefix}
 libdir=\${exec_prefix}/lib
