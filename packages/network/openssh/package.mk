@@ -3,14 +3,15 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="openssh"
-PKG_VERSION="9.9p2"
+PKG_VERSION="10.0p2"
+PKG_SHA256="021a2e709a0edf4250b1256bd5a9e500411a90dddabea830ed59cef90eb9d85c"
 PKG_LICENSE="OSS"
 PKG_SITE="https://www.openssh.com/"
 PKG_URL="https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/${PKG_NAME}-${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain openssl zlib"
 PKG_LONGDESC="An open re-implementation of the SSH package."
 PKG_TOOLCHAIN="autotools"
-PKG_BUILD_FLAGS="+lto"
+PKG_BUILD_FLAGS="+lto -cfg-libs"
 
 PKG_CONFIGURE_OPTS_TARGET="ac_cv_header_rpc_types_h=no \
                            --sysconfdir=/etc/ssh \

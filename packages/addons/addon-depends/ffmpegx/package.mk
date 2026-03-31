@@ -2,20 +2,24 @@
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="ffmpegx"
-PKG_VERSION="7.1.1"
-PKG_SHA256="733984395e0dbbe5c046abda2dc49a5544e7e0e1e2366bba849222ae9e3a03b1"
+PKG_VERSION="8.1"
+PKG_SHA256="b072aed6871998cce9b36e7774033105ca29e33632be5b6347f3206898e0756a"
 PKG_LICENSE="GPL-3.0-only"
 PKG_SITE="https://ffmpeg.org"
 PKG_URL="https://ffmpeg.org/releases/ffmpeg-${PKG_VERSION}.tar.xz"
-PKG_DEPENDS_TARGET="toolchain aom bzip2 openssl lame libvorbis libxml2 opus x264 zlib"
+PKG_DEPENDS_TARGET="toolchain aom bzip2 openssl lame libxml2 opus x264 zlib"
 PKG_LONGDESC="FFmpegx is an complete FFmpeg build to support encoding and decoding."
 PKG_BUILD_FLAGS="-sysroot"
 
 # Dependencies
 get_graphicdrivers
 
+if [ "${TARGET_ARCH}" = "aarch64" ] || [ "${TARGET_ARCH}" = "x86_64" ]; then
+  PKG_DEPENDS_TARGET+=" x265"
+fi
+
 if [ "${TARGET_ARCH}" = "x86_64" ]; then
-  PKG_DEPENDS_TARGET+=" nasm:host x265"
+  PKG_DEPENDS_TARGET+=" nasm:host"
 
   if listcontains "${GRAPHIC_DRIVERS}" "(crocus|i915|iris)"; then
     PKG_DEPENDS_TARGET+=" intel-vaapi-driver"
@@ -61,12 +65,12 @@ pre_configure_target() {
     --enable-hwaccel=vp8_vaapi \
     --enable-hwaccel=vp9_vaapi \
     --enable-hwaccel=wmv3_vaapi"
+  fi
 
-    PKG_FFMPEG_X26x_GENERIC="\
-    --enable-libx264 \
-    --enable-encoder=libx264 \
-    --enable-libx265 \
-    --enable-encoder=libx265"
+  if [ "${TARGET_ARCH}" = "aarch64" ] || [ "${TARGET_ARCH}" = "x86_64" ]; then
+    PKG_FFMPEG_X265="\
+      --disable-libx265 \
+      --disable-encoder=libx265"
   fi
 
   # Encoders
@@ -75,7 +79,9 @@ pre_configure_target() {
     --enable-libvpx \
     --enable-encoder=libvpx_vp8 \
     --enable-encoder=libvpx_vp9 \
-    ${PKG_FFMPEG_X26x_GENERIC} \
+    --enable-libx264 \
+    --enable-encoder=libx264 \
+    ${PKG_FFMPEG_X265} \
     --enable-libaom \
     --enable-encoder=libaom_av1 \
     \
@@ -161,10 +167,6 @@ configure_target() {
     --extra-libs="${PKG_FFMPEG_LIBS}" \
     --enable-pic \
     --disable-gnutls \
-	--enable-postproc \
-    --enable-swscale \
-    --enable-avfilter \
-    --enable-network \
     --enable-openssl \
     --enable-libxml2 \
     \

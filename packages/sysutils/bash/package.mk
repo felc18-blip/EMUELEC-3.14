@@ -2,13 +2,12 @@
 # Copyright (C) 2022-present Team CoreELEC (https://coreelec.org)
 
 PKG_NAME="bash"
-PKG_VERSION="5.2.21"
+PKG_VERSION="5.3"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.gnu.org/software/bash/"
-PKG_URL="http://ftp.gnu.org/gnu/bash/${PKG_NAME}-${PKG_VERSION}.tar.gz"
+PKG_URL="https://mirrors.kernel.org/gnu/bash/${PKG_NAME}-${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain ncurses readline"
-PKG_LONGDESC="Bash is the GNU Project shell - the Bourne Again SHell."
-PKG_NEED_UNPACK="$(get_pkg_directory busybox)"
+PKG_LONGDESC="The GNU Bourne Again shell."
 
 PKG_CONFIGURE_OPTS_TARGET="--with-curses \
                            --without-bash-malloc \

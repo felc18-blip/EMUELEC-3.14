@@ -32,21 +32,23 @@ makeinstall_target() {
 
 post_makeinstall_target() {
 
-if [[ "${ARCH}" == "arm" ]]; then
-	libname="arm-linux-gnueabihf.so"
-else
-	libname="aarch64-linux-gnu.so"
-fi
+  if [[ "${ARCH}" == "arm" ]]; then
+    libname="arm-linux-gnueabihf.so"
+  else
+    libname="aarch64-linux-gnu.so"
+  fi
 
-  # Seems like there's an issue in the build system.
-  # C Modules get built using the correct target toolchain but the generated *.so
-  # file names use the arch from the host system
-  # tried to solve it but couldn't so I move them to the correct names for python
-  # to grab them
-  mv ${INSTALL}/usr/lib/${PKG_PYTHON_VERSION}/site-packages/evdev/_ecodes.cpython-311-* \
-    ${INSTALL}/usr/lib/${PKG_PYTHON_VERSION}/site-packages/evdev/_ecodes.cpython-311-${libname}
-  mv ${INSTALL}/usr/lib/${PKG_PYTHON_VERSION}/site-packages/evdev/_input.cpython-311-* \
-    ${INSTALL}/usr/lib/${PKG_PYTHON_VERSION}/site-packages/evdev/_input.cpython-311-${libname}
-  mv ${INSTALL}/usr/lib/${PKG_PYTHON_VERSION}/site-packages/evdev/_uinput.cpython-311-* \
-    ${INSTALL}/usr/lib/${PKG_PYTHON_VERSION}/site-packages/evdev/_uinput.cpython-311-${libname}
+  PY_PATH="${INSTALL}/usr/lib/${PKG_PYTHON_VERSION}/site-packages/evdev"
+
+  # Corrige ABI automaticamente (funciona para qualquer versão de Python)
+  for mod in _ecodes _input _uinput; do
+    for f in ${PY_PATH}/${mod}.cpython-*; do
+      [ -e "$f" ] || continue
+
+      # extrai a ABI (ex: cpython-314)
+      abi=$(basename "$f" | cut -d'.' -f2)
+
+      mv "$f" "${PY_PATH}/${mod}.${abi}-${libname}"
+    done
+  done
 }

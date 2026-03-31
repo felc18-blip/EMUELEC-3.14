@@ -3,22 +3,61 @@
 # Copyright (C) 2017-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="ffmpeg"
-PKG_LICENSE="LGPLv2.1+"
+PKG_VERSION="8.1"
+PKG_SHA256="b072aed6871998cce9b36e7774033105ca29e33632be5b6347f3206898e0756a"
+PKG_LICENSE="GPL-3.0-only"
 PKG_SITE="https://ffmpeg.org"
-PKG_DEPENDS_TARGET="toolchain zlib bzip2 SDL2 openssl speex"
-PKG_LONGDESC="FFmpeg is a complete, cross-platform solution to record, convert and stream audio and video."
-
-PKG_VERSION="6.0"
 PKG_URL="http://ffmpeg.org/releases/ffmpeg-${PKG_VERSION}.tar.xz"
-PKG_PATCH_DIRS="unofficialos"
-PKG_PATCH_DIRS+=" v4l2-request v4l2-drmprime" # Patches adicionais necessários para EmuELEC
+
+# ELITE: Adicionado SDL2 de volta (necessário para o ffplay/EmuELEC) e mantido libxml2 da base nova
+PKG_DEPENDS_TARGET="toolchain zlib bzip2 SDL2 openssl speex libxml2 x264"
+PKG_LONGDESC="FFmpeg is a complete, cross-platform solution to record, convert and stream audio and video."
+PKG_PATCH_DIRS="postproc libreelec"
+
+PKG_FFMPEG_REQUEST_DISABLE="--disable-libudev --disable-v4l2-request"
+PKG_FFMPEG_REQUEST_ENABLE="--enable-libudev --enable-v4l2-request"
+
+case "${PROJECT}" in
+  Amlogic)
+    PKG_VERSION="272ffca8790f4a333d06d5ad0a7c503709f1735f"
+    PKG_FFMPEG_BRANCH="dev/8.1/rpi_import_1"
+    PKG_SHA256="bfc17be4447905694e5d1deefe5f57d316e39876aa1419835d43bc24d1c254f1"
+    PKG_URL="https://github.com/jc-kynesim/rpi-ffmpeg/archive/${PKG_VERSION}.tar.gz"
+    ;;
+  Generic)
+    PKG_FFMPEG_REQUEST_DISABLE=""
+    PKG_FFMPEG_REQUEST_ENABLE=""
+    ;;
+  Rockchip)
+    case "${DEVICE}" in
+      RK3288|RK3328|RK3399)
+        PKG_PATCH_DIRS+=" v4l2-request v4l2-drmprime vf-deinterlace-v4l2m2m"
+        ;;
+      RK356X|RK3576|RK3588)
+        PKG_PATCH_DIRS+=" v4l2-request detlev v4l2-drmprime vf-deinterlace-v4l2m2m"
+        ;;
+    esac
+    ;;
+  RPi)
+    PKG_FFMPEG_RPI="--disable-mmal --enable-sand"
+    PKG_PATCH_DIRS+=" rpi"
+    ;;
+  *)
+    PKG_PATCH_DIRS+=" v4l2-request v4l2-drmprime"
+    case "${PROJECT}" in
+      Allwinner | Rockchip)
+        PKG_PATCH_DIRS+=" vf-deinterlace-v4l2m2m"
+        ;;
+    esac
+    ;;
+esac
 
 post_unpack() {
   # Fix FFmpeg version
-  if [ "${PROJECT}" = "Amlogic" ]; then
-    echo "${PKG_FFMPEG_BRANCH}-${PKG_VERSION:0:7}" > ${PKG_BUILD}/VERSION
+  if [ "${PROJECT}" = "Amlogic" ] || [ "${PROJECT}" = "Rockchip" ]; then
+    echo "${PKG_FFMPEG_BRANCH}-${PKG_VERSION:0:7}" >${PKG_BUILD}/VERSION
   else
-    echo "${PKG_VERSION}" > ${PKG_BUILD}/RELEASE
+    echo "${PKG_VERSION}" >${PKG_BUILD}/RELEASE
   fi
 }
 
@@ -27,43 +66,20 @@ get_graphicdrivers
 
 PKG_FFMPEG_HWACCEL="--enable-hwaccels"
 
-case ${DEVICE} in
-  RK3588*)
-    V4L2_SUPPORT=no
-  ;;
-  *)
-    case ${PROJECT} in
-      Rockchip)
-        PKG_PATCH_DIRS+=" vf-deinterlace-v4l2m2m"
-      ;;
-    esac
-  ;;
-esac
-
-# Forçamos a ativação do V4L2 se for Amlogic ou se o suporte geral estiver ligado
-if [ "${V4L2_SUPPORT}" = "yes" ] || [ "${PROJECT}" = "Amlogic" ]; then
+if [ "${V4L2_SUPPORT}" = "yes" ]; then
   PKG_DEPENDS_TARGET+=" libdrm"
   PKG_NEED_UNPACK+=" $(get_pkg_directory libdrm)"
-  PKG_FFMPEG_V4L2="--enable-v4l2_m2m --enable-libdrm"
+  PKG_FFMPEG_V4L2="--disable-v4l2_m2m --enable-libdrm --enable-libudev --enable-v4l2-request"
 
-  case ${PROJECT} in
-    Amlogic|PC|Rockchip)
-      PKG_V4L2_REQUEST="yes"
-    ;;
-    *)
-      PKG_V4L2_REQUEST="no"
-    ;;
-  esac
-
-  if [ "${PKG_V4L2_REQUEST}" = "yes" ]; then
+  if [ "${PROJECT}" = "Allwinner" -o "${PROJECT}" = "Rockchip" -o "${DEVICE}" = "iMX8" -o "${DEVICE}" = "RPi4" -o "${DEVICE}" = "RPi5" -o "${PROJECT}" = "Amlogic" ]; then
     PKG_DEPENDS_TARGET+=" systemd"
     PKG_NEED_UNPACK+=" $(get_pkg_directory systemd)"
-    PKG_FFMPEG_V4L2+=" --enable-libudev --enable-v4l2-request"
+    PKG_FFMPEG_V4L2+=" ${PKG_FFMPEG_REQUEST_ENABLE}"
   else
-    PKG_FFMPEG_V4L2+=" --disable-libudev --disable-v4l2-request"
+    PKG_FFMPEG_V4L2+=" ${PKG_FFMPEG_REQUEST_DISABLE}"
   fi
 else
-  PKG_FFMPEG_V4L2="--disable-v4l2_m2m --disable-libudev --disable-v4l2-request"
+  PKG_FFMPEG_V4L2="--disable-v4l2_m2m ${PKG_FFMPEG_REQUEST_DISABLE}"
 fi
 
 if [ "${VAAPI_SUPPORT}" = "yes" ]; then
@@ -74,18 +90,11 @@ else
   PKG_FFMPEG_VAAPI="--disable-vaapi"
 fi
 
-if [ "${DISPLAYSERVER}" != "wl" ]; then
+# Ajustado para DisplayServer genérico (wl ou x11) baseado na sua distro
+if [ "${DISPLAYSERVER}" != "wl" ] && [ "${DISPLAYSERVER}" != "x11" ]; then
   PKG_DEPENDS_TARGET+=" libdrm"
   PKG_NEED_UNPACK+=" $(get_pkg_directory libdrm)"
   PKG_FFMPEG_VAAPI=" --enable-libdrm"
-fi
-
-if [ "${VDPAU_SUPPORT}" = "yes" -a "${DISPLAYSERVER}" = "wl" ]; then
-  PKG_DEPENDS_TARGET+=" libvdpau"
-  PKG_NEED_UNPACK+=" $(get_pkg_directory libvdpau)"
-  PKG_FFMPEG_VDPAU="--enable-vdpau"
-else
-  PKG_FFMPEG_VDPAU="--disable-vdpau"
 fi
 
 if build_with_debug; then
@@ -104,12 +113,6 @@ if [ "${TARGET_ARCH}" = "x86_64" ]; then
   PKG_DEPENDS_TARGET+=" nasm:host"
 fi
 
-case ${PROJECT} in
-  Rockchip)
-    PKG_DEPENDS_TARGET+=" rkmpp"
-  ;;
-esac
-
 if target_has_feature "(neon|sse)"; then
   PKG_DEPENDS_TARGET+=" dav1d"
   PKG_NEED_UNPACK+=" $(get_pkg_directory dav1d)"
@@ -123,136 +126,148 @@ pre_configure_target() {
   rm -rf .${TARGET_NAME}
 }
 
+# ELITE: O Player não morre! Mantido --enable-ffplay e --disable-ffprobe
 if [ "${FFMPEG_TESTING}" = "yes" ]; then
-  # Modo teste: Habilita ffmpeg e ffplay + ferramentas de debug
   PKG_FFMPEG_TESTING="--enable-ffmpeg --enable-ffplay --enable-encoder=wrapped_avframe --enable-muxer=null"
+  PKG_FFMPEG_TESTING+=" --enable-encoder=rawvideo --enable-muxer=rawvideo"
+  PKG_FFMPEG_TESTING+=" --enable-muxer=image2 --enable-muxer=md5 --enable-muxer=framemd5"
   if [ "${PROJECT}" = "RPi" ]; then
     PKG_FFMPEG_TESTING+=" --enable-vout-drm --enable-outdev=vout_drm"
   fi
 else
-  # Modo padrão: Habilita o conversor (ffmpeg) e o player (ffplay)
-  # Mantemos o ffprobe desativado para economizar espaço
   PKG_FFMPEG_TESTING="--enable-ffmpeg --enable-ffplay --disable-ffprobe"
 fi
 
 configure_target() {
-  # Correção vital para o EmuELEC encontrar o SDL2 e esconder o banner
+  # ELITE: Hack vital do EmuELEC para SDL2 e ocultar o Banner
   if [ "${DISTRO}" = "EmuELEC" ]; then
     sed -i "s|int hide_banner = 0|int hide_banner = 1|" ${PKG_BUILD}/fftools/cmdutils.c
     sed -i "s|SDL2_CONFIG=\"\${cross_prefix}sdl2-config\"|SDL2_CONFIG=\"${SYSROOT_PREFIX}/usr/bin/sdl2-config\"|" ${PKG_BUILD}/configure
   fi
 
-  ./configure --prefix="/usr" \
-              --cpu="${TARGET_CPU}" \
-              --arch="${TARGET_ARCH}" \
-              --enable-cross-compile \
-              --cross-prefix="${TARGET_PREFIX}" \
-              --sysroot="${SYSROOT_PREFIX}" \
-              --sysinclude="${SYSROOT_PREFIX}/usr/include" \
-              --target-os="linux" \
-              --nm="${NM}" \
-              --ar="${AR}" \
-              --as="${CC}" \
-              --cc="${CC}" \
-              --ld="${CC}" \
-              --host-cc="${HOST_CC}" \
-              --host-cflags="${HOST_CFLAGS}" \
-              --host-ldflags="${HOST_LDFLAGS}" \
-              --extra-cflags="${CFLAGS}" \
-              --extra-ldflags="${LDFLAGS}" \
-              --extra-libs="${PKG_FFMPEG_LIBS}" \
-              --disable-static \
-              --enable-shared \
-              --enable-version3 \
-              --enable-logging \
-              --disable-doc \
-              ${PKG_FFMPEG_DEBUG} \
-              --enable-pic \
-              --pkg-config="${TOOLCHAIN}/bin/pkg-config" \
-              --enable-optimizations \
-              --disable-extra-warnings \
-              --enable-avdevice \
-              --enable-avcodec \
-              --enable-avformat \
-              --enable-swscale \
-              --enable-postproc \
-              --enable-avfilter \
-              --disable-devices \
-              --enable-pthreads \
-              --enable-network \
-              --disable-gnutls --enable-openssl \
-              --disable-gray \
-              --enable-swscale-alpha \
-              --disable-small \
-              --enable-dct \
-              --enable-fft \
-              --enable-mdct \
-              --enable-rdft \
-              --disable-crystalhd \
-              ${PKG_FFMPEG_V4L2} \
-              ${PKG_FFMPEG_VAAPI} \
-              ${PKG_FFMPEG_VDPAU} \
-              ${PKG_FFMPEG_HWACCEL} \
-              --enable-runtime-cpudetect \
-              --disable-hardcoded-tables \
-              --disable-encoders \
-              --enable-encoder=ac3 \
-              --enable-encoder=aac \
-              --enable-encoder=wmav2 \
-              --enable-encoder=mjpeg \
-              --enable-encoder=png \
-              --enable-encoder=mpeg4 \
-              --enable-encoder=libx264 \
-              --disable-muxers \
-			  --enable-gpl \
-              --enable-muxer=spdif \
-              --enable-muxer=adts \
-              --enable-muxer=asf \
-              --enable-muxer=ipod \
-              --enable-muxer=mpegts \
-              --enable-demuxers \
-              --enable-parsers \
-              --enable-bsfs \
-              --enable-protocol=http \
-              --disable-indevs \
-              --disable-outdevs \
-              --enable-filters \
-              --disable-avisynth \
-              --enable-bzlib \
-              --disable-lzma \
-              --disable-alsa \
-              --disable-frei0r \
-              --disable-libopencore-amrnb \
-              --disable-libopencore-amrwb \
-              --disable-libopencv \
-              --disable-libdc1394 \
-              --disable-libfreetype \
-              --disable-libgsm \
-              --disable-libmp3lame \
-              --disable-libopenjpeg \
-              --disable-librtmp \
-              ${PKG_FFMPEG_AV1} \
-              --enable-libspeex \
-              --disable-libtheora \
-              --disable-libvo-amrwbenc \
-              --disable-libvorbis \
-              --disable-libvpx \
-              --disable-libx264 \
-              --disable-libxavs \
-              --disable-libxvid \
-              --enable-zlib \
-              --enable-asm \
-              --disable-altivec \
-              ${PKG_FFMPEG_FPU} \
-              --disable-symver \
-              ${PKG_FFMPEG_TESTING}
+# 🔥 FIX DETECÇÃO (ESSENCIAL)
+export ff_cv_linux_media_h=yes
+export ff_cv_v4l2_timeval_to_ns=yes
+export ff_cv_v4l2_m2m_hold_capture_buf=yes
+export PKG_CONFIG_SYSROOT_DIR="${SYSROOT_PREFIX}"
+export PKG_CONFIG_PATH="${SYSROOT_PREFIX}/usr/lib/pkgconfig"
+export PKG_CONFIG_LIBDIR="${SYSROOT_PREFIX}/usr/lib/pkgconfig"
+
+export CFLAGS="${CFLAGS} -DV4L2_BUF_FLAG_M2M_HOLD_CAPTURE_BUF=0x00000200 -D_GNU_SOURCE"
+
+./configure --prefix="/usr" \
+  --cpu="${TARGET_CPU}" \
+  --arch="${TARGET_ARCH}" \
+  --enable-cross-compile \
+  --cross-prefix="${TARGET_PREFIX}" \
+  --sysroot="${SYSROOT_PREFIX}" \
+  --sysinclude="${SYSROOT_PREFIX}/usr/include" \
+  --target-os="linux" \
+  --nm="${NM}" \
+  --ar="${AR}" \
+  --as="${CC}" \
+  --cc="${CC}" \
+  --ld="${CC}" \
+  --host-cc="${HOST_CC}" \
+  --host-cflags="${HOST_CFLAGS}" \
+  --host-ldflags="${HOST_LDFLAGS}" \
+  --extra-cflags="${CFLAGS}" \
+  --extra-ldflags="${LDFLAGS}" \
+  --extra-libs="${PKG_FFMPEG_LIBS}" \
+  --disable-static \
+  --enable-shared \
+  --enable-gpl \
+  --enable-version3 \
+  --enable-logging \
+  --disable-doc \
+  ${PKG_FFMPEG_DEBUG} \
+  --enable-pic \
+  --pkg-config="${TOOLCHAIN}/bin/pkg-config" \
+  --enable-optimizations \
+  --disable-extra-warnings \
+  --enable-avdevice \
+  --enable-avcodec \
+  --enable-avformat \
+  --enable-swscale \
+  --enable-avfilter \
+  --enable-pthreads \
+  --enable-network \
+  --disable-gnutls --enable-openssl \
+  --enable-swscale-alpha \
+  --disable-small \
+  ${PKG_FFMPEG_V4L2} \
+  ${PKG_FFMPEG_VAAPI} \
+  --disable-vdpau \
+  ${PKG_FFMPEG_RPI} \
+  --enable-runtime-cpudetect \
+  --disable-hardcoded-tables \
+  --disable-symver \
+  ${PKG_FFMPEG_HWACCEL} \
+  \
+  --disable-encoders \
+  --enable-encoder=ac3 \
+  --enable-encoder=aac \
+  --enable-encoder=wmav2 \
+  --enable-encoder=mjpeg \
+  --enable-encoder=png \
+  --enable-encoder=mpeg4 \
+  --enable-libx264 \
+  --enable-encoder=libx264 \
+  \
+  --disable-muxers \
+  --enable-muxer=spdif \
+  --enable-muxer=adts \
+  --enable-muxer=asf \
+  --enable-muxer=ipod \
+  --enable-muxer=mpegts \
+  \
+  --enable-demuxers \
+  --enable-parsers \
+  --enable-bsfs \
+  --enable-protocol=https \
+  --enable-protocol=http \
+  --enable-filters \
+  \
+  --disable-devices \
+  --disable-indevs \
+  --disable-outdevs \
+  --disable-avisynth \
+  --disable-alsa \
+  --disable-lzma \
+  --disable-frei0r \
+  --disable-libopencv \
+  --disable-libdc1394 \
+  --disable-libgsm \
+  --disable-libmp3lame \
+  --disable-libopenjpeg \
+  --disable-librtmp \
+  --disable-libvorbis \
+  --disable-libvpx \
+  --disable-libxvid \
+  --disable-libtheora \
+  --disable-libopencore-amrnb \
+  --disable-libopencore-amrwb \
+  --disable-libvo-amrwbenc \
+  --disable-libxavs \
+  \
+  --enable-libxml2 \
+  --enable-libspeex \
+  --enable-zlib \
+  --enable-bzlib \
+  ${PKG_FFMPEG_AV1} \
+  \
+  --enable-asm \
+  --disable-altivec \
+  ${PKG_FFMPEG_FPU} \
+  \
+  ${PKG_FFMPEG_TESTING}
 }
 
 post_makeinstall_target() {
   # Limpeza de exemplos (já existia)
   rm -rf ${INSTALL}/usr/share/ffmpeg/examples
 
-  # --- MARRETA PARA INSTALAR LIBPOSTPROC ---
+  # ELITE: --- MARRETA PARA INSTALAR LIBPOSTPROC --- (Essencial para o PPSSPP)
   echo "Instalando libpostproc manualmente..."
   mkdir -p ${INSTALL}/usr/lib/pkgconfig
   mkdir -p ${INSTALL}/usr/include/libpostproc

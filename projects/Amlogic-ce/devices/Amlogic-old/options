@@ -169,3 +169,16 @@
 
   # CoreELEC Subdevices
     SUBDEVICES=""
+
+################################################################################
+# NextOS Elite - Custom Features
+################################################################################
+
+  # Ativa o suporte a Swap no sistema
+    SWAP_SUPPORT="yes"
+
+  # Define o tamanho padrão (256MB como você escolheu)
+    SWAPFILESIZE="256"
+
+  # Garante que ele já venha ligado por padrão (sem precisar de comandos)
+    SWAP_ENABLED_DEFAULT="yes"

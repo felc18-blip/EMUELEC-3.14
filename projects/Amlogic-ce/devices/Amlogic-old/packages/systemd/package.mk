@@ -3,12 +3,12 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="systemd"
-PKG_VERSION="255.13"
-PKG_SHA256="b24bbfc18e27339f02bdef12d2be95b747c766e7eb9248554e53ad8979c01f2c"
+PKG_VERSION="257.13"
+PKG_SHA256="1eb7d5f9ff8a426ff880a3cded9ce819613ba8003ac5ddde9eca162f14ddabe7"
 PKG_LICENSE="LGPL2.1+"
 PKG_SITE="http://www.freedesktop.org/wiki/Software/systemd"
-PKG_URL="https://github.com/systemd/systemd-stable/archive/v${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain libcap kmod util-linux entropy libidn2 wait-time-sync Jinja2:host libxcrypt"
+PKG_URL="https://github.com/systemd/systemd/archive/v${PKG_VERSION}.tar.gz"
+PKG_DEPENDS_TARGET="toolchain libcap kmod util-linux entropy libidn2 wait-time-sync Jinja2:host libxcrypt glib"
 PKG_LONGDESC="A system and session manager for Linux, compatible with SysV and LSB init scripts."
 
 # CFLAGS vitais para o Kernel 4.9 (Impede o Kernel Panic no boot)
@@ -50,7 +50,7 @@ PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Dlz4=false \
                        -Dxkbcommon=false \
                        -Dpcre2=false \
-                       -Dglib=false \
+                       -Dglib=enabled \
                        -Ddbus=false \
                        -Ddefault-dnssec=no \
                        -Dimportd=false \
@@ -67,7 +67,7 @@ PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Dlocaled=false \
                        -Dmachined=false \
                        -Dportabled=false \
-                       -Duserdb=false \
+                       -Duserdb=true \
                        -Dhomed=false \
                        -Dnetworkd=false \
                        -Dtimedated=false \
@@ -90,10 +90,11 @@ PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Dnss-myhostname=false \
                        -Dnss-mymachines=false \
                        -Dnss-resolve=false \
-                       -Dnss-systemd=false \
+                       -Dnss-systemd=true \
                        -Dman=false \
                        -Dhtml=false \
                        -Dlink-udev-shared=true \
+                       -Dstatic-libudev=false \
                        -Dlink-systemctl-shared=true \
                        -Dlink-networkd-shared=false \
                        -Dbashcompletiondir=no \
@@ -112,6 +113,27 @@ else
 fi
 
 pre_configure_target() {
+  # 1. Patch para TIOCGPTPEER (Terminal)
+  sed -i '/#include <sys\/ioctl.h>/a #ifndef TIOCGPTPEER\n#define TIOCGPTPEER _IOR('\''T'\'', 0x41, int)\n#endif' ${PKG_BUILD}/src/basic/terminal-util.c
+
+  # 2. 🔥 Atualização do linux/nsfs.h "falso"
+  mkdir -p ${PKG_BUILD}/src/basic/linux
+  cat <<EOF > ${PKG_BUILD}/src/basic/linux/nsfs.h
+#ifndef _LINUX_NSFS_H
+#define _LINUX_NSFS_H
+#include <linux/ioctl.h>
+#define NSIO    0xb7
+#define NS_GET_USERNS   _IO(NSIO, 0x1)
+#define NS_GET_PARENT   _IO(NSIO, 0x2)
+#define NS_GET_NSTYPE   _IO(NSIO, 0x3)
+#define NS_GET_OWNER_UID _IO(NSIO, 0x4)
+#endif
+EOF
+
+  # 3. Garante que o compilador use o nosso header
+  export TARGET_CFLAGS="${TARGET_CFLAGS} -I${PKG_BUILD}/src/basic"
+
+  # Suas flags originais
   export TARGET_CFLAGS="${TARGET_CFLAGS} -fno-schedule-insns -fno-schedule-insns2 -Wno-format-truncation"
   export LC_ALL=en_US.UTF-8
 }
@@ -124,6 +146,8 @@ post_makeinstall_target() {
   safe_remove ${INSTALL}/etc/X11
   safe_remove ${INSTALL}/usr/bin/kernel-install
   safe_remove ${INSTALL}/usr/lib/kernel/install.d
+  safe_remove ${INSTALL}/usr/lib/tmpfiles.d/credstore.conf
+  safe_remove ${INSTALL}/usr/bin/systemd-creds
   safe_remove ${INSTALL}/usr/lib/rpm
   safe_remove ${INSTALL}/usr/lib/systemd/user
   safe_remove ${INSTALL}/usr/lib/tmpfiles.d/etc.conf
@@ -235,7 +259,10 @@ post_makeinstall_target() {
   ln -sf /usr/bin/systemctl ${INSTALL}/usr/sbin/runlevel
   ln -sf /usr/bin/systemctl ${INSTALL}/usr/sbin/shutdown
   ln -sf /usr/bin/systemctl ${INSTALL}/usr/sbin/telinit
-
+  mkdir -p ${INSTALL}/etc/udev/rules.d
+  ln -sf /dev/null ${INSTALL}/etc/udev/rules.d/60-persistent-storage.rules
+  ln -sf /dev/null ${INSTALL}/etc/udev/rules.d/60-persistent-input.rules
+  
   # strip
   debug_strip ${INSTALL}/usr
 
@@ -288,6 +315,7 @@ post_install() {
   add_group kmem 9
   add_group kvm 10
   add_group lp 7
+  add_group sgx 106
   add_group render 12
   add_group tape 33
   add_group tty 5

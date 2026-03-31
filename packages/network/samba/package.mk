@@ -3,7 +3,7 @@
 # Copyright (C) 2017-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="samba"
-PKG_VERSION="4.18.8"
+PKG_VERSION="4.21.10"
 PKG_LICENSE="GPLv3+"
 PKG_SITE="https://www.samba.org"
 PKG_URL="https://download.samba.org/pub/samba/stable/${PKG_NAME}-${PKG_VERSION}.tar.gz"
@@ -24,11 +24,6 @@ configure_package() {
     SMB_AVAHI="--disable-avahi"
   fi
 
-  if [ "${TARGET_ARCH}" = x86_64 ]; then
-    SMB_AESNI="--accel-aes=intelaesni"
-  else
-    SMB_AESNI="--accel-aes=none"
-  fi
 
   PKG_CONFIGURE_OPTS="--prefix=/usr \
                       --sysconfdir=/etc \
@@ -104,22 +99,44 @@ pre_configure_target() {
 }
 
 configure_target() {
+  # 1. Copia o cache base
   cp ${PKG_DIR}/config/samba4-cache.txt ${PKG_BUILD}/cache.txt
-    echo "Checking uname machine type: \"${TARGET_ARCH}\"" >> ${PKG_BUILD}/cache.txt
+  
+  # 2. Injeta as respostas que o Samba 4.20 exige (Blindagem total)
+  echo "Checking uname machine type: \"${TARGET_ARCH}\"" >> ${PKG_BUILD}/cache.txt
+  echo 'Checking for system libtasn1 (>=3.8): NO' >> ${PKG_BUILD}/cache.txt
+  echo 'Checking for declaration of krb5_pac_get_buffer: OK' >> ${PKG_BUILD}/cache.txt
+  echo 'Checking for declaration of krb5_pac_get_buffer (as enum): NO' >> ${PKG_BUILD}/cache.txt
+  echo 'Checking correct behavior of strtoll: OK' >> ${PKG_BUILD}/cache.txt
+  echo 'Checking for C99 vsnprintf: OK' >> ${PKG_BUILD}/cache.txt
+  echo 'Checking for HAVE_SHARED_MMAP: OK' >> ${PKG_BUILD}/cache.txt
+  echo 'Checking for HAVE_MREMAP: OK' >> ${PKG_BUILD}/cache.txt
+  echo 'Checking for HAVE_INCOHERENT_MMAP: NO' >> ${PKG_BUILD}/cache.txt
+  echo 'Checking for HAVE_SECURE_MKSTEMP: OK' >> ${PKG_BUILD}/cache.txt
+  echo 'Checking for HAVE_IFACE_GETIFADDRS: OK' >> ${PKG_BUILD}/cache.txt
+  echo 'Checking for gnutls fips mode support: NO' >> ${PKG_BUILD}/cache.txt
+  echo 'Checking for readlink breakage: NO' >> ${PKG_BUILD}/cache.txt
+  echo 'Checking whether fcntl supports setting/getting hints: OK' >> ${PKG_BUILD}/cache.txt
 
+  # 3. Ferramentas do Heimdal
   export COMPILE_ET=${TOOLCHAIN}/bin/heimdal_compile_et
   export ASN1_COMPILE=${TOOLCHAIN}/bin/heimdal_asn1_compile
 
+  # 4. Configure
   PYTHON_CONFIG="${SYSROOT_PREFIX}/usr/bin/python3-config" \
   python_LDFLAGS="" python_LIBDIR="" \
   PYTHON=${TOOLCHAIN}/bin/python3 ./configure ${PKG_CONFIGURE_OPTS}
 }
 
-# disable icu, there is no buildswitch to disable
+# Desativa o ICU manualmente (essencial para evitar erro de linkagem no Amlogic-old)
 pre_make_target() {
-  sed -e '/#define HAVE_ICU_I18N 1/d' \
-      -e '/#define HAVE_LIBICUI.* 1/d' \
-      -i bin/default/include/config.h
+  local CONFIG_H="bin/default/include/config.h"
+  
+  if [ -f "${CONFIG_H}" ]; then
+    sed -e '/#define HAVE_ICU_I18N 1/d' \
+        -e '/#define HAVE_LIBICUI.* 1/d' \
+        -i "${CONFIG_H}"
+  fi
 }
 
 make_target() {

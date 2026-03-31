@@ -84,6 +84,13 @@ fi
 cd ${PKG_BUILD}
 }
 
+pre_make_target() {
+
+  # Corrige incompatibilidade com kernel antigo (V4L2)
+  sed -i 's/fmt\.fmt\.pix\.quantization = V4L2_QUANTIZATION_LIM_RANGE;/#ifdef V4L2_QUANTIZATION_LIM_RANGE\n    fmt.fmt.pix.quantization = V4L2_QUANTIZATION_LIM_RANGE;\n#endif/g' \
+    cores/libretro-video-processor/video_processor_v4l2.c
+}
+
 make_target() {
   make HAVE_ONLINE_UPDATER=1 HAVE_UPDATE_CORES=1 HAVE_UPDATE_CORE_INFO=1 HAVE_COMPRESSION=1 HAVE_ACCESSIBILITY=1 HAVE_UPDATE_ASSETS=1 HAVE_LIBRETRODB=1 HAVE_BLUETOOTH=1 HAVE_NETWORKING=1 HAVE_LAKKA=1 HAVE_ZARCH=1 HAVE_QT=0 HAVE_LANGEXTRA=1 HAVE_LAKKA_PROJECT=odroidn2+.aarch64 HAVE_LAKKA_SERVER="https://www.lakka.tv"
   [ $? -eq 0 ] && echo "(retroarch ok)" || { echo "(retroarch failed)" ; exit 1 ; }
