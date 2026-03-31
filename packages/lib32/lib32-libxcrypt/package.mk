@@ -16,9 +16,10 @@ PKG_CONFIGURE_OPTS_TARGET="\
   --enable-shared \
   --disable-static \
   --enable-hashes=all \
-  --enable-obsolete-api=glibc \
+  --enable-obsolete-api \
   --disable-werror \
 "
+
 unpack() {
   ${SCRIPTS}/get libxcrypt
   mkdir -p ${PKG_BUILD}
@@ -27,20 +28,30 @@ unpack() {
 
 makeinstall_target() {
 
-  # instala rootfs (lib32)
+  # ===== instala no rootfs (lib32) =====
   make DESTDIR=${INSTALL} install
 
-  # instala no sysroot (🔥 FORÇA /usr/lib)
+  # ===== instala no sysroot =====
   make DESTDIR=${LIB32_SYSROOT_PREFIX} install
 
-  # 🔥 mover libs do sysroot de lib32 → lib
+  # ===== 🔥 GARANTE LIBS NO /usr/lib =====
+  mkdir -p ${LIB32_SYSROOT_PREFIX}/usr/lib
+
   if [ -d ${LIB32_SYSROOT_PREFIX}/usr/lib32 ]; then
     cp -P ${LIB32_SYSROOT_PREFIX}/usr/lib32/libcrypt.so* \
           ${LIB32_SYSROOT_PREFIX}/usr/lib/
   fi
 
-  # garantir symlink
+  # ===== 🔥 GARANTE SYMLINK =====
   if [ -f ${LIB32_SYSROOT_PREFIX}/usr/lib/libcrypt.so.1 ]; then
     ln -sf libcrypt.so.1 ${LIB32_SYSROOT_PREFIX}/usr/lib/libcrypt.so
+  fi
+
+  # ===== 💣 CORREÇÃO CRÍTICA (HEADER) =====
+  mkdir -p ${LIB32_SYSROOT_PREFIX}/usr/include
+
+  if [ -f ${INSTALL}/usr/include/crypt.h ]; then
+    cp -f ${INSTALL}/usr/include/crypt.h \
+          ${LIB32_SYSROOT_PREFIX}/usr/include/crypt.h
   fi
 }

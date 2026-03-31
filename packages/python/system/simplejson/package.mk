@@ -1,10 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2009-2017 Stephan Raue (stephan@openelec.tv)
-# Copyright (C) 2019-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="simplejson"
-PKG_VERSION="3.18.1"
-PKG_SHA256="746086e3ef6d74b53599df31b491d88a355abf2e31c837137dd90f8c4561cafa"
+PKG_VERSION="3.20.1"
+PKG_SHA256="e64139b4ec4f1f24c142ff7dcafe55a22b811a74d86d66560c8815687143037d"
 PKG_LICENSE="OSS"
 PKG_SITE="http://pypi.org/project/simplejson"
 PKG_URL="https://files.pythonhosted.org/packages/source/${PKG_NAME:0:1}/${PKG_NAME}/${PKG_NAME}-${PKG_VERSION}.tar.gz"
@@ -17,7 +15,7 @@ pre_make_target() {
 }
 
 make_target() {
-  python3 setup.py build --cross-compile
+  python3 setup.py build
 }
 
 makeinstall_target() {
@@ -26,6 +24,5 @@ makeinstall_target() {
 
 post_makeinstall_target() {
   python_remove_source
-
   rm -rf ${INSTALL}/usr/lib/python*/site-packages/*/tests
 }

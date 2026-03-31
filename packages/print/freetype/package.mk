@@ -3,10 +3,11 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="freetype"
-PKG_VERSION="2.13.2"
+PKG_VERSION="2.14.3"
+PKG_SHA256="36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f"
 PKG_LICENSE="GPL"
-PKG_SITE="http://www.freetype.org"
-PKG_URL="http://download.savannah.gnu.org/releases/freetype/freetype-${PKG_VERSION}.tar.xz"
+PKG_SITE="https://freetype.org"
+PKG_URL="https://download.savannah.gnu.org/releases/freetype/freetype-${PKG_VERSION}.tar.xz"
 PKG_DEPENDS_HOST="toolchain:host"
 PKG_DEPENDS_TARGET="toolchain zlib libpng"
 PKG_LONGDESC="The FreeType engine is a free and portable TrueType font rendering engine."
@@ -19,31 +20,15 @@ PKG_CONFIGURE_OPTS_TARGET="LIBPNG_CFLAGS=-I${SYSROOT_PREFIX}/usr/include \
 
 pre_configure_target() {
   # unset LIBTOOL because freetype uses its own
-    ( cd ..
-      unset LIBTOOL
-      sh autogen.sh
-    )
+  (
+    cd ..
+    unset LIBTOOL
+    sh autogen.sh
+  )
 }
 
 post_makeinstall_target() {
   sed -e "s#prefix=/usr#prefix=${SYSROOT_PREFIX}/usr#" -i "${SYSROOT_PREFIX}/usr/lib/pkgconfig/freetype2.pc"
 
   cp -P "${PKG_BUILD}/.${TARGET_NAME}/freetype-config" "${SYSROOT_PREFIX}/usr/bin"
-
-  # --- INÍCIO DA LIMPEZA PESADA (Sanitização de RPATH nas bibliotecas) ---
-  echo "--- Sanitizando bibliotecas do Freetype (Limpando rastros do PC) ---"
-  
-  find ${INSTALL} -type f -exec sh -c '
-    if readelf -h "$1" 2>/dev/null | grep -qE "EXEC|DYN"; then
-      # Remove RPATH/RUNPATH
-      patchelf --remove-rpath "$1" 2>/dev/null
-      
-      # Substitui caminhos absolutos (/home/felipe/...) pelo nome puro da lib
-      for lib_path in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
-        lib_name=$(basename "$lib_path")
-        echo "  > Corrigindo dependência em $(basename $1): $lib_name"
-        patchelf --replace-needed "$lib_path" "$lib_name" "$1" 2>/dev/null
-      done
-    fi
-  ' _ {} \;
 }

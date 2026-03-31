@@ -20,6 +20,7 @@ PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Ddefault-hierarchy=hybrid \
                        -Dtty-gid=5 \
                        -Dtests=false \
+                       -Dbpf-framework=false \
                        -Dseccomp=false \
                        -Dselinux=false \
 					   -Dvmspawn=disabled \
@@ -103,6 +104,7 @@ PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Dmount-path=/usr/bin/mount \
                        -Dumount-path=/usr/bin/umount \
                        -Ddebug-tty=${DEBUG_TTY} \
+					   -Dcompat-mutable-uid-boundaries=true \
                        -Dversion-tag=${PKG_VERSION}"
 					   
 # Arrumando o erro de sintaxe do IF
@@ -284,6 +286,14 @@ post_makeinstall_target() {
   safe_remove ${INSTALL}/etc/udev/rules.d
   ln -sf /storage/.config/udev.rules.d ${INSTALL}/etc/udev/rules.d
   
+  # ===== CPUFREQ =====
+  mkdir -p ${INSTALL}/usr/bin
+  cp ${PKG_DIR}/scripts/cpufreq ${INSTALL}/usr/bin
+  chmod +x ${INSTALL}/usr/bin/cpufreq
+
+  mkdir -p ${INSTALL}/usr/lib/systemd/system
+  cp ${PKG_DIR}/system.d/cpufreq.service ${INSTALL}/usr/lib/systemd/system/
+
   # 🔥 REMOVE COMPLETAMENTE O SERVIÇO PROBLEMÁTICO
   safe_remove ${INSTALL}/usr/lib/systemd/system/systemd-tmpfiles-setup-dev.service
   safe_remove ${INSTALL}/usr/lib/systemd/system/*.target.wants/systemd-tmpfiles-setup-dev.service
