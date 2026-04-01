@@ -30,7 +30,7 @@ make_target() {
   pushd $BUILD/build/linux-$(kernel_version) > /dev/null
 
   # 🔥 CORREÇÃO AQUI
-  kernel_make olddefconfig
+  kernel_make HOSTLDFLAGS="$HOSTLDFLAGS -Wl,--allow-multiple-definition" olddefconfig
 
   EXTRA_TREES=( \
                 gxbb_p200 gxbb_p200_2G gxbb_p201 gxbb_p200_1G_wetek_hub gxbb_p200_2G_wetek_play_2 \
@@ -48,7 +48,7 @@ make_target() {
     DTB_LIST="$DTB_LIST $DTB_NAME"
   done
 
-  kernel_make $DTB_LIST
+  kernel_make HOSTLDFLAGS="$HOSTLDFLAGS -Wl,--allow-multiple-definition" $DTB_LIST
 
   cp arch/$TARGET_KERNEL_ARCH/boot/dts/amlogic/*.dtb $PKG_BUILD
 

@@ -11,11 +11,16 @@ PKG_LONGDESC="FluidSynth renders midi music files as raw audio data, for playing
 PKG_BUILD_FLAGS="+pic"
 
 pre_configure_target() {
+  # 🔥 FIX GLOBAL CMAKE (inclui subprojetos tipo gentables)
+  find $PKG_BUILD -name "CMakeLists.txt" -exec \
+    sed -i 's/cmake_minimum_required(VERSION.*/cmake_minimum_required(VERSION 3.5)/' {} \;
+
   PKG_CMAKE_OPTS_TARGET="-DLIB_SUFFIX= \
                          -Denable-readline=0 \
                          -Denable-oss=0 \
                          -Denable-pulseaudio=1 \
-                         -Denable-libsndfile=0"
+                         -Denable-libsndfile=0 \
+                         -DCMAKE_POLICY_VERSION_MINIMUM=3.5"
 }
 
 post_makeinstall_target() {

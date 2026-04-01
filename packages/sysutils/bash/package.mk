@@ -1,5 +1,7 @@
-# SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2022-present Team CoreELEC (https://coreelec.org)
+# SPDX-License-Identifier: GPL-2.0
+# Copyright (C) 2016-2020 Team LibreELEC
+# Copyright (C) 2020-present 351ELEC (https://github.com/351ELEC)
+# Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
 
 PKG_NAME="bash"
 PKG_VERSION="5.3"
@@ -10,18 +12,23 @@ PKG_DEPENDS_TARGET="toolchain ncurses readline"
 PKG_LONGDESC="The GNU Bourne Again shell."
 
 PKG_CONFIGURE_OPTS_TARGET="--with-curses \
+                           --enable-readline \
                            --without-bash-malloc \
-                           --with-installed-readline \
-                             bash_cv_getcwd_malloc=yes \
-                             bash_cv_printf_a_format=yes \
-                             bash_cv_func_sigsetjmp=present \
-                             bash_cv_sys_named_pipes=present"
+                           --with-installed-readline"
 
-makeinstall_target() {
-  mkdir -p ${INSTALL}/usr/bin
-  cp bash  ${INSTALL}/usr/bin
+pre_configure_target() {
+  export CFLAGS_FOR_BUILD="${CFLAGS_FOR_BUILD} -std=gnu17"
+  # Shared libreadline needs ncurses termcap symbols (BC, UP, tputs, etc.)
+  # --no-as-needed forces ncursesw to be kept even though bash doesn't use it directly
+  export LDFLAGS="${LDFLAGS} -Wl,--no-as-needed -lncursesw -Wl,--as-needed"
 }
 
-post_makeinstall_target() {
-  ln -sf /usr/bin/bash ${INSTALL}/usr/bin/sh
+post_install() {
+  ln -sf bash ${INSTALL}/usr/bin/sh
+  mkdir -p ${INSTALL}/etc
+  cat <<EOF >${INSTALL}/etc/shells
+/usr/bin/bash
+/usr/bin/sh
+EOF
+  chmod 4755 ${INSTALL}/usr/bin/bash
 }

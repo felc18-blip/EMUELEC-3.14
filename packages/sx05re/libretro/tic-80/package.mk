@@ -11,6 +11,11 @@ PKG_GIT_RECURSIVE="yes"
 PKG_LONGDESC="TIC-80 is a fantasy computer for making, playing and sharing tiny games."
 GET_HANDLER_SUPPORT="git"
 
+post_unpack() {
+  cd ${PKG_BUILD}
+  git submodule update --init --recursive
+}
+
 PKG_CMAKE_OPTS_TARGET="-DBUILD_LIBRETRO=ON \
                        -DBUILD_PLAYER=ON \
                        -DBUILD_SDL=ON \
@@ -20,6 +25,7 @@ PKG_CMAKE_OPTS_TARGET="-DBUILD_LIBRETRO=ON \
                        -DCMAKE_BUILD_TYPE=Release \
                        -DBUILD_WITH_JANET=OFF \
                        -DBUILD_WITH_ALL=ON \
+                       -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
                        -DBUILD_STATIC=ON"
 
 makeinstall_target() {

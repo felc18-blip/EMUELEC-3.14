@@ -10,21 +10,37 @@ PKG_URL="${DISTRO_SRC}/${PKG_NAME}-${PKG_VERSION}.tar.bz2"
 PKG_DEPENDS_INIT="toolchain gcc:init libpng"
 PKG_LONGDESC="Boot splash screen based on Fedora's Plymouth code"
 
+# 🔥 O SEGREDO: Impede o erro de 'No targets specified'
+PKG_CONFIGURE_SCRIPT="no"
+
 pre_configure_init() {
-  # plymouth-lite dont support to build in subdirs
+  # plymouth-lite não suporta build em subdiretórios
   cd ${PKG_BUILD}
-    rm -rf .${TARGET_NAME}-init
+  rm -rf .${TARGET_NAME}-init
+}
+
+make_target() {
+  # Roda o make diretamente usando o compilador do projeto
+  make CC="${CC}" CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS}"
+}
+
+makeinstall_target() {
+  # Instala no sistema principal
+  mkdir -p ${INSTALL}/usr/bin
+  cp -av ply-image ${INSTALL}/usr/bin
 }
 
 makeinstall_init() {
+  # Instala especificamente no INITRAMFS (Essencial para o NextOS)
   mkdir -p ${INSTALL}/usr/bin
-    cp ply-image ${INSTALL}/usr/bin
+  cp -av ply-image ${INSTALL}/usr/bin
 
   mkdir -p ${INSTALL}/splash
-    find_file_path splash/splash.conf && cp ${FOUND_PATH} ${INSTALL}/splash
-     if [ "${DEVICE}" == "OdroidGoAdvance" ]; then
-		find_file_path "splash/splash-odroidgoa.png" && cp ${FOUND_PATH} ${INSTALL}/splash/splash-1080.png
-    else
-		find_file_path "splash/splash-*.png" && cp ${FOUND_PATH} ${INSTALL}/splash
-    fi
+
+  # Busca e instala a logo (Prioriza a sua customizada)
+  if find_file_path "splash/splash-1080.png"; then
+    cp -av ${FOUND_PATH} ${INSTALL}/splash/splash-1080.png
+  elif find_file_path "splash/splash-*.png"; then
+    cp -av ${FOUND_PATH} ${INSTALL}/splash/
+  fi
 }

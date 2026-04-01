@@ -16,7 +16,8 @@ PKG_MAKE_OPTS_TARGET="-C src/ -f Makefile GNU_READLINE=0 "
 }
 
 makeinstall_target() {
-  LDFLAGS="${LDFLAGS} -lSDL"
+export CFLAGS+=" -I${SYSROOT_PREFIX}/usr/include/SDL2"
+export LDFLAGS+=" -lSDL2"
   mkdir -p ${INSTALL}/usr/bin
   cp bin/jzintv ${INSTALL}/usr/bin
   cp ${PKG_DIR}/scripts/* ${INSTALL}/usr/bin

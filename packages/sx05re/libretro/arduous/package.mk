@@ -14,7 +14,7 @@ PKG_SECTION="emuelec/libretro"
 PKG_SHORTDESC="Arduous libretro core (Arduboy)"
 PKG_LONGDESC="Arduous is a libretro emulator core for the Arduboy."
 PKG_TOOLCHAIN="cmake"
-
+PKG_CMAKE_OPTS_TARGET="-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
 post_unpack() {
   cd ${PKG_BUILD}
   git submodule update --init --recursive

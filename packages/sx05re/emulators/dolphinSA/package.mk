@@ -22,6 +22,7 @@ PKG_CMAKE_OPTS_TARGET+=" -DENABLE_EGL=ON \
                          -DENABLE_VULKAN=OFF \
                          -DENABLE_X11=OFF \
                          -DENABLE_WAYLAND=OFF \
+                         -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
                          -DENABLE_HEADLESS=ON \
                          -DENABLE_EVDEV=ON \
                          -DUSE_DISCORD_PRESENCE=OFF \

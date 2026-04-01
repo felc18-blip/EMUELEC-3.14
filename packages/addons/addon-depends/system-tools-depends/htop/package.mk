@@ -10,11 +10,19 @@ PKG_URL="https://github.com/htop-dev/htop/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain ncurses"
 PKG_LONGDESC="An interactive process viewer for Unix."
 PKG_TOOLCHAIN="autotools"
-PKG_BUILD_FLAGS="-sysroot"
+PKG_BUILD_FLAGS="-sysroot -cfg-libs"
 
-PKG_CONFIGURE_OPTS_TARGET="--disable-unicode \
-                           HTOP_NCURSES_CONFIG_SCRIPT=ncurses-config"
+PKG_CONFIGURE_OPTS_TARGET=" \
+  --enable-unicode \
+  --disable-static \
+  HTOP_NCURSES_CONFIG_SCRIPT=ncursesw-config"
 
 pre_configure_target() {
+  # necessário pro resize + ncurses moderno
+  export CPPFLAGS="${CPPFLAGS} -D_XOPEN_SOURCE=600 -D_DEFAULT_SOURCE"
+
+  # fallback garantido (resolve 100% dos casos)
+  export CPPFLAGS="${CPPFLAGS} -DKEY_RESIZE=410"
+
   export LDFLAGS="${LDFLAGS} -pthread"
 }

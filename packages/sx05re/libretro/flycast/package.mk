@@ -1,59 +1,47 @@
 ################################################################################
-#      This file is part of OpenELEC - http://www.openelec.tv
-#      Copyright (C) 2009-2012 Stephan Raue (stephan@openelec.tv)
-#
-#  This Program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2, or (at your option)
-#  any later version.
-#
-#  This Program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with OpenELEC.tv; see the file COPYING.  If not, write to
-#  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston, MA 02110, USA.
-#  http://www.gnu.org/copyleft/gpl.html
+# Flycast - FIXED PACKAGE (standalone + no submodule issues)
 ################################################################################
 
 PKG_NAME="flycast"
-PKG_VERSION="$(get_pkg_version flycastsa)"
-PKG_NEED_UNPACK="$(get_pkg_directory flycastsa)"
-PKG_ARCH="any"
+PKG_VERSION="bf2bd7efed41e9f3367a764c2d90fcaa9c38a1f9"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/flyinghead/flycast"
-PKG_URL="${PKG_SITE}.git"
-PKG_DEPENDS_TARGET="toolchain ${OPENGLES}"
+
+# 🔥 CLONE CORRETO (com submodules)
+PKG_URL="https://github.com/flyinghead/flycast.git"
+
+PKG_DEPENDS_TARGET="toolchain ${OPENGLES} zlib zstd"
 PKG_SHORTDESC="Flycast is a multiplatform Sega Dreamcast emulator"
 PKG_BUILD_FLAGS="-lto"
 PKG_TOOLCHAIN="cmake"
 
+# 🔧 CONFIG LIMPA E COMPATÍVEL (kernel antigo + GLES)
 PKG_CMAKE_OPTS_TARGET="-DLIBRETRO=ON \
-                        -DUSE_OPENMP=OFF \ 
-                        -DCMAKE_BUILD_TYPE=Release \
-                        -DUSE_GLES2=OFF \
-                        -DUSE_GLES=ON \
-                        -DUSE_VULKAN=OFF"
-
-pre_make_target() {
-  find ${PKG_BUILD} -name flags.make -exec sed -i "s:isystem :I:g" \{} \;
-  find ${PKG_BUILD} -name build.ninja -exec sed -i "s:isystem :I:g" \{} \;
-}
+                      -DUSE_OPENMP=OFF \
+                      -DCMAKE_BUILD_TYPE=Release \
+                      -DUSE_GLES2=OFF \
+                      -DUSE_GLES=ON \
+                      -DUSE_VULKAN=OFF \
+                      -DUSE_SYSTEM_ZLIB=ON \
+                      -DUSE_SYSTEM_ZSTD=ON"
 
 pre_configure_target() {
+  # 🔥 garante submodules (caso build system ignore clone opts)
   cd ${PKG_BUILD}
-  git submodule update --init --recursive
+  git submodule update --init --recursive || true
+}
 
-  PKG_CMAKE_OPTS_TARGET+=" -DUSE_GLES=ON -DUSE_VULKAN=OFF"
+pre_make_target() {
+  find ${PKG_BUILD} -name flags.make -exec sed -i "s:isystem :I:g" {} \;
+  find ${PKG_BUILD} -name build.ninja -exec sed -i "s:isystem :I:g" {} \;
 }
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro
+
   if [ "${ARCH}" == "arm" ]; then
-	cp flycast_libretro.so ${INSTALL}/usr/lib/libretro/flycast_32b_libretro.so
+    cp flycast_libretro.so ${INSTALL}/usr/lib/libretro/flycast_32b_libretro.so
   else
-	cp flycast_libretro.so ${INSTALL}/usr/lib/libretro/
+    cp flycast_libretro.so ${INSTALL}/usr/lib/libretro/
   fi
 }

@@ -23,6 +23,7 @@ post_unpack() {
 PKG_CMAKE_OPTS_TARGET+="-DUSE_SYSTEM_FFMPEG=OFF \
                         -DUSING_FBDEV=ON \
                         -DUSING_EGL=ON \
+                        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
                         -DUSING_GLES2=ON \
                         -DUSING_X11_VULKAN=OFF \
 						-DUSE_VULKAN=OFF \

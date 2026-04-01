@@ -14,7 +14,7 @@ PKG_LONGDESC="A repository for experimenting with elf loading and in-place patch
 PKG_TOOLCHAIN="cmake"
 PKG_BUILD_FLAGS="lib32"
 
-PKG_CMAKE_OPTS_TARGET=" -DCMAKE_BUILD_TYPE=Release -DPLATFORM=linux -DPORT=gmloader -DUSE_BUILTIN_FREETYPE=ON"
+PKG_CMAKE_OPTS_TARGET=" -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DPLATFORM=linux -DPORT=gmloader -DUSE_BUILTIN_FREETYPE=ON"
 
 unpack() {
   ${SCRIPTS}/get droidports

@@ -20,15 +20,35 @@ pre_configure_target() {
 }
 
 pre_make_target() {
+  # Corrige o prefixo do toolchain
   sed -i "s|arm-none-eabi-|arm-eabi-|g" $PKG_BUILD/Makefile $PKG_BUILD/arch/arm/cpu/armv8/gx*/firmware/scp_task/Makefile 2>/dev/null || true
+
+  # Tática Ninja: Isola os headers do libfdt
+  echo ">>> Creating shadow includes for libfdt isolation..."
+  mkdir -p $PKG_BUILD/shadow_include
+  cp $PKG_BUILD/include/libfdt*.h $PKG_BUILD/shadow_include/ 2>/dev/null || true
+  cp $PKG_BUILD/include/fdt.h $PKG_BUILD/shadow_include/ 2>/dev/null || true
 }
 
 make_target() {
   [ "${BUILD_WITH_DEBUG}" = "yes" ] && PKG_DEBUG=1 || PKG_DEBUG=0
   export PATH=$TOOLCHAIN/lib/gcc-linaro-aarch64-elf/bin/:$TOOLCHAIN/lib/gcc-linaro-arm-eabi/bin/:$PATH
+
+  export HOSTCFLAGS="-O2 -I$PKG_BUILD/shadow_include"
+
   DEBUG=${PKG_DEBUG} CROSS_COMPILE=aarch64-elf- ARCH=arm CFLAGS="" LDFLAGS="" make mrproper
   DEBUG=${PKG_DEBUG} CROSS_COMPILE=aarch64-elf- ARCH=arm CFLAGS="" LDFLAGS="" make $PKG_UBOOT_CONFIG
-  DEBUG=${PKG_DEBUG} CROSS_COMPILE=aarch64-elf- ARCH=arm CFLAGS="" LDFLAGS="" make HOSTCC="$HOST_CC" HOSTSTRIP="true"
+
+  DEBUG=${PKG_DEBUG} CROSS_COMPILE=aarch64-elf- ARCH=arm CFLAGS="" LDFLAGS="" make HOSTCC="$HOST_CC" HOSTCFLAGS="$HOSTCFLAGS" HOSTSTRIP="true"
+}
+
+post_make_target() {
+  echo ">>> Exposing ALL expected FIP binaries to the root build dir..."
+  # O meta-pacote do EmuELEC não perdoa e exige a versão sd.bin.
+  # Clonamos o FIP funcional (u-boot.bin) para satisfazer todos os requisitos.
+  cp -f $PKG_BUILD/fip/gxb/u-boot.bin $PKG_BUILD/u-boot.bin
+  cp -f $PKG_BUILD/fip/gxb/u-boot.bin $PKG_BUILD/u-boot.bin.sd.bin
+  cp -f $PKG_BUILD/fip/gxb/u-boot.bin $PKG_BUILD/u-boot.bin.usb.bl2
 }
 
 makeinstall_target() {

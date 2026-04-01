@@ -9,3 +9,5 @@ PKG_SITE="https://portaudio.com"
 PKG_URL="https://github.com/zhang-ray/portaudio/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain alsa-lib"
 PKG_LONGDESC="PortAudio is a free, cross-platform, open-source, audio I/O library."
+
+PKG_CMAKE_OPTS_TARGET="-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
