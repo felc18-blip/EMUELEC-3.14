@@ -3,8 +3,8 @@
 # Copyright (C) 2017-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="bcm2835-bootloader"
-PKG_VERSION="fdb9eafae4b83e553593937eae8e77b0193903c3"
-PKG_SHA256="ce45b07afce3279f9d31fe12008c5250de4da5491bd9ced2de2f2ebb563aea80"
+PKG_VERSION="832291b92d4985fd729bb9f11ff780a5c0e90419"
+PKG_SHA256="674749719240120597e7e2eef05676a48efb40bb46fec4dc2ea2c70957859a82"
 PKG_ARCH="arm aarch64"
 PKG_LICENSE="nonfree"
 PKG_SITE="http://www.broadcom.com"
@@ -15,25 +15,45 @@ PKG_TOOLCHAIN="manual"
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/share/bootloader
-    cp -PRv LICENCE* ${INSTALL}/usr/share/bootloader
-    case "${DEVICE}" in
-      RPi4)
-        cp -PRv fixup4x.dat ${INSTALL}/usr/share/bootloader/fixup.dat
-        cp -PRv start4x.elf ${INSTALL}/usr/share/bootloader/start.elf
-        ;;
-      RPi5)
-        ;;
-      *)
-        cp -PRv bootcode.bin ${INSTALL}/usr/share/bootloader
-        cp -PRv fixup_x.dat ${INSTALL}/usr/share/bootloader/fixup.dat
-        cp -PRv start_x.elf ${INSTALL}/usr/share/bootloader/start.elf
-        ;;
-    esac
 
-    find_file_path bootloader/update.sh ${PKG_DIR}/files/update.sh && cp -PRv ${FOUND_PATH} ${INSTALL}/usr/share/bootloader
-    find_file_path bootloader/canupdate.sh && cp -PRv ${FOUND_PATH} ${INSTALL}/usr/share/bootloader
+  cp -PRv LICENCE* ${INSTALL}/usr/share/bootloader
 
-    find_file_path config/distroconfig.txt ${PKG_DIR}/files/distroconfig.txt && cp -PRv ${FOUND_PATH} ${INSTALL}/usr/share/bootloader
-    find_file_path config/distroconfig-composite.txt ${PKG_DIR}/files/distroconfig-composite.txt && cp -PRv ${FOUND_PATH} ${INSTALL}/usr/share/bootloader
-    find_file_path config/config.txt ${PKG_DIR}/files/config.txt && cp -PRv ${FOUND_PATH} ${INSTALL}/usr/share/bootloader
+  case "${DEVICE}" in
+    RPi4)
+      cp -PRv fixup4x.dat ${INSTALL}/usr/share/bootloader/fixup.dat
+      cp -PRv start4x.elf ${INSTALL}/usr/share/bootloader/start.elf
+      ;;
+    RPi5)
+      # mantém compatível (não quebra caso arquivos não existam)
+      [ -f bootcode.bin ] && cp -PRv bootcode.bin ${INSTALL}/usr/share/bootloader
+      [ -f fixup_x.dat ] && cp -PRv fixup_x.dat ${INSTALL}/usr/share/bootloader/fixup.dat
+      [ -f start_x.elf ] && cp -PRv start_x.elf ${INSTALL}/usr/share/bootloader/start.elf
+      ;;
+    *)
+      cp -PRv bootcode.bin ${INSTALL}/usr/share/bootloader
+      cp -PRv fixup_x.dat ${INSTALL}/usr/share/bootloader/fixup.dat
+      cp -PRv start_x.elf ${INSTALL}/usr/share/bootloader/start.elf
+      ;;
+  esac
+
+  # scripts (mantendo base EmuELEC + segurança)
+  find_file_path bootloader/update.sh ${PKG_DIR}/files/update.sh && \
+    cp -PRv ${FOUND_PATH} ${INSTALL}/usr/share/bootloader
+
+  if find_file_path bootloader/canupdate.sh; then
+    cp -PRv ${FOUND_PATH} ${INSTALL}/usr/share/bootloader
+    [ -f ${INSTALL}/usr/share/bootloader/canupdate.sh ] && \
+      sed -e "s/@PROJECT@/${DEVICE:-${PROJECT}}/g" \
+          -i ${INSTALL}/usr/share/bootloader/canupdate.sh
+  fi
+
+  # configs
+  find_file_path config/distroconfig.txt ${PKG_DIR}/files/distroconfig.txt && \
+    cp -PRv ${FOUND_PATH} ${INSTALL}/usr/share/bootloader
+
+  find_file_path config/distroconfig-composite.txt ${PKG_DIR}/files/distroconfig-composite.txt && \
+    cp -PRv ${FOUND_PATH} ${INSTALL}/usr/share/bootloader
+
+  find_file_path config/config.txt ${PKG_DIR}/files/config.txt && \
+    cp -PRv ${FOUND_PATH} ${INSTALL}/usr/share/bootloader
 }

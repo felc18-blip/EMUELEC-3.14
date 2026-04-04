@@ -2,32 +2,45 @@
 # Copyright (C) 2018-present Team LibreELEC
 
 PKG_NAME="atf"
-PKG_VERSION="2.8"
-PKG_SHA256="42256fa354f32b09972e72e0570a0f73698785927f93163b1d1308c485fcb4a6"
+PKG_VERSION="2.14.1"
+PKG_SHA256="f70d2eb40c2d9912562ef15d450e03726b95abd6d16db4d46cd923ba5a029646"
 PKG_ARCH="arm aarch64"
 PKG_LICENSE="BSD-3c"
 PKG_SITE="https://github.com/ARM-software/arm-trusted-firmware"
-PKG_URL="https://github.com/ARM-software/arm-trusted-firmware/archive/v${PKG_VERSION}.tar.gz"
+PKG_URL="https://github.com/TrustedFirmware-A/trusted-firmware-a/archive/lts-v${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain"
-PKG_LONGDESC="ARM Trusted Firmware is a reference implementation of secure world software, including a Secure Monitor executing at Exception Level 3 and various Arm interface standards."
+PKG_LONGDESC="ARM Trusted Firmware is a reference implementation of secure world software."
 PKG_TOOLCHAIN="manual"
 
 [ -n "${KERNEL_TOOLCHAIN}" ] && PKG_DEPENDS_TARGET+=" gcc-${KERNEL_TOOLCHAIN}:host"
 
+# rk3399 precisa toolchain extra (mantido igual ao seu)
 if [ "${ATF_PLATFORM}" = "rk3399" ]; then
   PKG_DEPENDS_TARGET+=" gcc-arm-none-eabi:host"
   export M0_CROSS_COMPILE="${TOOLCHAIN}/bin/arm-none-eabi-"
 fi
 
 make_target() {
+
+  # 🔥 NECESSÁRIO nas versões novas (>= 2.11)
+  # evita conflito com toolchain do buildroot/emuelec
+  unset AR AS CC CPP CXX LD NM OBJCOPY OBJDUMP STRIP RANLIB
+  unset CPPFLAGS CFLAGS CXXFLAGS LDFLAGS
+
   if [ "${ATF_PLATFORM}" = "imx8mq" ]; then
-    CROSS_COMPILE="${TARGET_KERNEL_PREFIX}" LDFLAGS="--no-warn-rwx-segments" CFLAGS="--param=min-pagesize=0" make PLAT=${ATF_PLATFORM} bl31
+    CROSS_COMPILE="${TARGET_KERNEL_PREFIX}" \
+    make PLAT=${ATF_PLATFORM} LOG_LEVEL=0 bl31
+
   else
-    CROSS_COMPILE="${TARGET_KERNEL_PREFIX}" LDFLAGS="--no-warn-rwx-segments" CFLAGS="" make PLAT=${ATF_PLATFORM} bl31
+    # 🔥 necessário em algumas plataformas (sun50i / arm64 modernos)
+    CROSS_COMPILE="${TARGET_KERNEL_PREFIX}" \
+    CFLAGS="-ffat-lto-objects" \
+    make PLAT=${ATF_PLATFORM} bl31
   fi
 }
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/share/bootloader
-  cp -a build/${ATF_PLATFORM}/release/${ATF_BL31_BINARY:-bl31.bin} ${INSTALL}/usr/share/bootloader
+  cp -a build/${ATF_PLATFORM}/release/${ATF_BL31_BINARY:-bl31.bin} \
+        ${INSTALL}/usr/share/bootloader
 }

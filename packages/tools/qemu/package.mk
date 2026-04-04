@@ -1,14 +1,20 @@
 # SPDX-License-Identifier: GPL-2.0
-# Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
+# Copyright (C) 2016-present Team LibreELEC
 
 PKG_NAME="qemu"
-PKG_VERSION="7.2.17"
+PKG_VERSION="10.2.2"
+PKG_SHA256="784b296ff29c1417aa72323abcb2d2ea9ab9771724f577dcd785c3b04f21e176"
 PKG_LICENSE="GPL"
 PKG_SITE="https://www.qemu.org"
 PKG_URL="https://download.qemu.org/qemu-${PKG_VERSION}.tar.xz"
-PKG_DEPENDS_HOST="toolchain:host glib:host pixman:host Python3:host zlib:host"
+
+PKG_DEPENDS_HOST="toolchain:host distlib:host glib:host pixman:host Python3:host zlib:host"
+
 PKG_LONGDESC="QEMU is a generic and open source machine emulator and virtualizer."
 PKG_TOOLCHAIN="configure"
+
+# 🔥 IMPORTANTE: QEMU é usado só no host (evita erro de configure)
+PKG_TARGET_ARCH="no"
 
 pre_configure_host() {
   HOST_CONFIGURE_OPTS="\
@@ -24,7 +30,7 @@ pre_configure_host() {
     --enable-malloc=system \
     --disable-attr \
     --disable-auth-pam \
-    --disable-blobs \
+    --disable-install-blobs \
     --disable-capstone \
     --disable-curl \
     --disable-debug-info \
@@ -39,10 +45,24 @@ pre_configure_host() {
     --disable-xkbcommon \
     --disable-zstd \
     --target-list=${TARGET_ARCH}-linux-user"
+
+  # evita erro python nas versões novas
+  export DONT_BUILD_LEGACY_PYC=1
+
+  unset CFLAGS
+  unset CPPFLAGS
+  unset CXXFLAGS
+  unset LDFLAGS
+}
+
+# 🔥 garante que nunca tente build target
+pre_configure_target() {
+  exit 0
 }
 
 makeinstall_host() {
-  mkdir -p ${TOOLCHAIN}/bin
+  mkdir -p $TOOLCHAIN/bin
     cp ${PKG_BUILD}/.${HOST_NAME}/qemu-img ${TOOLCHAIN}/bin
     cp ${PKG_BUILD}/.${HOST_NAME}/qemu-${TARGET_ARCH} ${TOOLCHAIN}/bin
 }
+

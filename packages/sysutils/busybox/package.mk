@@ -3,15 +3,19 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="busybox"
-PKG_VERSION="1.36.1"
+PKG_VERSION="1.37.0"
+PKG_SHA256="3311dff32e746499f4df0d5df04d7eb396382d7e108bb9250e7b519b837043a4"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.busybox.net"
-PKG_URL="http://busybox.net/downloads/${PKG_NAME}-${PKG_VERSION}.tar.bz2"
+PKG_URL="https://busybox.net/downloads/${PKG_NAME}-${PKG_VERSION}.tar.bz2"
+
+# Restaurado PKG_DEPENDS_HOST e a lista completa do seu original
 PKG_DEPENDS_HOST="toolchain:host"
 PKG_DEPENDS_TARGET="toolchain hdparm hd-idle dosfstools e2fsprogs zip usbutils parted procps-ng gptfdisk libtirpc cryptsetup"
 PKG_DEPENDS_INIT="toolchain libtirpc"
+
 PKG_LONGDESC="BusyBox combines tiny versions of many common UNIX utilities into a single small executable."
-PKG_BUILD_FLAGS="-parallel"
+PKG_BUILD_FLAGS="-parallel +lto +size"
 
 # nano text editor
 if [ "${NANO_EDITOR}" = "yes" ]; then
@@ -57,6 +61,10 @@ configure_target() {
     # set install dir
     sed -i -e "s|^CONFIG_PREFIX=.*$|CONFIG_PREFIX=\"${INSTALL}/usr\"|" .config
 
+    # 🔥 VACINA 1: Desativa SHA HWACCEL (Kernel 3.14)
+    sed -i -e "s|^CONFIG_SHA1_HWACCEL=y|# CONFIG_SHA1_HWACCEL is not set|" .config
+    sed -i -e "s|^CONFIG_SHA256_HWACCEL=y|# CONFIG_SHA256_HWACCEL is not set|" .config
+
     if [ ! "${CRON_SUPPORT}" = "yes" ]; then
       sed -i -e "s|^CONFIG_CROND=.*$|# CONFIG_CROND is not set|" .config
       sed -i -e "s|^CONFIG_FEATURE_CROND_D=.*$|# CONFIG_FEATURE_CROND_D is not set|" .config
@@ -68,13 +76,15 @@ configure_target() {
       sed -i -e "s|^CONFIG_FEATURE_MOUNT_CIFS=.*$|# CONFIG_FEATURE_MOUNT_CIFS is not set|" .config
     fi
 
-    # optimize for size
+    # optimize for size e inclusão tirpc
     CFLAGS=$(echo ${CFLAGS} | sed -e "s|-Ofast|-Os|")
     CFLAGS=$(echo ${CFLAGS} | sed -e "s|-O.|-Os|")
     CFLAGS+=" -I${SYSROOT_PREFIX}/usr/include/tirpc"
 
-    LDFLAGS+=" -fwhole-program"
+    # 🔥 VACINA 2: Definições CAN ausentes no 3.14
+    CFLAGS+=" -DCAN_CTRLMODE_FD=0x04 -DCAN_CTRLMODE_FD_NON_ISO=0x08 -DCAN_CTRLMODE_PRESUME_ACK=0x10 -DIFLA_CAN_TERMINATION=11"
 
+    LDFLAGS+=" -fwhole-program"
     yes "" | make oldconfig
 }
 
@@ -83,81 +93,86 @@ configure_init() {
     find_file_path config/busybox-init.conf
     cp ${FOUND_PATH} .config
 
-    # set install dir
     sed -i -e "s|^CONFIG_PREFIX=.*$|CONFIG_PREFIX=\"${INSTALL}/usr\"|" .config
+    sed -i -e "s|^CONFIG_SHA1_HWACCEL=y|# CONFIG_SHA1_HWACCEL is not set|" .config
+    sed -i -e "s|^CONFIG_SHA256_HWACCEL=y|# CONFIG_SHA256_HWACCEL is not set|" .config
 
-    # optimize for size
     CFLAGS=$(echo ${CFLAGS} | sed -e "s|-Ofast|-Os|")
     CFLAGS=$(echo ${CFLAGS} | sed -e "s|-O.|-Os|")
     CFLAGS+=" -I${SYSROOT_PREFIX}/usr/include/tirpc"
+    CFLAGS+=" -DCAN_CTRLMODE_FD=0x04 -DCAN_CTRLMODE_FD_NON_ISO=0x08 -DCAN_CTRLMODE_PRESUME_ACK=0x10 -DIFLA_CAN_TERMINATION=11"
 
     LDFLAGS+=" -fwhole-program"
-
     yes "" | make oldconfig
 }
 
 makeinstall_target() {
-  mkdir -p ${INSTALL}/usr/bin
-    if [ ${TARGET_ARCH} = x86_64 ]; then
-      cp ${PKG_DIR}/scripts/getedid ${INSTALL}/usr/bin
-    else
-      cp ${PKG_DIR}/scripts/dump-active-edids-drm ${INSTALL}/usr/bin/dump-active-edids
-    fi
-    cp ${PKG_DIR}/scripts/create-edid-cpio ${INSTALL}/usr/bin/
-    if [ "${PROJECT}" = "RPi" ]; then
-      cp ${PKG_DIR}/scripts/update-bootloader-edid-rpi ${INSTALL}/usr/bin/update-bootloader-edid
-      cp ${PKG_DIR}/scripts/getedid-drm ${INSTALL}/usr/bin/getedid
-    fi
-    cp ${PKG_DIR}/scripts/createlog ${INSTALL}/usr/bin/
-    cp ${PKG_DIR}/scripts/dthelper ${INSTALL}/usr/bin
-      ln -sf dthelper ${INSTALL}/usr/bin/dtfile
-      ln -sf dthelper ${INSTALL}/usr/bin/dtflag
-      ln -sf dthelper ${INSTALL}/usr/bin/dtname
-      ln -sf dthelper ${INSTALL}/usr/bin/dtsoc
-    cp ${PKG_DIR}/scripts/ledfix ${INSTALL}/usr/bin
-    cp ${PKG_DIR}/scripts/lsb_release ${INSTALL}/usr/bin/
-    cp ${PKG_DIR}/scripts/apt-get ${INSTALL}/usr/bin/
-    cp ${PKG_DIR}/scripts/sudo ${INSTALL}/usr/bin/
-    cp ${PKG_DIR}/scripts/pastebinit ${INSTALL}/usr/bin/
-    cp ${PKG_DIR}/scripts/convert_dtname ${INSTALL}/usr/bin
-      ln -sf pastebinit ${INSTALL}/usr/bin/paste
-    cp ${PKG_DIR}/scripts/vfd-clock ${INSTALL}/usr/bin/
+  # 1. Pastas base
+  mkdir -p ${INSTALL}/usr/bin ${INSTALL}/usr/sbin ${INSTALL}/usr/lib/libreelec ${INSTALL}/usr/lib/systemd/system-generators ${INSTALL}/etc
 
-  mkdir -p ${INSTALL}/usr/sbin
-    cp ${PKG_DIR}/scripts/kernel-overlays-setup ${INSTALL}/usr/sbin
+  # 2. Lógica de EDID e Projetos (Garante a cópia dos scripts de vídeo)
+  if [ "${TARGET_ARCH}" = "x86_64" ]; then
+    [ -f "${PKG_DIR}/scripts/getedid" ] && cp ${PKG_DIR}/scripts/getedid ${INSTALL}/usr/bin
+  else
+    [ -f "${PKG_DIR}/scripts/dump-active-edids-drm" ] && cp ${PKG_DIR}/scripts/dump-active-edids-drm ${INSTALL}/usr/bin/dump-active-edids
+  fi
+  [ -f "${PKG_DIR}/scripts/create-edid-cpio" ] && cp ${PKG_DIR}/scripts/create-edid-cpio ${INSTALL}/usr/bin/
 
-  mkdir -p ${INSTALL}/usr/lib/libreelec
-    cp ${PKG_DIR}/scripts/functions ${INSTALL}/usr/lib/libreelec
-    cp ${PKG_DIR}/scripts/fs-resize ${INSTALL}/usr/lib/libreelec
-    sed -e "s/@DISTRONAME@/${DISTRONAME}/g" \
-        -i ${INSTALL}/usr/lib/libreelec/fs-resize
+  # Suporte a RPi
+  if [ "${PROJECT}" = "RPi" ]; then
+    [ -f "${PKG_DIR}/scripts/update-bootloader-edid-rpi" ] && cp ${PKG_DIR}/scripts/update-bootloader-edid-rpi ${INSTALL}/usr/bin/update-bootloader-edid
+    [ -f "${PKG_DIR}/scripts/getedid-drm" ] && cp ${PKG_DIR}/scripts/getedid-drm ${INSTALL}/usr/bin/getedid
+  fi
 
-    if listcontains "${FIRMWARE}" "rpi-eeprom"; then
-      cp ${PKG_DIR}/scripts/rpi-flash-firmware ${INSTALL}/usr/lib/libreelec
+  # Suporte Amlogic/Rockchip (Simplificado para aceitar Amlogic-old/ng)
+  if echo "${PROJECT}" | grep -qE "Amlogic|Rockchip"; then
+    [ -f "${PKG_DIR}/scripts/update-bootloader-edid-extlinux" ] && cp ${PKG_DIR}/scripts/update-bootloader-edid-extlinux ${INSTALL}/usr/bin/getedid 2>/dev/null || true
+  fi
+
+  # 3. Scripts Elite Edition (Incluindo getedid no loop e removendo apt-get redundante)
+  for s in simple_zip.py createlog dthelper ledfix lsb_release sudo pastebinit vfd-clock convert_dtname pkgapp getedid; do
+    [ -f "${PKG_DIR}/scripts/$s" ] && cp -f ${PKG_DIR}/scripts/$s ${INSTALL}/usr/bin/
+  done
+
+  # 4. Criação de Links Simbólicos
+  cd ${INSTALL}/usr/bin
+    if [ -f "dthelper" ]; then
+      for l in dtfile dtflag dtname dtsoc; do ln -sf dthelper $l; done
     fi
 
-  mkdir -p ${INSTALL}/usr/lib/systemd/system-generators/
-    cp ${PKG_DIR}/scripts/libreelec-target-generator ${INSTALL}/usr/lib/systemd/system-generators/
+    if [ -f "pkgapp" ]; then
+      for l in apt apt-get dnf rpm yum; do ln -sf pkgapp $l; done
+    fi
 
-  mkdir -p ${INSTALL}/etc
-    cp ${PKG_DIR}/config/profile ${INSTALL}/etc
-    cp ${PKG_DIR}/config/inputrc ${INSTALL}/etc
-    cp ${PKG_DIR}/config/suspend-modules.conf ${INSTALL}/etc
+    if [ -f "pastebinit" ]; then
+      sed -e "s/@DISTRONAME@-@OS_VERSION@/${DISTRONAME}-${OS_VERSION}/g" -i pastebinit 2>/dev/null || true
+      ln -sf pastebinit paste
+    fi
 
-  # /etc/fstab is needed by...
-    touch ${INSTALL}/etc/fstab
+  # 5. Overlays e Systemd
+  [ -f "${PKG_DIR}/scripts/kernel-overlays-setup" ] && cp ${PKG_DIR}/scripts/kernel-overlays-setup ${INSTALL}/usr/sbin/
+  [ -f "${PKG_DIR}/scripts/functions" ] && cp ${PKG_DIR}/scripts/functions ${INSTALL}/usr/lib/libreelec/
 
-  # /etc/machine-id, needed by systemd and dbus
-    ln -sf /storage/.cache/systemd-machine-id ${INSTALL}/etc/machine-id
+  if [ -f "${PKG_DIR}/scripts/fs-resize" ]; then
+    cp ${PKG_DIR}/scripts/fs-resize ${INSTALL}/usr/lib/libreelec/
+    sed -e "s/@DISTRONAME@/${DISTRONAME}/g" -i ${INSTALL}/usr/lib/libreelec/fs-resize
+  fi
 
-  # /etc/mtab is needed by udisks etc...
-    ln -sf /proc/self/mounts ${INSTALL}/etc/mtab
+  [ -f "${PKG_DIR}/scripts/libreelec-target-generator" ] && cp ${PKG_DIR}/scripts/libreelec-target-generator ${INSTALL}/usr/lib/systemd/system-generators/
+  listcontains "${FIRMWARE}" "rpi-eeprom" && [ -f "${PKG_DIR}/scripts/rpi-flash-firmware" ] && cp ${PKG_DIR}/scripts/rpi-flash-firmware ${INSTALL}/usr/lib/libreelec
 
-  # create /etc/hostname
-    ln -sf /proc/sys/kernel/hostname ${INSTALL}/etc/hostname
+  # 6. Configurações Globais
+  [ -f "${PKG_DIR}/config/profile" ] && cp ${PKG_DIR}/config/profile ${INSTALL}/etc
+  [ -f "${PKG_DIR}/config/inputrc" ] && cp ${PKG_DIR}/config/inputrc ${INSTALL}/etc
+  [ -f "${PKG_DIR}/config/suspend-modules.conf" ] && cp ${PKG_DIR}/config/suspend-modules.conf ${INSTALL}/etc
 
-  # remove bash symbolic link because we use real bash
-  rm ${INSTALL}/usr/bin/bash
+  touch ${INSTALL}/etc/fstab
+  ln -sf /storage/.cache/systemd-machine-id ${INSTALL}/etc/machine-id
+  ln -sf /proc/self/mounts ${INSTALL}/etc/mtab
+  ln -sf /proc/sys/kernel/hostname ${INSTALL}/etc/hostname
+
+  # 7. Limpeza do Link do Bash
+  [ -L ${INSTALL}/usr/bin/bash ] && rm ${INSTALL}/usr/bin/bash
 }
 
 post_install() {
@@ -167,7 +182,6 @@ post_install() {
   add_user root "${ROOT_PASSWORD}" 0 0 "Root User" "/storage" "/bin/sh"
   add_group root 0
   add_group users 100
-
   add_user nobody x 65534 65534 "Nobody" "/" "/bin/sh"
   add_group nogroup 65534
 
@@ -180,7 +194,6 @@ post_install() {
   enable_service locale.service
   listcontains "${FIRMWARE}" "rpi-eeprom" && enable_service rpi-flash-firmware.service
 
-  # cron support
   if [ "${CRON_SUPPORT}" = "yes" ]; then
     mkdir -p ${INSTALL}/usr/lib/systemd/system
       cp ${PKG_DIR}/system.d.opt/cron.service ${INSTALL}/usr/lib/systemd/system
@@ -203,17 +216,17 @@ makeinstall_init() {
 
   if find_file_path initramfs/platform_init; then
     cp ${FOUND_PATH} ${INSTALL}
-    sed -e "s/@BOOT_LABEL@/${DISTRO_BOOTLABEL}/g" \
-        -e "s/@DISK_LABEL@/${DISTRO_DISKLABEL}/g" \
-        -i ${INSTALL}/platform_init
+    sed -i -e "s/@BOOT_LABEL@/${DISTRO_BOOTLABEL}/g" \
+           -e "s/@DISK_LABEL@/${DISTRO_DISKLABEL}/g" \
+           ${INSTALL}/platform_init
     chmod 755 ${INSTALL}/platform_init
   fi
 
   cp ${PKG_DIR}/scripts/functions ${INSTALL}
   cp ${PKG_DIR}/scripts/init ${INSTALL}
-  sed -e "s/@DISTRONAME@/${DISTRONAME}/g" \
-      -e "s/@KERNEL_NAME@/${KERNEL_NAME}/g" \
-      -e "s/@SYSTEM_SIZE@/${SYSTEM_SIZE}/g" \
-      -i ${INSTALL}/init
+  sed -i -e "s/@DISTRONAME@/${DISTRONAME}/g" \
+         -e "s/@KERNEL_NAME@/${KERNEL_NAME}/g" \
+         -e "s/@SYSTEM_SIZE@/${SYSTEM_SIZE}/g" \
+         ${INSTALL}/init
   chmod 755 ${INSTALL}/init
 }

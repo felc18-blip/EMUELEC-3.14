@@ -3,10 +3,16 @@
 
 PKG_NAME="amlogic-boot-fip"
 PKG_LICENSE="nonfree"
-PKG_VERSION="e96b6a694380ff07d5a9e4be644ffe254bd18512"
-PKG_SHA256="2cc06bc7d5647fd8c0025181fa42c4a8ef0ed16b918a1fa2060ea83c22e47b20"
+PKG_VERSION="42d372123631066fb77fbcbb612dc3eb41a3f6f9"
+PKG_SHA256="dede20dd7666a33b33442252b994f4033cfafe3fb6d11c86019dc3ae61d55227"
 PKG_SITE="https://github.com/LibreELEC/amlogic-boot-fip"
 PKG_URL="https://github.com/LibreELEC/amlogic-boot-fip/archive/${PKG_VERSION}.tar.gz"
 PKG_LONGDESC="Firmware Image Package (FIP) sources used to sign Amlogic u-boot binaries in LibreELEC images"
 PKG_TOOLCHAIN="manual"
 PKG_STAMP="${UBOOT_SYSTEM}"
+
+post_unpack() {
+  # rename dirs for alta/solitude
+  mv ${PKG_BUILD}/aml-a311d-cc ${PKG_BUILD}/alta
+  mv ${PKG_BUILD}/aml-s905d3-cc ${PKG_BUILD}/solitude
+}

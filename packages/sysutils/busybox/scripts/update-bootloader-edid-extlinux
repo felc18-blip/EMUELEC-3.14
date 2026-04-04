@@ -1,0 +1,112 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0
+# Copyright (C) 2022-present Team LibreELEC (https://libreelec.tv)
+# Modificado para NextOS Elite Edition (Kernel 3.14 Fix)
+
+do_install() {
+  # create the persistent firmware dir
+  mkdir -p "/storage/.config/firmware/edid"
+
+  # capture the raw edid file (Ajustado para o caminho real do 3.14)
+  if [ ! -e /storage/.config/firmware/edid/edid.bin ]; then
+    echo "info: capturando hexadecimal do rawedid..."
+
+    # Lógica de conversão Hex -> Binário (Essencial para Amlogic-old)
+    RAW_HEX=$(cat "/sys/devices/virtual/amhdmitx/amhdmitx0/rawedid" | tr -d '\n' | tr -d ' ')
+    if [ -n "$RAW_HEX" ]; then
+       # Converte o texto Hex em bytes reais
+       printf "$(echo $RAW_HEX | sed 's/../\\x&/g')" > "/storage/.config/firmware/edid/edid.bin"
+       echo "info: edid.bin gerado com sucesso!"
+    else
+       echo "error: não foi possível ler o hardware edid!"
+       exit 1
+    fi
+  else
+    echo "info: using existing edid.bin"
+  fi
+
+  # create the cpio file
+  mkdir -p "/storage/cpio/lib/firmware/edid"
+  cp "/storage/.config/firmware/edid/edid.bin" "/storage/cpio/lib/firmware/edid/"
+  cd "/storage/cpio"
+  # find . -print | cpio -ov -H newc >"/storage/.config/firmware/edid/edid.cpio"
+  # Versão mais robusta para BusyBox:
+  find . | cpio -o -H newc > "/storage/.config/firmware/edid/edid.cpio" 2>/dev/null
+
+  # mount /flash rw
+  mount -o remount,rw /flash
+
+  # copy the cpio file
+  cp "/storage/.config/firmware/edid/edid.cpio" "/flash/edid.cpio"
+
+  # cleanup cpio dir
+  rm -rf "/storage/cpio"
+
+  # determine boot method and set params
+  if [ -f "/flash/extlinux/extlinux.conf" ]; then
+    FILE="/flash/extlinux/extlinux.conf"
+    if grep -q "initrd=/edid.cpio" "${FILE}"; then
+      echo "error: ${FILE} already contains edid.cpio, aborting!"
+      exit 1
+    else
+      cp "${FILE}" "${FILE}.backup"
+      # Injeta o initrd e os parâmetros de vídeo
+      sed -i "/APPEND/s/$/ initrd=\/edid.cpio drm.edid_firmware=edid\/edid.bin video=HDMI-A-1:D/" "${FILE}"
+      echo "info: edid setup complete em extlinux.conf!"
+      exit 0
+    fi
+  else
+    FILE="/flash/uEnv.ini"
+    if [ -f "$FILE" ]; then
+      if grep -q "initrd=/edid.cpio" "${FILE}"; then
+        echo "error: ${FILE} already contains edid.cpio info .. aborting!"
+        exit 1
+      else
+        cp "${FILE}" "${FILE}.backup"
+        sed -i "/bootargs/s/$/ initrd=\/edid.cpio drm.edid_firmware=edid\/edid.bin video=HDMI-A-1:D/" "${FILE}"
+        echo "info: edid setup complete em uEnv.ini!"
+        exit 0
+      fi
+    else
+      echo "error: Arquivo de boot não encontrado!"
+      exit 1
+    fi
+  fi
+}
+
+do_cleanup() {
+  echo "info: removendo configurações de EDID..."
+  rm -f "/storage/.config/firmware/edid/edid.bin"
+  rm -f "/storage/.config/firmware/edid/edid.cpio"
+  mount -o remount,rw /flash
+  rm -f "/flash/edid.cpio"
+
+  if [ -f "/flash/extlinux/extlinux.conf" ]; then
+    FILE="/flash/extlinux/extlinux.conf"
+  else
+    FILE="/flash/uEnv.ini"
+  fi
+
+  [ -f "${FILE}.backup" ] && cp "${FILE}.backup" "${FILE}"
+  mount -o remount,ro /flash
+}
+
+do_usage() {
+  echo "NextOS Elite getedid"
+  echo "usage: getedid {create|delete}"
+  exit 0
+}
+
+case $1 in
+  create)
+    do_install
+    ;;
+  delete)
+    do_cleanup
+    ;;
+  *)
+    do_usage
+    ;;
+esac
+
+exit
