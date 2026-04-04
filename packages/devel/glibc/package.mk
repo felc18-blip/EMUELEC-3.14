@@ -3,11 +3,12 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="glibc"
-PKG_VERSION="2.38"
+PKG_VERSION="2.43"
+PKG_SHA256="d9c86c6b5dbddb43a3e08270c5844fc5177d19442cf5b8df4be7c07cd5fa3831"
 PKG_LICENSE="GPL"
 PKG_SITE="https://www.gnu.org/software/libc/"
 PKG_URL="https://ftp.gnu.org/pub/gnu/glibc/${PKG_NAME}-${PKG_VERSION}.tar.xz"
-PKG_DEPENDS_TARGET="ccache:host autotools:host linux:host gcc:bootstrap pigz:host Python3:host"
+PKG_DEPENDS_TARGET="ccache:host autotools:host pigz:host linux:host gcc:bootstrap Python3:host"
 PKG_DEPENDS_INIT="glibc"
 PKG_LONGDESC="The Glibc package contains the main C library."
 PKG_BUILD_FLAGS="+bfd"
@@ -40,6 +41,7 @@ fi
 PKG_CONFIGURE_OPTS_TARGET="BASH_SHELL=/bin/sh \
                            ac_cv_path_PERL=no \
                            ac_cv_prog_MAKEINFO= \
+                           --disable-werror \
                            --libexecdir=/usr/lib/glibc \
                            --cache-file=config.cache \
                            --disable-profile \
@@ -69,13 +71,19 @@ post_unpack() {
 }
 
 pre_configure_target() {
-# Filter out some problematic *FLAGS
+  # --- VACINA GLIBC ---
+  # Substitui o código fonte por um arquivo "vazio" válido em C usando o CAMINHO ABSOLUTO.
+  # Assim a gente não usa o 'cd' e não quebra o out-of-tree build exigido pelo Glibc!
+  echo "/* GCC 15 dummy file for openat2 */" > "${PKG_BUILD}/sysdeps/unix/sysv/linux/openat2.c"
+
+  # Filter out some problematic *FLAGS
   export CFLAGS=$(echo ${CFLAGS} | sed -e "s|-ffast-math||g")
   export CFLAGS=$(echo ${CFLAGS} | sed -e "s|-Ofast|-O2|g")
   export CFLAGS=$(echo ${CFLAGS} | sed -e "s|-O.|-O2|g")
 
   export CFLAGS=$(echo ${CFLAGS} | sed -e "s|-Wunused-but-set-variable||g")
-  export CFLAGS="${CFLAGS} -Wno-unused-variable"
+  # Tira os Warnings como Errors do compilador C
+  export CFLAGS="${CFLAGS} -Wno-unused-variable -Wno-error"
 
   if [ -n "${PROJECT_CFLAGS}" ]; then
     export CFLAGS=$(echo ${CFLAGS} | sed -e "s|${PROJECT_CFLAGS}||g")

@@ -23,6 +23,12 @@ PKG_CONFIGURE_OPTS_TARGET="ac_cv_have_abstract_sockets=yes \
                            --disable-bash-completion \
                            --enable-asserts=no"
 
+pre_configure_target() {
+  # Vacina para o GCC 15: silenciar avisos de obsolescência (deprecated)
+  # e garantir que 'bool' e redefinições não quebrem o build.
+  export CFLAGS="$CFLAGS -std=gnu11 -Wno-error -fcommon -Wno-deprecated-declarations"
+}
+
 post_makeinstall_target() {
   rm -rf ${INSTALL}/usr/bin/dbus-binding-tool
 }

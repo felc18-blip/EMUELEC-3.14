@@ -3,13 +3,14 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="gcc"
-PKG_VERSION="12.3.0"
+PKG_VERSION="15.2.0"
+PKG_SHA256="438fd996826b0c82485a29da03a72d71d6e3541a83ec702df4271f6fe025d24e"
 PKG_LICENSE="GPL-2.0-or-later"
 PKG_SITE="https://gcc.gnu.org/"
-PKG_URL="https://ftp.gnu.org/gnu/gcc/${PKG_NAME}-${PKG_VERSION}/${PKG_NAME}-${PKG_VERSION}.tar.xz"
+PKG_URL="https://ftpmirror.gnu.org/gcc/${PKG_NAME}-${PKG_VERSION}/${PKG_NAME}-${PKG_VERSION}.tar.xz"
 PKG_DEPENDS_BOOTSTRAP="ccache:host autoconf:host binutils:host gmp:host mpfr:host mpc:host zstd:host"
 PKG_DEPENDS_TARGET="toolchain"
-PKG_DEPENDS_HOST="ccache:host autoconf:host binutils:host gmp:host mpfr:host mpc:host zstd:host glibc"
+PKG_DEPENDS_HOST="ccache:host autoconf:host binutils:host gmp:host mpfr:host mpc:host zstd:host glibc libxcrypt"
 PKG_DEPENDS_INIT="toolchain"
 PKG_LONGDESC="This package contains the GNU Compiler Collection."
 
@@ -34,6 +35,9 @@ GCC_COMMON_CONFIGURE_OPTS="--target=${TARGET_NAME} \
                            --with-zstd=${TOOLCHAIN} \
                            --with-gnu-as \
                            --with-gnu-ld \
+                           --enable-default-pie \
+                           --with-arch=armv8-a \
+                           --with-tune=cortex-a53 \
                            --enable-plugin \
                            --enable-lto \
                            --enable-gold \
@@ -49,6 +53,9 @@ GCC_COMMON_CONFIGURE_OPTS="--target=${TARGET_NAME} \
                            --disable-libitm \
                            --disable-libquadmath \
                            --disable-libmpx \
+                           --disable-werror \
+                           --enable-libstdcxx-time=yes \
+                           --with-default-libstdcxx-abi=new \
                            --disable-libssp \
                            --disable-libsanitizer \
                            --disable-libvtv \
@@ -113,19 +120,19 @@ pre_configure_host() {
   unset CPP
 }
 post_make_host() {
-  
-  if [ "${ARCH}" != "aarch64" ]; then 
+
+  if [ "${ARCH}" != "aarch64" ]; then
 	# fix wrong link
 	rm -rf ${TARGET_NAME}/libgcc/libgcc_s.so
 	ln -sf libgcc_s.so.1 ${TARGET_NAME}/libgcc/libgcc_s.so
   fi
 
   if [ ! "${BUILD_WITH_DEBUG}" = "yes" ]; then
-  
-  if [ "${ARCH}" != "aarch64" ]; then 
+
+  if [ "${ARCH}" != "aarch64" ]; then
     ${TARGET_PREFIX}strip ${TARGET_NAME}/libgcc/libgcc_s.so*
   fi
-  
+
     ${TARGET_PREFIX}strip ${TARGET_NAME}/libgomp/.libs/libgomp.so*
     ${TARGET_PREFIX}strip ${TARGET_NAME}/libstdc++-v3/src/.libs/libstdc++.so*
   fi
@@ -181,6 +188,17 @@ makeinstall_target() {
     cp -P ${PKG_BUILD}/.${HOST_NAME}/${TARGET_NAME}/libgcc/libgcc_s.so* ${INSTALL}/usr/lib
     cp -P ${PKG_BUILD}/.${HOST_NAME}/${TARGET_NAME}/libgomp/.libs/libgomp.so* ${INSTALL}/usr/lib
     cp -P ${PKG_BUILD}/.${HOST_NAME}/${TARGET_NAME}/libstdc++-v3/src/.libs/libstdc++.so* ${INSTALL}/usr/lib
+
+    # Adição do Sanitizer (ASAN, UBSAN, etc)
+    # O loop garante que pegamos todas as libs .so ignorando arquivos temporários .T
+    if [ -d "${PKG_BUILD}/.${HOST_NAME}/${TARGET_NAME}/libsanitizer" ]; then
+      for f in ${PKG_BUILD}/.${HOST_NAME}/${TARGET_NAME}/libsanitizer/*/.libs/*.so*; do
+        if [[ ! "${f}" =~ T$ ]]; then
+          cp -P "${f}" ${INSTALL}/usr/lib
+        fi
+      done
+    fi
+
     if [ "${OPTS_LIBATOMIC}" = "--enable-libatomic" ]; then
       cp -P ${PKG_BUILD}/.${HOST_NAME}/${TARGET_NAME}/libatomic/.libs/libatomic.so* ${INSTALL}/usr/lib
     fi
