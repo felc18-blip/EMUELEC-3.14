@@ -15,12 +15,22 @@ PKG_TOOLCHAIN="manual"
 
 pre_make_target() {
   unset LDFLAGS
+  sed -i '1i\
+#include <unistd.h>\n\
+#include <string.h>\n\
+#include <sys/types.h>\n\
+#include <sys/stat.h>\n\
+#include <fcntl.h>\n' $PKG_BUILD/OpenVFDService.c
 }
 
 make_target() {
   make ARCH=$TARGET_KERNEL_ARCH \
        CROSS_COMPILE=$TARGET_KERNEL_PREFIX \
-       -C "$(kernel_path)" M="$PKG_BUILD/driver"
+       EXTRA_CFLAGS="-std=gnu89 -Wno-error" \
+       KCFLAGS="-std=gnu89 -Wno-error" \
+       HOSTCFLAGS="-std=gnu89" \
+       -C "$(kernel_path)" \
+       M="$PKG_BUILD/driver"
 
   make OpenVFDService
 }

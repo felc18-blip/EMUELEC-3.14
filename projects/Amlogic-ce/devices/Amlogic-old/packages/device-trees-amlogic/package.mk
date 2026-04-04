@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
-# Copyright (C) 2016-2018 Team LibreELEC (https://libreelec.tv)
-# Copyright (C) 2018-present Team CoreELEC (https://coreelec.org)
+# Copyright (C) 2016-2018 Team LibreELEC
+# Copyright (C) 2018-present Team CoreELEC
 
 PKG_NAME="device-trees-amlogic"
 PKG_VERSION="cdfe64399f04ef958b4bd8ac629026007c9dd900"
@@ -13,12 +13,10 @@ PKG_DEPENDS_UNPACK="linux"
 PKG_LONGDESC="Device trees for Amlogic devices."
 PKG_TOOLCHAIN="manual"
 
-# Compila o dtbTool para rodar no PC (Host) usando a GLIBC do seu Ubuntu
 make_host() {
   $HOST_CC -Wall $PKG_BUILD/dtbTool.c -o $PKG_BUILD/dtbTool
 }
 
-# Instala a ferramenta na pasta de binaríos da toolchain
 makeinstall_host() {
   mkdir -p $TOOLCHAIN/bin
   cp $PKG_BUILD/dtbTool $TOOLCHAIN/bin/
@@ -29,13 +27,16 @@ make_target() {
 
   pushd $BUILD/build/linux-$(kernel_version) > /dev/null
 
-  # 🔥 CORREÇÃO AQUI
+  # 🔥 FIX GCC 15 + KERNEL ANTIGO
+  export KCFLAGS="-std=gnu89"
+  export HOSTCFLAGS="$HOSTCFLAGS -std=gnu89"
+
   kernel_make HOSTLDFLAGS="$HOSTLDFLAGS -Wl,--allow-multiple-definition" olddefconfig
 
   EXTRA_TREES=( \
-                gxbb_p200 gxbb_p200_2G gxbb_p201 gxbb_p200_1G_wetek_hub gxbb_p200_2G_wetek_play_2 \
-                gxl_p212_1g gxl_p212_2g gxl_p230_2g gxl_p281_1g gxm_q200_2g gxm_q201_1g gxm_q201_2g \
-              )
+    gxbb_p200 gxbb_p200_2G gxbb_p201 gxbb_p200_1G_wetek_hub gxbb_p200_2G_wetek_play_2 \
+    gxl_p212_1g gxl_p212_2g gxl_p230_2g gxl_p281_1g gxm_q200_2g gxm_q201_1g gxm_q201_2g \
+  )
 
   for f in ${EXTRA_TREES[@]}; do
     DTB_LIST="$DTB_LIST $f.dtb"

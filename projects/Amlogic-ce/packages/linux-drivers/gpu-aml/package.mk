@@ -19,23 +19,28 @@ pre_configure_target() {
 }
 
 pre_make_target() {
-  ln -s $PKG_BUILD/utgard/platform $PKG_BUILD/utgard/r7p0/platform
+  # Remove atalhos antigos caso você tente compilar mais de uma vez
+  rm -f $PKG_BUILD/utgard/r7p0/platform
+  # Cria o atalho forçando a substituição e evitando loops (-sfn)
+  ln -sfn $PKG_BUILD/utgard/platform $PKG_BUILD/utgard/r7p0/platform
 }
 
 make_target() {
   kernel_make -C $(kernel_path) M=$PKG_BUILD/bifrost/r12p0/kernel/drivers/gpu/arm \
-    CONFIG_MALI_MIDGARD=m CONFIG_MALI_PLATFORM_NAME="devicetree"
+    CONFIG_MALI_MIDGARD=m CONFIG_MALI_PLATFORM_NAME="devicetree" \
+    KCFLAGS="-std=gnu89 -Wno-error"
 
   kernel_make -C $(kernel_path) M=$PKG_BUILD/utgard/r7p0 \
     EXTRA_CFLAGS="-DCONFIG_MALI450=y" \
-    CONFIG_MALI400=m CONFIG_MALI450=y
+    CONFIG_MALI400=m CONFIG_MALI450=y \
+    KCFLAGS="-std=gnu89 -Wno-error"
 }
 
 makeinstall_target() {
   kernel_make -C $(kernel_path) M=$PKG_BUILD/bifrost/r12p0/kernel/drivers/gpu/arm \
     INSTALL_MOD_PATH=$INSTALL/$(get_kernel_overlay_dir) INSTALL_MOD_STRIP=1 DEPMOD=: \
   modules_install
-  
+
   kernel_make -C $(kernel_path) M=$PKG_BUILD/utgard/r7p0 \
     INSTALL_MOD_PATH=$INSTALL/$(get_kernel_overlay_dir) INSTALL_MOD_STRIP=1 DEPMOD=: \
   modules_install

@@ -30,7 +30,8 @@ make_target() {
     ARCH=$TARGET_KERNEL_ARCH \
     KSRC=$(kernel_path) \
     CROSS_COMPILE=$TARGET_KERNEL_PREFIX \
-    USER_EXTRA_CFLAGS="-fgnu89-inline"
+    USER_EXTRA_CFLAGS="-fgnu89-inline" \
+    KCFLAGS="-std=gnu89 -Wno-error"
 }
 
 makeinstall_target() {

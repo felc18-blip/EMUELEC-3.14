@@ -30,11 +30,11 @@ make_target() {
     ARCH=$TARGET_KERNEL_ARCH \
     KSRC=$(kernel_path) \
     CROSS_COMPILE=$TARGET_KERNEL_PREFIX \
-    USER_EXTRA_CFLAGS="-fgnu89-inline"
+    USER_EXTRA_CFLAGS="-fgnu89-inline" \
+    KCFLAGS="-std=gnu89 -Wno-error"
 }
 
 makeinstall_target() {
   mkdir -p $INSTALL/$(get_full_module_dir)/$PKG_NAME
     find $PKG_BUILD/ -name \*.ko -not -path '*/\.*' -exec cp {} $INSTALL/$(get_full_module_dir)/$PKG_NAME \;
 }
-

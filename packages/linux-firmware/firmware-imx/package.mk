@@ -3,9 +3,9 @@
 # Copyright (C) 2019-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="firmware-imx"
-PKG_VERSION="8.17"
-PKG_SHA256="1ee3c49ad8749867487f09d6e4472536fb809b667c1bb3c56511175b8974e3c6"
-PKG_ARCH="arm"
+PKG_VERSION="8.30-3fa84fd"
+PKG_SHA256="154b1b5890ddebe45ca280634260a8cdaf38adc5b303aeea28a5ebad504a7912"
+PKG_ARCH="aarch64 arm"
 PKG_LICENSE="other"
 PKG_SITE="http://www.freescale.com"
 PKG_URL="https://www.nxp.com/lgfiles/NMG/MAD/YOCTO/${PKG_NAME}-${PKG_VERSION}.bin"
@@ -20,11 +20,17 @@ unpack() {
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/$(get_full_firmware_dir)/imx/sdma
-    cp -P firmware/sdma/sdma-imx6q.bin ${INSTALL}/$(get_full_firmware_dir)/imx/sdma
-    cp -P firmware/sdma/sdma-imx7d.bin ${INSTALL}/$(get_full_firmware_dir)/imx/sdma
-
   mkdir -p ${INSTALL}/$(get_full_firmware_dir)/vpu
-    cp -P firmware/vpu/vpu_fw_imx6d.bin ${INSTALL}/$(get_full_firmware_dir)/vpu
-    cp -P firmware/vpu/vpu_fw_imx6q.bin ${INSTALL}/$(get_full_firmware_dir)/vpu
-    cp -P firmware/vpu/vpu_fw_imx8_dec.bin ${INSTALL}/$(get_full_firmware_dir)/vpu
+
+  case "${DEVICE}" in
+    "iMX6")
+      cp -P firmware/sdma/sdma-imx6q.bin ${INSTALL}/$(get_full_firmware_dir)/imx/sdma
+      cp -P firmware/vpu/vpu_fw_imx6d.bin ${INSTALL}/$(get_full_firmware_dir)/vpu
+      cp -P firmware/vpu/vpu_fw_imx6q.bin ${INSTALL}/$(get_full_firmware_dir)/vpu
+      ;;
+    "iMX8")
+      cp -P firmware/sdma/sdma-imx7d.bin ${INSTALL}/$(get_full_firmware_dir)/imx/sdma
+      cp -P firmware/vpu/vpu_fw_imx8_dec.bin ${INSTALL}/$(get_full_firmware_dir)/vpu
+      ;;
+  esac
 }

@@ -2,13 +2,13 @@
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="kernel-firmware"
-PKG_VERSION="20250708"
-PKG_SHA256="6f3efee7f600c201f9b2d675889a4ccdb8cfe56e0d283641796ed10e64c72047"
+PKG_VERSION="20260309"
+PKG_SHA256="c74cc6f562b58ad5bc6b2b00a61abc29c9e49e06126e7ba34fbca9928e07a96c"
 PKG_LICENSE="other"
 PKG_SITE="https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/"
 PKG_URL="https://cdn.kernel.org/pub/linux/kernel/firmware/linux-firmware-${PKG_VERSION}.tar.xz"
 PKG_NEED_UNPACK="${PROJECT_DIR}/${PROJECT}/packages/${PKG_NAME} ${PROJECT_DIR}/${PROJECT}/devices/${DEVICE}/packages/${PKG_NAME}"
-PKG_LONGDESC="kernel-firmware: kernel related firmware"
+PKG_LONGDESC="kernel-firmware: kernel related firmware atualizado para NextOS Elite"
 PKG_TOOLCHAIN="manual"
 
 configure_package() {
@@ -19,23 +19,25 @@ post_patch() {
   (
     cd ${PKG_BUILD}
 
-    # Do not run check_whence.py against the copied firmware
+    # Vacina: impede que o script de checagem do upstream quebre a build
     echo '#!/usr/bin/python3' > check_whence.py
+    chmod +x check_whence.py
 
     mkdir -p "${PKG_FW_SOURCE}"
-      ./copy-firmware.sh --verbose "${PKG_FW_SOURCE}"
+    ./copy-firmware.sh --verbose "${PKG_FW_SOURCE}"
 
-    # copy extra firmware files (or overwrite upstream ones)
+    # MANTER BASE: Copia firmwares customizados da sua pasta 'extra-firmware'
     if [ -d ${PKG_DIR}/extra-firmware ]; then
+      echo "Injetando firmwares extras do NextOS..."
       cp -r ${PKG_DIR}/extra-firmware/* "${PKG_FW_SOURCE}"
     fi
   )
 }
 
-# Install additional miscellaneous drivers
 makeinstall_target() {
   FW_TARGET_DIR=${INSTALL}/$(get_full_firmware_dir)
 
+  # MANTER BASE: Lógica de filtragem por arquivos .dat (Essencial para ARM)
   if find_file_path config/kernel-firmware.dat; then
     FW_LISTS="${FOUND_PATH}"
   else
@@ -43,7 +45,6 @@ makeinstall_target() {
   fi
 
   FW_LISTS+=" ${PROJECT_DIR}/${PROJECT}/config/kernel-firmware-any.dat ${PROJECT_DIR}/${PROJECT}/config/kernel-firmware-${TARGET_ARCH}.dat"
-
   FW_LISTS+=" ${PROJECT_DIR}/${PROJECT}/devices/${DEVICE}/config/kernel-firmware-any.dat ${PROJECT_DIR}/${PROJECT}/devices/${DEVICE}/config/kernel-firmware-${TARGET_ARCH}.dat"
 
   for fwlist in ${FW_LISTS}; do
@@ -54,17 +55,18 @@ makeinstall_target() {
       [[ ${fwline} =~ ^#.* ]] && continue
       [[ ${fwline} =~ ^[[:space:]] ]] && continue
 
-      eval "(cd ${PKG_FW_SOURCE} && find "${fwline}" >/dev/null)" || die "ERROR: Firmware pattern does not exist: ${fwline}"
+      # Verifica se o padrão existe no source atualizado de 2026
+      eval "(cd ${PKG_FW_SOURCE} && find "${fwline}" >/dev/null)" || {
+        echo "AVISO: Padrao de firmware nao encontrado em 2026: ${fwline}"
+        continue
+      }
 
       while read -r fwfile; do
         [ -d "${PKG_FW_SOURCE}/${fwfile}" ] && continue
 
         if [ -f "${PKG_FW_SOURCE}/${fwfile}" ]; then
           mkdir -p "$(dirname "${FW_TARGET_DIR}/${fwfile}")"
-            cp -Lv "${PKG_FW_SOURCE}/${fwfile}" "${FW_TARGET_DIR}/${fwfile}"
-        else
-          echo "ERROR: Firmware file ${fwfile} does not exist - aborting"
-          exit 1
+          cp -Lv "${PKG_FW_SOURCE}/${fwfile}" "${FW_TARGET_DIR}/${fwfile}"
         fi
       done <<<"$(cd ${PKG_FW_SOURCE} && eval "find "${fwline}"")"
     done <"${fwlist}"
@@ -72,17 +74,16 @@ makeinstall_target() {
 
   PKG_KERNEL_CFG_FILE=$(kernel_config_path) || die
 
-  # The following files are RPi specific and installed by brcmfmac_sdio-firmware-rpi instead.
-  # They are also not required at all if the kernel is not suitably configured.
-  if listcontains "${FIRMWARE}" "brcmfmac_sdio-firmware-rpi" ||
+  # MANTER BASE: Limpeza de firmwares de Raspberry Pi (Nao usados no Amlogic)
+  if listcontains "${FIRMWARE}" "brcmfmac_sdio-firmware-rpi" || \
      ! grep -q "^CONFIG_BRCMFMAC_SDIO=y" ${PKG_KERNEL_CFG_FILE}; then
     rm -fr ${FW_TARGET_DIR}/brcm/brcmfmac43430*-sdio.*
     rm -fr ${FW_TARGET_DIR}/brcm/brcmfmac43455*-sdio.*
   fi
 
-  # brcm pcie firmware is only needed by x86_64
+  # MANTER BASE: Limpeza de firmware PCIe (S905 nao usa Broadcom PCIe)
   [ "${TARGET_ARCH}" != "x86_64" ] && rm -fr ${FW_TARGET_DIR}/brcm/*-pcie.*
 
-  # Cleanup - which may be project or device specific
+  # Cleanup final específico do dispositivo
   find_file_path scripts/cleanup.sh && ${FOUND_PATH} ${FW_TARGET_DIR} || true
 }

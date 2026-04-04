@@ -27,6 +27,7 @@ make_target() {
        KDIR=$(kernel_path) \
        ARCH=$TARGET_KERNEL_ARCH \
        CROSS_COMPILE=$TARGET_KERNEL_PREFIX \
+       KCFLAGS="-std=gnu89 -Wno-error" \
        CONFIG_BCMDHD_DISABLE_WOWLAN=y \
        dhd
 
@@ -38,6 +39,7 @@ make_target() {
          KDIR=$(kernel_path) \
          ARCH=$TARGET_KERNEL_ARCH \
          CROSS_COMPILE=$TARGET_KERNEL_PREFIX \
+         KCFLAGS="-std=gnu89 -Wno-error" \
          CONFIG_BCMDHD_DISABLE_WOWLAN=y \
          bcmdhd_sdio
   fi

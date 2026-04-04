@@ -23,7 +23,8 @@ make_target() {
        KSRC=$(kernel_path) \
        CROSS_COMPILE=$TARGET_KERNEL_PREFIX \
        CONFIG_POWER_SAVING=n \
-       USER_EXTRA_CFLAGS="-Wno-error=date-time"
+       USER_EXTRA_CFLAGS="-Wno-error=date-time" \
+       KCFLAGS="-std=gnu89 -Wno-error"
 }
 
 makeinstall_target() {

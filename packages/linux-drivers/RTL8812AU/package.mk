@@ -14,15 +14,16 @@ PKG_IS_KERNEL_PKG="yes"
 pre_make_target() {
   unset LDFLAGS
 
-  # remover flag ftrace
+  # remover flag ftrace (original)
   sed -i 's/-pg//g' Makefile
 
-  # patch compat kernel 3.14 radiotap
+  # patch compat kernel 3.14 radiotap (original)
   sed -i 's/IEEE80211_RADIOTAP_CODING_LDPC_USER0/IEEE80211_RADIOTAP_MCS_FEC_LDPC/g' core/rtw_xmit.c
 }
 
 make_target() {
-  export KCFLAGS+=" -Wno-array-bounds -Wno-stringop-overflow -Wno-restrict -Wno-address -Wno-stringop-overread -Wno-address-of-packed-member"
+  # Mantendo suas flags originais e injetando a vacina anti-GCC15 (-std=gnu89 -Wno-error)
+  export KCFLAGS+=" -Wno-array-bounds -Wno-stringop-overflow -Wno-restrict -Wno-address -Wno-stringop-overread -Wno-address-of-packed-member -std=gnu89 -Wno-error"
   export EXTRA_CFLAGS="-Wno-error -Wno-address-of-packed-member -fno-pie"
 
   make V=1 \
