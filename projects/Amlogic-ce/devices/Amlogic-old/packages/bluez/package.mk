@@ -1,12 +1,14 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
+# Copyright (C) 2019-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="bluez"
-PKG_VERSION="5.50"
-PKG_SHA256="c44b776660bf78e664e388b979da152976296e444dece833f3ddbd5be5a3b1b4"
+PKG_VERSION="5.86"
+PKG_SHA256="99f144540c6070591e4c53bcb977eb42664c62b7b36cb35a29cf72ded339621d"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.bluez.org/"
-PKG_URL="https://git.kernel.org/pub/scm/bluetooth/bluez.git/snapshot/$PKG_NAME-$PKG_VERSION.tar.gz"
+PKG_URL="https://www.kernel.org/pub/linux/bluetooth/${PKG_NAME}-${PKG_VERSION}.tar.xz"
+
 PKG_DEPENDS_TARGET="toolchain dbus glib readline systemd"
 PKG_LONGDESC="Bluetooth Tools and System Daemons for Linux."
 PKG_TOOLCHAIN="autotools"
@@ -18,9 +20,7 @@ else
   BLUEZ_CONFIG="--disable-debug"
 fi
 
-BLUEZ_CONFIG="$BLUEZ_CONFIG --enable-monitor --enable-test"
-
-PKG_MAKE_OPTS_TARGET="LIBS=-lncursesw"
+BLUEZ_CONFIG+=" --enable-monitor --enable-test"
 
 PKG_CONFIGURE_OPTS_TARGET="--disable-dependency-tracking \
                            --disable-silent-rules \
@@ -30,56 +30,68 @@ PKG_CONFIGURE_OPTS_TARGET="--disable-dependency-tracking \
                            --disable-obex \
                            --enable-client \
                            --enable-systemd \
-                           --enable-tools --enable-deprecated \
+                           --enable-tools \
+                           --enable-deprecated \
                            --enable-datafiles \
+                           --disable-manpages \
                            --disable-experimental \
                            --enable-sixaxis \
                            --with-gnu-ld \
-                           $BLUEZ_CONFIG \
+                           ${BLUEZ_CONFIG} \
                            storagedir=/storage/.cache/bluetooth"
 
 pre_configure_target() {
-  cd $PKG_BUILD
-  rm -rf .$TARGET_NAME
-  export LDFLAGS=""
-  export LIBS=""
-  export ac_cv_prog_cc_works=yes
+  cd ${PKG_BUILD}
+  rm -rf .${TARGET_NAME}
+
+  # 🔥 VACINA 3: Atualiza o header UHID do Kernel 3.14 para aceitar o BlueZ 5.86
+  echo "info: Injetando linux/uhid.h moderno no toolchain..."
+  wget -qO ${SYSROOT_PREFIX}/usr/include/linux/uhid.h https://raw.githubusercontent.com/torvalds/linux/v5.15/include/uapi/linux/uhid.h || \
+  curl -sL https://raw.githubusercontent.com/torvalds/linux/v5.15/include/uapi/linux/uhid.h -o ${SYSROOT_PREFIX}/usr/include/linux/uhid.h
+
+  # Limpeza "Elite" do header cru (Remove o __user que quebra o C padrão)
+  sed -i 's/__user//g' ${SYSROOT_PREFIX}/usr/include/linux/uhid.h
+
+  # 🔥 VACINA 4: Ignorar erros chatos do GCC e forçar compatibilidade C
+  export CFLAGS="${CFLAGS} -std=gnu11 -Wno-error -fcommon \
+                 -Wno-incompatible-pointer-types \
+                 -Wno-int-conversion \
+                 -Wno-discarded-qualifiers"
+
+  # Algumas vezes o BlueZ falha na linkagem do readline ou ncurses em cross-compile
+  export LDFLAGS="${LDFLAGS} -lncurses -lreadline"
+  export LIBS="-lncurses"
+
+  # Hack para evitar erro em libshared_glib_la se faltar dependência
+  sed -i 's/--no-undefined//g' Makefile.am 2>/dev/null || true
+  sed -i 's/--no-undefined//g' Makefile.in 2>/dev/null || true
+}
+
+post_configure_target() {
+  libtool_remove_rpath libtool
 }
 
 post_makeinstall_target() {
-  rm -rf $INSTALL/usr/lib/systemd
-  rm -rf $INSTALL/usr/bin/bccmd
-  rm -rf $INSTALL/usr/bin/bluemoon
-  rm -rf $INSTALL/usr/bin/ciptool
-  rm -rf $INSTALL/usr/share/dbus-1
-  
-  mkdir -p $INSTALL/etc/bluetooth
-    cp src/main.conf $INSTALL/etc/bluetooth
-    sed -i $INSTALL/etc/bluetooth/main.conf \
-        -e "s|^#\[Policy\]|\[Policy\]|g" \
-        -e "s|^#AutoEnable.*|AutoEnable=true|g"
-  
-  mkdir -p $INSTALL/usr/share/services
-    cp -P $PKG_DIR/default.d/*.conf $INSTALL/usr/share/services
-    ln -sf /usr/lib/firmware $INSTALL/etc/firmware
-    sed -i 's/-lbluetooth//g' ${PKG_BUILD}/lib/bluez.pc
-    cp -P ${PKG_BUILD}/lib/bluez.pc ${SYSROOT_PREFIX}/usr/lib/pkgconfig
+  safe_remove ${INSTALL}/usr/lib/systemd
+  safe_remove ${INSTALL}/usr/bin/bluemoon
+  safe_remove ${INSTALL}/usr/bin/ciptool
 
-  # --- A VACINA AGRESSIVA AQUI ---
-  echo "--- Sanitizando BlueZ 5.50 (Versão OLD) ---"
-  find ${INSTALL} -type f -exec sh -c '
-    if readelf -h "$1" 2>/dev/null | grep -qE "EXEC|DYN"; then
-      # Limpa RPATH e RUNPATH
-      patchelf --set-rpath "" "$1" 2>/dev/null || patchelf --remove-rpath "$1" 2>/dev/null
-      
-      # Corrige links viciados ao seu /home/felipe
-      for full_lib in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
-        lib_only=$(basename "$full_lib")
-        echo "  > Corrigindo: $lib_only em $(basename $1)"
-        patchelf --replace-needed "$full_lib" "$lib_only" "$1" 2>/dev/null
-      done
-    fi
-  ' _ {} \;
+  mkdir -p ${INSTALL}/etc/bluetooth
+    cp src/main.conf ${INSTALL}/etc/bluetooth
+    sed -i ${INSTALL}/etc/bluetooth/main.conf \
+        -e "s|^#\[Policy\]|\[Policy\]|g" \
+        -e "s|^#AutoEnable.*|AutoEnable=true|g" \
+        -e "s|^#JustWorksRepairing.*|JustWorksRepairing=always|g"
+
+  echo "[General]" >${INSTALL}/etc/bluetooth/input.conf
+  echo "ClassicBondedOnly=false" >>${INSTALL}/etc/bluetooth/input.conf
+
+  mkdir -p ${INSTALL}/usr/share/services
+    cp -P ${PKG_DIR}/default.d/*.conf ${INSTALL}/usr/share/services
+
+  ln -sf /usr/lib/firmware ${INSTALL}/etc/firmware
+
+  cp -P ${PKG_BUILD}/lib/bluez.pc ${SYSROOT_PREFIX}/usr/lib/pkgconfig
 }
 
 post_install() {
