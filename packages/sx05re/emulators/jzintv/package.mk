@@ -11,17 +11,22 @@ PKG_LONGDESC="Joe Zbiciak Intellivision Emulator"
 PKG_TOOLCHAIN="make"
 
 pre_configure_target() {
-sed -i "s|sdl2-config|${SYSROOT_PREFIX}/usr/bin/sdl2-config|g" src/Makefile
-PKG_MAKE_OPTS_TARGET="-C src/ -f Makefile GNU_READLINE=0 "
+
+  export PATH="${SYSROOT_PREFIX}/usr/bin:${PATH}"
+
+  # fixes glibc moderno
+  sed -i 's|<termio.h>|<termios.h>|g' src/plat/plat_lib.c
+  sed -i '1i #include <sys/ioctl.h>' src/plat/plat_lib.c
+  sed -i '1i #include <unistd.h>' src/plat/plat_lib.c
+
+  PKG_MAKE_OPTS_TARGET="-C src/ -f Makefile GNU_READLINE=0 "
 }
 
 makeinstall_target() {
-export CFLAGS+=" -I${SYSROOT_PREFIX}/usr/include/SDL2"
-export LDFLAGS+=" -lSDL2"
   mkdir -p ${INSTALL}/usr/bin
   cp bin/jzintv ${INSTALL}/usr/bin
   cp ${PKG_DIR}/scripts/* ${INSTALL}/usr/bin
-  
+
   mkdir -p ${INSTALL}/usr/config/emuelec/configs
   cp -rf ${PKG_DIR}/config/* ${INSTALL}/usr/config/emuelec/configs
 }

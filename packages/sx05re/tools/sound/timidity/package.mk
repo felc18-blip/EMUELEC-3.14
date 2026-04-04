@@ -16,20 +16,26 @@ pre_configure_target() {
   cd ${PKG_BUILD}
   rm -fr .${TARGET_NAME}
 
+  # 🔥 CORREÇÃO DO CÓDIGO (GCC 15): Ajusta a declaração da função line_fold
+  sed -i 's/int line_fold();/int line_fold(int c2, int c1);/g' utils/nkflib.c
+
+  # Flags de compatibilidade para código antigo e ponteiros
+  export CFLAGS="${CFLAGS} -Wno-implicit-function-declaration -Wno-incompatible-pointer-types -fcommon"
+
   # simple tool can be build directly
   ${HOST_CC} timidity/calcnewt.c -o timidity/calcnewt_host -lm
 
   PKG_CONFIGURE_OPTS_TARGET="--host=${TARGET_NAME} \
-                             --enable-alsa
-			     --with-default-output=alsa \
+                             --enable-alsa \
+                             --with-default-output=alsa \
                              --with-default-path=/storage/.config/timidity \
                              lib_cv_va_copy=yes \
                              lib_cv___va_copy=yes \
                              lib_cv_va_val_copy=no \
                              ac_cv_c_bigendian=no \
                              --with-includes=${SYSROOT_PREFIX}/usr/include \
-                             --with-libraries=${SYSROOT_PREFIX}/usr/lib
-			     --enable-alsaseq"
+                             --with-libraries=${SYSROOT_PREFIX}/usr/lib \
+                             --enable-alsaseq"
 }
 
 makeinstall_target() {

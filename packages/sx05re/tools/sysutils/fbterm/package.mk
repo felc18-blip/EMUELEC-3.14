@@ -12,9 +12,6 @@ PKG_DEPENDS_TARGET="toolchain freetype fontconfig libiconv"
 PKG_LONGDESC="fbterm is a framebuffer based terminal emulator for linux"
 PKG_TOOLCHAIN="configure"
 
-# garante encoding correto
-PKG_MAKE_OPTS_TARGET+=" LIBS=-liconv"
-
 pre_configure_target() {
   cd ..
   rm -rf .${TARGET_NAME}

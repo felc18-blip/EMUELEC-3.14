@@ -40,16 +40,18 @@ make_target() {
   cd ${PKG_BUILD}
   git submodule update --init --recursive
 
+  # 🔥 VACINA GCC 15: Inclui <cstdarg> no log.h para reconhecer va_list
+  sed -i '1i #include <cstdarg>' src/common/log.h
+
   # --- CORREÇÃO DO ERRO 'INDEX IS NOT A CONSTANT EXPRESSION' ---
-  # Substitui o offsetof problemático por um cálculo de endereço que o GCC antigo aceita
   sed -i 's/offsetof(State, gte_regs.r32\[index\])/offsetof(State, gte_regs.r32) + (sizeof(u32) * index)/g' src/core/cpu_recompiler_code_generator.cpp
 
-  # Curativo para o arquivo 252 (que você já tinha feito)
-  sed -i '1i #include <algorithm>\n#include <cstdio>\n#include <stdint.h>' src/duckstation-libretro/libretro_host_interface.cpp
+  # Curativo para o arquivo libretro (Headers de algoritmo e tipos)
+  sed -i '1i #include <algorithm>\n#include <cstdio>\n#include <stdint.h>\n#include <string.h>' src/duckstation-libretro/libretro_host_interface.cpp
 
   # Entra na pasta de build e continua
   cd .aarch64-libreelec-linux-gnu
-  ninja -j2
+  ninja -j$(nproc)
 }
 
 makeinstall_target() {

@@ -47,6 +47,11 @@ esac
 
 pre_make_target() {
   PKG_MAKE_OPTS_TARGET+=" OVERRIDE_CC=${CC} OVERRIDE_CXX=${CXX} OVERRIDE_LD=${LD}"
+
+  # Vacina GCC 15 (sol2)
+  find ${PKG_BUILD} -name "sol.hpp" -exec sed -i 's|this->construct(|this->emplace(|g' {} +
+  export CXXFLAGS="${CXXFLAGS} -fpermissive -Wno-template-body"
+
   sed -i scripts/genie.lua \
       -e 's|-static-libstdc++||g'
 }

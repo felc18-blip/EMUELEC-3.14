@@ -12,12 +12,15 @@ PKG_LONGDESC="fbdump is a simple tool that captures the contents of the visible 
 PKG_TOOLCHAIN="autotools"
 
 pre_configure_target() {
-# for some reason this was failing with undefined reference to 'rpl_malloc' so we remove the check
-cd ${PKG_BUILD}
-sed -i "s|AC_FUNC_MALLOC||" configure.in
+  # Injeta a vacina para garantir compatibilidade com código antigo no GCC 15
+  export CFLAGS="$CFLAGS -std=gnu89 -Wno-error"
+
+  # Seu fix original para o erro de 'rpl_malloc'
+  cd ${PKG_BUILD}
+  sed -i "s|AC_FUNC_MALLOC||" configure.in
 }
 
 makeinstall_target() {
-mkdir -p ${INSTALL}/usr/bin
-cp src/fbdump ${INSTALL}/usr/bin
+  mkdir -p ${INSTALL}/usr/bin
+  cp src/fbdump ${INSTALL}/usr/bin
 }

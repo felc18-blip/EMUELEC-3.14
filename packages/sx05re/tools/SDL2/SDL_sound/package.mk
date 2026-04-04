@@ -24,6 +24,9 @@ post_unpack() {
 
 pre_configure_target() {
   export LDFLAGS="${LDFLAGS} -lm"
+
+  # 🔥 A VACINA: Impede que o GCC 15 trave o build por causa dos ponteiros do SDL2
+  export CFLAGS="${CFLAGS} -Wno-implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-incompatible-pointer-types"
 }
 
 post_makeinstall_target() {

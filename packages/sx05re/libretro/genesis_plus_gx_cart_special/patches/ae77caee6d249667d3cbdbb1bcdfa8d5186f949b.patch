@@ -103,8 +103,8 @@ index a05ba9e83..0baa912d2 100644
  DEBUG = 0
  LOGSOUND = 0
 -FRONTEND_SUPPORTS_RGB565 = 1
-+FRONTEND_SUPPORTS_RGB565 = 1
-+FRONTEND_SUPPORTS_RGB888 = 0
++FRONTEND_SUPPORTS_RGB565 = 0
++FRONTEND_SUPPORTS_RGB888 = 1
  HAVE_CHD = 1
  HAVE_SYS_PARAM = 1
  HOOK_CPU = 0
@@ -122,8 +122,8 @@ index a05ba9e83..0baa912d2 100644
  else
 -   CFLAGS   += -O2 -DNDEBUG
 -   CXXFLAGS += -O2 -DNDEBUG
-+   CFLAGS   += -O2 -DNDEBUG -march=armv8-a -mtune=cortex-a53 -fomit-frame-pointer -fno-unroll-loops
-+   CXXFLAGS += -O2 -DNDEBUG -march=armv8-a -mtune=cortex-a53 -fomit-frame-pointer -fno-unroll-loops
++   CFLAGS   += -O3 -DNDEBUG
++   CXXFLAGS += -O3 -DNDEBUG
  endif
  endif
  

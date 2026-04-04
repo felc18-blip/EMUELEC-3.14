@@ -32,7 +32,7 @@ if [ "${DEVICE}" = "Amlogic-ng" ] || [ "${DEVICE}" = "Amlogic-no" ] || [ "${DEVI
 fi
 
 if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ] || [ "${DEVICE}" == "RK356x" ] || [ "${DEVICE}" == "OdroidM1" ]; then
-PKG_DEPENDS_TARGET+=" libdrm librga retropie-shaders slang-shaders"
+PKG_DEPENDS_TARGET+=" libdrm librga"
 PKG_PATCH_DIRS="OdroidGoAdvance"
 fi
 
@@ -42,6 +42,12 @@ fi
 fi
 
 pre_configure_target() {
+  cd ${PKG_BUILD}
+
+  # FIX V4L2 (kernel antigo - Amlogic OLD)
+  sed -i 's/fmt\.fmt\.pix\.quantization = V4L2_QUANTIZATION_LIM_RANGE;/#ifdef V4L2_QUANTIZATION_LIM_RANGE\nfmt.fmt.pix.quantization = V4L2_QUANTIZATION_LIM_RANGE;\n#endif/' \
+    cores/libretro-video-processor/video_processor_v4l2.c
+export CFLAGS="${CFLAGS} -O3 -fno-tree-vectorize -Wno-error=implicit-function-declaration -Wno-error=int-conversion"
 # Retroarch does not like -O3 for CHD loading with cheevos
 export CFLAGS="${CFLAGS} -O3 -fno-tree-vectorize"
 
@@ -84,13 +90,6 @@ fi
 cd ${PKG_BUILD}
 }
 
-pre_make_target() {
-
-  # Corrige incompatibilidade com kernel antigo (V4L2)
-  sed -i 's/fmt\.fmt\.pix\.quantization = V4L2_QUANTIZATION_LIM_RANGE;/#ifdef V4L2_QUANTIZATION_LIM_RANGE\n    fmt.fmt.pix.quantization = V4L2_QUANTIZATION_LIM_RANGE;\n#endif/g' \
-    cores/libretro-video-processor/video_processor_v4l2.c
-}
-
 make_target() {
   make HAVE_ONLINE_UPDATER=1 HAVE_UPDATE_CORES=1 HAVE_UPDATE_CORE_INFO=1 HAVE_COMPRESSION=1 HAVE_ACCESSIBILITY=1 HAVE_UPDATE_ASSETS=1 HAVE_LIBRETRODB=1 HAVE_BLUETOOTH=1 HAVE_NETWORKING=1 HAVE_LAKKA=1 HAVE_ZARCH=1 HAVE_QT=0 HAVE_LANGEXTRA=1 HAVE_LAKKA_PROJECT=odroidn2+.aarch64 HAVE_LAKKA_SERVER="https://www.lakka.tv"
   [ $? -eq 0 ] && echo "(retroarch ok)" || { echo "(retroarch failed)" ; exit 1 ; }
@@ -112,7 +111,7 @@ makeinstall_target() {
   mkdir -p ${INSTALL}/usr/share/audio_filters
     cp ${PKG_BUILD}/libretro-common/audio/dsp_filters/*.so ${INSTALL}/usr/share/audio_filters
     cp ${PKG_BUILD}/libretro-common/audio/dsp_filters/*.dsp ${INSTALL}/usr/share/audio_filters
-  
+
   # General configuration
   sed -i -e "s/# libretro_directory =/libretro_directory = \"\/tmp\/cores\"/" ${INSTALL}/etc/retroarch.cfg
   sed -i -e "s/# libretro_info_path =/libretro_info_path = \"\/tmp\/cores\"/" ${INSTALL}/etc/retroarch.cfg
@@ -130,14 +129,14 @@ makeinstall_target() {
   sed -i -e "s/# overlay_directory =/overlay_directory =\/tmp\/overlays/" ${INSTALL}/etc/retroarch.cfg
   sed -i -e "s/# cheat_database_path =/cheat_database_path =\/tmp\/database\/cht/" ${INSTALL}/etc/retroarch.cfg
   sed -i -e "s/# menu_driver = \"rgui\"/menu_driver = \"ozone\"/" ${INSTALL}/etc/retroarch.cfg
- 
+
   # Quick menu
   echo "core_assets_directory =/storage/roms/downloads" >> ${INSTALL}/etc/retroarch.cfg
   echo "quick_menu_show_undo_save_load_state = \"false\"" >> ${INSTALL}/etc/retroarch.cfg
   echo "quick_menu_show_save_core_overrides = \"false\"" >> ${INSTALL}/etc/retroarch.cfg
   echo "quick_menu_show_save_game_overrides = \"false\"" >> ${INSTALL}/etc/retroarch.cfg
   echo "quick_menu_show_cheats = \"true\"" >> ${INSTALL}/etc/retroarch.cfg
-  
+
   # Video
   sed -i -e "s/# video_windowed_fullscreen = true/video_windowed_fullscreen = false/" ${INSTALL}/etc/retroarch.cfg
   sed -i -e "s/# video_smooth = true/video_smooth = false/" ${INSTALL}/etc/retroarch.cfg
@@ -158,7 +157,7 @@ makeinstall_target() {
 
   # Saving
   echo "savestate_thumbnail_enable = \"true\"" >> ${INSTALL}/etc/retroarch.cfg
-  
+
   # Input
   sed -i -e "s/# input_driver = sdl/input_driver = udev/" ${INSTALL}/etc/retroarch.cfg
   sed -i -e "s/# input_max_users = 16/input_max_users = 5/" ${INSTALL}/etc/retroarch.cfg
@@ -183,7 +182,7 @@ makeinstall_target() {
   if [ "${ARCH}" == "arm" ]; then
     sed -i -e "s/# core_updater_buildbot_url = \"http:\/\/buildbot.libretro.com\"/core_updater_buildbot_url = \"http:\/\/buildbot.libretro.com\/nightly\/linux\/armhf\/latest\/\"/" ${INSTALL}/etc/retroarch.cfg
   fi
-  
+
   # Playlists
   echo "playlist_names = \"${RA_PLAYLIST_NAMES}\"" >> ${INSTALL}/etc/retroarch.cfg
   echo "playlist_cores = \"${RA_PLAYLIST_CORES}\"" >> ${INSTALL}/etc/retroarch.cfg
@@ -209,7 +208,7 @@ makeinstall_target() {
   echo "savestates_in_content_dir = \"false\"" >> ${INSTALL}/etc/retroarch.cfg
   echo "menu_show_restart_retroarch = \"false\"" >> ${INSTALL}/etc/retroarch.cfg
   echo "menu_show_quit_retroarch = \"true\"" >> ${INSTALL}/etc/retroarch.cfg
-  
+
 if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ]; then
     echo "xmb_layout = 2" >> ${INSTALL}/etc/retroarch.cfg
     echo "menu_widget_scale_auto = false" >> ${INSTALL}/etc/retroarch.cfg
@@ -224,10 +223,10 @@ fi
 
   mkdir -p ${INSTALL}/usr/config/retroarch/
   mv ${INSTALL}/etc/retroarch.cfg ${INSTALL}/usr/config/retroarch/
-  
+
 }
 
-post_install() {  
+post_install() {
   enable_service retroarch.service
   enable_service tmp-cores.mount
   enable_service tmp-joypads.mount

@@ -11,6 +11,11 @@ PKG_DEPENDS_TARGET="toolchain alsa-lib SDL2"
 PKG_LONGDESC="A console based real time MPEG Audio Player for Layer 1, 2 and 3."
 PKG_BUILD_FLAGS="-fpic"
 
+pre_configure_target() {
+  # 🔥 A VACINA: Ignora erros de tipos de ponteiro incompatíveis (Sinal/Handler)
+  export CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types"
+}
+
 if [ "${PULSEAUDIO_SUPPORT}" = yes ]; then
   PKG_DEPENDS_TARGET="${PKG_DEPENDS_TARGET} pulseaudio"
   PKG_CONFIGURE_OPTS_TARGET="--with-default-audio=pulse --with-audio=alsa,pulse"

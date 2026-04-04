@@ -9,14 +9,17 @@ PKG_VERSION="0b160db48796f727311cea16072174d96b784f80"
 PKG_GIT_CLONE_BRANCH="egldrm"
 
 PKG_DEPENDS_TARGET="toolchain libevdev ffmpeg zlib libpng lzo libusb zstd ecm openal-soft alsa-lib"
+PKG_DEPENDS_TARGET+=" ${OPENGLES}"
 
 PKG_LONGDESC="Dolphin is a GameCube / Wii emulator."
-
 PKG_TOOLCHAIN="cmake"
 
 PKG_PATCH_DIRS+=" legacy"
 
-PKG_DEPENDS_TARGET+=" ${OPENGLES}"
+pre_configure_target() {
+  # GCC 15 fixes
+  export CXXFLAGS="${CXXFLAGS} -include algorithm -include cstdint -Wno-class-memaccess"
+}
 
 PKG_CMAKE_OPTS_TARGET+=" -DENABLE_EGL=ON \
                          -DENABLE_VULKAN=OFF \
@@ -40,16 +43,31 @@ PKG_CMAKE_OPTS_TARGET+=" -DENABLE_EGL=ON \
                          -DCMAKE_BUILD_TYPE=Release"
 
 pre_make_target() {
-  # Esta função roda DEPOIS do cmake, mas ANTES da compilação (ninja)
-  
-  # 1. Correção para Kernel 3.14 (Erro do INPUT_PROP_ACCELEROMETER)
+
+  echo "Applying final compatibility fixes..."
+
+  # =========================
+  # FIX 1: EVDEV (kernel antigo)
+  # =========================
   EVDEV_FILE="${PKG_BUILD}/Source/Core/InputCommon/ControllerInterface/evdev/evdev.cpp"
+
   if [ -f "${EVDEV_FILE}" ]; then
-    echo "Aplicando patch de compatibilidade para evdev no Kernel 3.14..."
-    sed -i 's/libevdev_has_property(dev, INPUT_PROP_ACCELEROMETER)/false/g' "${EVDEV_FILE}"
+    sed -i '1i #include <linux/input.h>' "${EVDEV_FILE}"
+    sed -i '1i #ifndef INPUT_PROP_ACCELEROMETER\n#define INPUT_PROP_ACCELEROMETER 0\n#endif' "${EVDEV_FILE}"
   fi
 
-  # 2. Correção de headers para dispositivos específicos
+  # =========================
+  # FIX 2: FMT (GCC15 + fmt12)
+  # =========================
+  FMT_FILE="${PKG_BUILD}/Source/Core/Core/IOS/FS/FileSystemProxy.cpp"
+
+  if [ -f "${FMT_FILE}" ]; then
+    sed -i 's/request.mode/static_cast<int>(request.mode)/g' "${FMT_FILE}"
+  fi
+
+  # =========================
+  # FIX 3: Headers VulkanMemoryAllocator
+  # =========================
   case ${DEVICE} in
     RK3588*|AMD64|S922X|Amlogic-old)
       VMA_FILE="${PKG_BUILD}/Externals/VulkanMemoryAllocator/include/vk_mem_alloc.h"
@@ -76,6 +94,7 @@ makeinstall_target() {
 
 post_install() {
   DOLPHIN_PLATFORM="drm"
+
   sed -e "s/@DOLPHIN_PLATFORM@/${DOLPHIN_PLATFORM}/g" \
       -i ${INSTALL}/usr/bin/start_dolphin_gc.sh
 

@@ -21,13 +21,8 @@ if [ "${OPENGLES_SUPPORT}" = yes ]; then
 fi
 
 pre_configure_target() {
-  cd ${PKG_BUILD}
-
-  # garantir que os submodules (imgui) sejam baixados
-  git submodule update --init --recursive
-
-  # corrigir caminho do sdl2-config
-  sed -i "s|sdl2-config|${SYSROOT_PREFIX}/usr/bin/sdl2-config|g" Makefile
+ cd ${PKG_BUILD}
+ sed -i "s|\`sdl2-config|\`${SYSROOT_PREFIX}/usr/bin/sdl2-config|g" Makefile
 }
 
 makeinstall_target() {

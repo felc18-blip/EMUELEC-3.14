@@ -15,22 +15,25 @@ PKG_TOOLCHAIN="make"
 PKG_BUILD_FLAGS="-lto"
 PKG_PATCH_DIRS+=" ${DEVICE}"
 
-pre_make_target() {
-  export CFLAGS="${CFLAGS} -fcommon"
-}
-
 pre_configure_target() {
+  cd ${PKG_BUILD}
 
-  # força GLES (CRÍTICO)
-  PKG_MAKE_OPTS_TARGET+=" HAVE_OPENGL=0 HAVE_OPENGLES=1 FORCE_GLES=1"
+  # 🔥 FOCO DE HOJE: Resolver o conflito do 'fsqrt'
+  # Este comando percorre o código e muda o nome da função interna para mupen_fsqrt
+  find . -type f \( -name "*.c" -o -name "*.h" -o -name "*.def" -o -name "*.cpp" \) -exec sed -i 's/\<fsqrt\>/mupen_fsqrt/g' {} +
 
-  case ${DEVICE} in
-    RK3*|S922X*)
-      PKG_MAKE_OPTS_TARGET+=" platform=${DEVICE}"
-      CFLAGS="${CFLAGS} -DLINUX -DEGL_API_FB"
-      CPPFLAGS="${CPPFLAGS} -DLINUX -DEGL_API_FB"
-    ;;
-  esac
+  # Mantendo a correção do nullf que já passamos (variadic macro)
+  if [ -f "mupen64plus-core/src/r4300/new_dynarec/new_dynarec_64.c" ]; then
+    sed -i 's/#define assem_debug nullf/#define assem_debug(...)/g' mupen64plus-core/src/r4300/new_dynarec/new_dynarec_64.c
+    sed -i 's/#define inv_debug nullf/#define inv_debug(...)/g' mupen64plus-core/src/r4300/new_dynarec/new_dynarec_64.c
+  fi
+
+  # Configurações básicas de plataforma
+  PKG_MAKE_OPTS_TARGET+=" platform=unix HAVE_OPENGL=0 HAVE_OPENGLES=1 FORCE_GLES=1 WITH_DYNAREC=aarch64"
+
+  # Forçar flags de compatibilidade do GCC 15
+  CFLAGS="${CFLAGS} -fcommon -Wno-implicit-function-declaration -Wno-incompatible-pointer-types"
+  CXXFLAGS="${CXXFLAGS} -fcommon"
 
   sed -i 's/\-O[23]/-Ofast/' ${PKG_BUILD}/Makefile
 }

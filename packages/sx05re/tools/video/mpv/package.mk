@@ -11,6 +11,7 @@ PKG_TOOLCHAIN="meson"
 # Na 0.41.0, o suporte a SDL2 é controlado por '-Dsdl-video' ou '-Dsdl-audio'
 # mas se der erro, o mpv 0.41.0 simplificou para detecção automática ou nomes novos.
 # Se as anteriores falharam, vamos usar as flags que não mudam:
+# Opções corrigidas para o MPV 0.41.0
 PKG_MESON_OPTS_TARGET="
   -Dcplayer=true
   -Dlibmpv=true
@@ -19,7 +20,6 @@ PKG_MESON_OPTS_TARGET="
   -Degl=enabled
   -Dsdl2-video=enabled
   -Dsdl2-audio=enabled
-  -Dalsa=enabled
   -Diconv=enabled
   -Dpulse=disabled
   -Dpipewire=disabled
@@ -29,6 +29,8 @@ PKG_MESON_OPTS_TARGET="
   -Dwayland=disabled
   -Dx11=disabled
   -Dshaderc=disabled
+  -Duchardet=disabled
+  -Djavascript=disabled
 "
 
 pre_configure_target() {
