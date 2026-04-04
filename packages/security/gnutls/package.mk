@@ -3,14 +3,20 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="gnutls"
-PKG_VERSION="3.8.1"
+PKG_VERSION="3.8.12"
+PKG_SHA256="a7b341421bfd459acf7a374ca4af3b9e06608dcd7bd792b2bf470bea012b8e51"
 PKG_LICENSE="LGPL2.1"
 PKG_SITE="https://gnutls.org"
 PKG_URL="https://www.gnupg.org/ftp/gcrypt/gnutls/v${PKG_VERSION:0:3}/${PKG_NAME}-${PKG_VERSION}.tar.xz"
-PKG_DEPENDS_TARGET="toolchain libidn2 nettle zlib"
+
+PKG_DEPENDS_HOST="autotools:host libidn2:host nettle:host zlib:host"
+PKG_DEPENDS_TARGET="autotools:host gcc:host libidn2 nettle zlib"
+
 PKG_LONGDESC="A library which provides a secure layer over a reliable transport layer."
 
-PKG_CONFIGURE_OPTS_TARGET="--disable-doc \
+PKG_TOOLCHAIN="configure"
+
+PKG_CONFIGURE_OPTS_COMMON="--disable-doc \
                            --disable-full-test-suite \
                            --disable-guile \
                            --disable-libdane \
@@ -24,6 +30,14 @@ PKG_CONFIGURE_OPTS_TARGET="--disable-doc \
                            --with-included-unistring \
                            --without-p11-kit \
                            --without-tpm"
+
+PKG_CONFIGURE_OPTS_HOST="${PKG_CONFIGURE_OPTS_COMMON}"
+PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_COMMON}"
+
+pre_configure_target() {
+  # compat GCC moderno (evita warnings virarem erro)
+  export CFLAGS="${CFLAGS} -Wno-error"
+}
 
 post_configure_target() {
   libtool_remove_rpath libtool

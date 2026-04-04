@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
 # Copyright (C) 2017-present Team LibreELEC (https://libreelec.tv)
-
 PKG_NAME="samba"
-PKG_VERSION="4.21.10"
+PKG_VERSION="4.24.0"
+PKG_SHA256="1b1e457fd651a612cd08226cc6efd04e5d01e36d918c8b4c4e470e74e86881ea"
 PKG_LICENSE="GPLv3+"
 PKG_SITE="https://www.samba.org"
 PKG_URL="https://download.samba.org/pub/samba/stable/${PKG_NAME}-${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain attr heimdal:host e2fsprogs Python3 libunwind zlib readline popt libaio connman gnutls"
+PKG_DEPENDS_TARGET="autotools:host gcc:host heimdal:host attr connman e2fsprogs gnutls libaio libunwind popt Python3 readline talloc zlib"
 PKG_NEED_UNPACK="$(get_pkg_directory heimdal) $(get_pkg_directory e2fsprogs)"
 PKG_LONGDESC="A free SMB / CIFS fileserver and client."
 
@@ -85,14 +85,41 @@ configure_package() {
 }
 
 pre_configure_target() {
-# samba uses its own build directory
   cd ${PKG_BUILD}
-    rm -rf .${TARGET_NAME}
 
-# work around link issues
+  # --- VACINA SAMBA 4.24.0 vs GLIBC 2.43 & Kernel 3.14 ---
+
+  # 1. Conserta o erro de digitação dos devs no uso do memset_explicit
+  if [ -f "lib/replace/replace.c" ]; then
+    sed -i 's/memset_explicit(dest, destsz, ch, count)/memset(dest, ch, count)/g' lib/replace/replace.c
+  fi
+
+  # 2. Injeta a estrutura FICLONERANGE que não existe no Kernel 3.14 para calar o compilador
+  if [ -f "lib/replace/replace.h" ]; then
+    cat << 'EOF' >> lib/replace/replace.h
+
+/* Injeção forçada para Kernel antigo (3.14) */
+#ifndef FICLONERANGE
+#define FICLONERANGE 0x4020940d
+struct file_clone_range {
+    long long src_fd;
+    unsigned long long src_offset;
+    unsigned long long dest_offset;
+    unsigned long long src_length;
+};
+#endif
+EOF
+  fi
+
+  # 3. Proteção padrão GCC 15
+  export CFLAGS="${CFLAGS} -Wno-error=incompatible-pointer-types -Wno-int-conversion -Wno-implicit-function-declaration"
+
+  # Work around link issues
   export LDFLAGS="${LDFLAGS} -lreadline -lncurses"
 
-# support 64-bit offsets and seeks on 32-bit platforms
+  rm -rf .${TARGET_NAME}
+
+  # Support 64-bit offsets and seeks on 32-bit platforms
   if [ "${TARGET_ARCH}" = "arm" ]; then
     export CFLAGS+=" -D_FILE_OFFSET_BITS=64 -D_OFF_T_DEFINED_ -Doff_t=off64_t -Dlseek=lseek64"
   fi

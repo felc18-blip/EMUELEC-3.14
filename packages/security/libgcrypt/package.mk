@@ -3,18 +3,21 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="libgcrypt"
-PKG_VERSION="1.10.2"
-PKG_SHA256="3b9c02a004b68c256add99701de00b383accccf37177e0d6c58289664cce0c03"
+PKG_VERSION="1.12.1"
+PKG_SHA256="7df5c08d952ba33f9b6bdabdb06a61a78b2cf62d2122c2d1d03a91a79832aa3c"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://www.gnupg.org/"
 PKG_URL="https://www.gnupg.org/ftp/gcrypt/libgcrypt/${PKG_NAME}-${PKG_VERSION}.tar.bz2"
-PKG_DEPENDS_TARGET="toolchain libgpg-error"
+
+PKG_DEPENDS_TARGET="autotools:host gcc:host libgpg-error"
+
 PKG_LONGDESC="A General purpose cryptographic library."
 PKG_TOOLCHAIN="autotools"
-# libgcrypt-1.7.x fails to build with LTO support
-# see for example https://bugs.gentoo.org/show_bug.cgi?id=581114
 
 pre_configure_target() {
+  # compatibilidade GCC moderno (mantendo padrão EmuELEC)
+  export CFLAGS="${CFLAGS} -std=gnu11 -Wno-error"
+
   PKG_CONFIGURE_OPTS_TARGET="CC_FOR_BUILD=${HOST_CC} \
                              ac_cv_sys_symbol_underscore=no \
                              --enable-asm \
