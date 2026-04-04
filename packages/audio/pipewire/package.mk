@@ -2,28 +2,19 @@
 # Copyright (C) 2021-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="pipewire"
-PKG_VERSION="1.4.6"
-PKG_SHA256="0470a38cf62485f53899896efc94f538cc4e7ad69704a67d70004024a3e478ea"
+PKG_VERSION="1.6.1"
+PKG_SHA256="fe129cab5e5c262f4d8b22a7eba559b5f847e560a4904e8618124eeaca9a579c"
 PKG_LICENSE="LGPL"
 PKG_SITE="https://pipewire.org"
 PKG_URL="https://github.com/PipeWire/pipewire/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain alsa-lib dbus glib libpthread-stubs libsndfile libusb ncurses systemd"
 PKG_LONGDESC="PipeWire is a server and user space API to deal with multimedia pipeline"
 
-if [ "${BLUETOOTH_SUPPORT}" = "yes" ]; then
-  PKG_DEPENDS_TARGET+=" bluez fdk-aac sbc ldacBT libfreeaptx"
-  PKG_PIPEWIRE_BLUETOOTH="-Dbluez5=enabled \
-                          -Dbluez5-backend-hsp-native=disabled \
-                          -Dbluez5-backend-hfp-native=disabled \
-                          -Dbluez5-backend-ofono=disabled \
-                          -Dbluez5-backend-hsphfpd=disabled \
-                          -Dbluez5-codec-aptx=enabled \
-                          -Dbluez5-codec-ldac=enabled \
-                          -Dbluez5-codec-aac=enabled"
-else
-  PKG_PIPEWIRE_BLUETOOTH="-Dbluez5=disabled"
-fi
+# --- VACINA KERNEL 3.14: Desativando Bluetooth BlueZ5 ---
+# O código do BlueZ5 do Pipewire usa headers de latência (net_tstamp.h) que não existem no seu kernel antigo.
+PKG_PIPEWIRE_BLUETOOTH="-Dbluez5=disabled"
 
+# 🔥 Corrigido o missing '\' no jack-devel e desativadas dependências de kernel moderno (ALSA plugins, AVB)
 PKG_MESON_OPTS_TARGET="-Ddocs=disabled \
                        -Dexamples=disabled \
                        -Dman=disabled \
@@ -31,13 +22,13 @@ PKG_MESON_OPTS_TARGET="-Ddocs=disabled \
                        -Dinstalled_tests=disabled \
                        -Dgstreamer=disabled \
                        -Dgstreamer-device-provider=disabled \
-                       -Dsystemd=enabled \
+                       -Dlibsystemd=enabled \
                        -Dsystemd-system-service=enabled \
                        -Dsystemd-user-service=disabled \
                        -Dpipewire-alsa=enabled \
                        -Dpipewire-jack=disabled \
                        -Dpipewire-v4l2=disabled \
-                       -Djack-devel=false
+                       -Djack-devel=false \
                        -Dspa-plugins=enabled \
                        -Dalsa=enabled \
                        -Daudiomixer=enabled \
@@ -62,7 +53,7 @@ PKG_MESON_OPTS_TARGET="-Ddocs=disabled \
                        -Dudevrulesdir=/usr/lib/udev/rules.d \
                        -Dsdl2=disabled \
                        -Dsndfile=enabled \
-                       -Dlibpulse=disabled \
+                       -Dlibpulse=enabled \
                        -Droc=disabled \
                        -Davahi=disabled \
                        -Decho-cancel-webrtc=disabled \
@@ -73,7 +64,14 @@ PKG_MESON_OPTS_TARGET="-Ddocs=disabled \
                        -Dx11=disabled \
                        -Dx11-xfixes=disabled \
                        -Dlibcanberra=disabled \
-                       -Dlegacy-rtkit=false"
+                       -Dlegacy-rtkit=false \
+                       -Davb=disabled \
+                       -Dcompress-offload=disabled"
+
+pre_configure_target() {
+  # --- VACINA GCC 15 ---
+  export CFLAGS="${CFLAGS} -Wno-error=incompatible-pointer-types -Wno-incompatible-pointer-types -Wno-error=int-conversion -Wno-int-conversion -Wno-implicit-function-declaration -Wno-return-type"
+}
 
 post_makeinstall_target() {
   # connect to the system bus

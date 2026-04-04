@@ -14,6 +14,11 @@ PKG_LONGDESC="Simple DirectMedia Layer is a cross-platform development library d
 PKG_DEPENDS_HOST="toolchain:host distutilscross:host"
 PKG_CMAKE_OPTS_HOST="-DSDL_MALI=OFF -DSDL_KMSDRM=OFF -DSDL_X11=OFF"
 
+pre_configure_target() {
+  # 🔥 A VACINA: GCC 15 é rigoroso com ponteiros de função (ALSA/SDL2 mismatch)
+  export CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types"
+}
+
 PKG_CMAKE_OPTS_TARGET="-DSDL_STATIC=OFF \
                        -DSDL_LIBC=ON \
                        -DSDL_GCC_ATOMICS=ON \

@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
+# Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="giflib"
-PKG_VERSION="5.2.1"
-PKG_SHA256="31da5562f44c5f15d63340a09a4fd62b48c45620cd302f77a6d9acf0077879bd"
+PKG_VERSION="6.1.2"
+PKG_SHA256="2421abb54f5906b14965d28a278fb49e1ec9fe5ebbc56244dd012383a973d5c0"
 PKG_LICENSE="OSS"
 PKG_SITE="http://giflib.sourceforge.net/"
 PKG_URL="${SOURCEFORGE_SRC}/giflib/${PKG_NAME}-${PKG_VERSION}.tar.gz"

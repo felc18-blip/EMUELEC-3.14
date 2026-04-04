@@ -3,11 +3,11 @@
 # Copyright (C) 2020-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="rtmpdump"
-PKG_VERSION="c5f04a58fc2aeea6296ca7c44ee4734c18401aa3"
-PKG_SHA256="fd8c21263d93fbde8bee8aa6c5f6a657789674bb0f9e74f050651504d5f43b46"
+PKG_VERSION="6f6bb1353fc84f4cc37138baa99f586750028a01" # v2.6
+PKG_SHA256="5d68d69710be21e86e766753d2bd25cb2ad1c853b0bc80ebe6b49a6cc507bfc0"
 PKG_LICENSE="GPL"
 PKG_SITE="http://rtmpdump.mplayerhq.hu/"
-PKG_URL="http://repo.or.cz/rtmpdump.git/snapshot/${PKG_VERSION}.tar.gz"
+PKG_URL="https://github.com/mirror/rtmpdump/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain zlib openssl"
 PKG_LONGDESC="rtmpdump is a toolkit for RTMP streams."
 PKG_BUILD_FLAGS="+pic"
@@ -66,7 +66,7 @@ makeinstall_target() {
 post_makeinstall_target() {
   rm -rf ${INSTALL}/usr/sbin
 
-#  # to be removed: hack for "compatibility"
-#  mkdir -p ${INSTALL}/usr/lib
-#    ln -sf librtmp.so.1 ${INSTALL}/usr/lib/librtmp.so.0
+  #  # to be removed: hack for "compatibility"
+  #  mkdir -p ${INSTALL}/usr/lib
+  #    ln -sf librtmp.so.1 ${INSTALL}/usr/lib/librtmp.so.0
 }

@@ -3,8 +3,8 @@
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="libpng"
-PKG_VERSION="1.6.40"
-PKG_SHA256="535b479b2467ff231a3ec6d92a525906fb8ef27978be4f66dbe05d3f3a01b3a1"
+PKG_VERSION="1.6.56"
+PKG_SHA256="f7d8bf1601b7804f583a254ab343a6549ca6cf27d255c302c47af2d9d36a6f18"
 PKG_LICENSE="LibPNG2"
 PKG_SITE="http://www.libpng.org/"
 PKG_URL="${SOURCEFORGE_SRC}/libpng/${PKG_NAME}-${PKG_VERSION}.tar.xz"

@@ -3,8 +3,9 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="libva"
-PKG_VERSION="2.20.0"
-PKG_ARCH="x86_64 i686"
+PKG_VERSION="2.23.0"
+PKG_SHA256="b10aceb30e93ddf13b2030eb70079574ba437be9b3b76065caf28a72c07e23e7"
+PKG_ARCH="x86_64"
 PKG_LICENSE="GPL"
 PKG_SITE="https://01.org/linuxmedia"
 PKG_URL="https://github.com/intel/libva/archive/${PKG_VERSION}.tar.gz"
@@ -23,5 +24,4 @@ fi
 
 PKG_MESON_OPTS_TARGET="-Ddisable_drm=false \
                        -Denable_docs=false \
-                       -Denable_va_messaging=true \
                        ${DISPLAYSERVER_LIBVA}"

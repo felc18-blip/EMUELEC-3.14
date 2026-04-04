@@ -2,8 +2,8 @@
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="openal-soft"
-PKG_VERSION="1.24.3"
-PKG_SHA256="7e1fecdeb45e7f78722b776c5cf30bd33934b961d7fd2a11e0494e064cc631ce"
+PKG_VERSION="1.25.1"
+PKG_SHA256="5f8efe8dfba5e9307a50251ba615ace857c7fa9dddfe34130b83e213d7f7cf24"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.openal.org/"
 PKG_URL="https://github.com/kcat/openal-soft/archive/${PKG_VERSION}.tar.gz"
@@ -15,4 +15,3 @@ PKG_CMAKE_OPTS_TARGET="-DALSOFT_BACKEND_OSS=off \
                        -DALSOFT_BACKEND_WAVE=off \
                        -DALSOFT_EXAMPLES=off \
                        -DALSOFT_UTILS=off"
-

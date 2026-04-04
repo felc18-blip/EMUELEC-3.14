@@ -10,7 +10,7 @@ PKG_SITE="https://ffmpeg.org"
 PKG_URL="http://ffmpeg.org/releases/ffmpeg-${PKG_VERSION}.tar.xz"
 
 # ELITE: Adicionado SDL2 de volta (necessário para o ffplay/EmuELEC) e mantido libxml2 da base nova
-PKG_DEPENDS_TARGET="toolchain zlib bzip2 SDL2 openssl speex libxml2 x264"
+PKG_DEPENDS_TARGET="toolchain zlib bzip2 SDL2 openssl speex libxml2 x264 lame"
 PKG_LONGDESC="FFmpeg is a complete, cross-platform solution to record, convert and stream audio and video."
 PKG_PATCH_DIRS="postproc libreelec"
 
@@ -238,7 +238,7 @@ export CFLAGS="${CFLAGS} -DV4L2_BUF_FLAG_M2M_HOLD_CAPTURE_BUF=0x00000200 -D_GNU_
   --disable-libopencv \
   --disable-libdc1394 \
   --disable-libgsm \
-  --disable-libmp3lame \
+  --enable-libmp3lame \
   --disable-libopenjpeg \
   --disable-librtmp \
   --disable-libvorbis \
