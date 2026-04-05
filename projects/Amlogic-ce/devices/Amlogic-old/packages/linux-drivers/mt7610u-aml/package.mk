@@ -24,6 +24,7 @@ make_target() {
     ARCH=$TARGET_KERNEL_ARCH \
     CROSS_COMPILE=$TARGET_KERNEL_PREFIX \
     RT28xx_DIR=$PKG_BUILD \
+    KCFLAGS="-std=gnu89 -Wno-error" \
     -f $PKG_BUILD/Makefile
 }
 

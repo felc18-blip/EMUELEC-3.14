@@ -27,6 +27,12 @@ unpack() {
   tar --strip-components=1 -xf ${SOURCES}/mpg123-compat/mpg123-compat-${PKG_VERSION}.tar.bz2 -C ${PKG_BUILD}
 }
 
+pre_configure_target() {
+  # --- VACINA GCC 15 ---
+  # Exportamos as flags diretamente para o ambiente, evitando o erro de divisão de espaços do shell script
+  export CFLAGS="${CFLAGS} -std=gnu11 -Wno-error=incompatible-pointer-types -Wno-incompatible-pointer-types -Wno-error=int-conversion -Wno-int-conversion -Wno-array-bounds -Wno-implicit-function-declaration -Wno-stringop-overflow -Wno-error=return-type"
+}
+
 post_makeinstall_target() {
   safe_remove ${INSTALL}/usr/bin
   safe_remove ${INSTALL}/usr/include

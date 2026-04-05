@@ -170,6 +170,7 @@ makeinstall_host() {
 }
 
 pre_make_target() {
+
   pkg_lock_status "ACTIVE" "linux:target" "build"
 
   # 🔥 compatibilidade GCC novo (OK)
@@ -203,8 +204,20 @@ pre_make_target() {
   if [ -f "$PKG_BUILD/Makefile" ]; then
     sed -i 's/-Werror\b//g' "$PKG_BUILD/Makefile"
   fi
+  pkg_lock_status "ACTIVE" "linux:target" "build"
 
-  # 🔥 mantém fluxo original (ESSENCIAL pro boot)
+  # 🔥 GCC moderno compat
+  export KBUILD_CFLAGS="$KBUILD_CFLAGS -fcommon -Wno-error -std=gnu89"
+  export KBUILD_AFLAGS="$KBUILD_AFLAGS -fcommon"
+  export KCFLAGS="$KCFLAGS -Wno-error -std=gnu89"
+
+  # 🔥 ESSENCIAL (resolve seu erro atual)
+  export HOSTCFLAGS="-O2 -std=gnu89"
+  export HOSTCXXFLAGS="-O2"
+
+  # 🔥 extra blindagem
+  export HOST_CPPFLAGS="-std=gnu89"
+
   kernel_make oldconfig
 }
 

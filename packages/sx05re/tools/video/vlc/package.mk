@@ -120,6 +120,16 @@ pre_make_target() {
   export PATH="${PKG_BUILD}/fakebin:$PATH"
 }
 
+post_configure_target() {
+  # Hack para evitar que o libtool tente fazer o relink dos plugins durante o make install
+  # Isso evita o erro "mv: cannot stat 'libxxx_plugin.so'" no cross-compiling
+  if [ -f "${PKG_BUILD}/.${TARGET_NAME}/libtool" ]; then
+    sed -i 's/need_relink=yes/need_relink=no/g' ${PKG_BUILD}/.${TARGET_NAME}/libtool
+  else
+    find ${PKG_BUILD} -name "libtool" -exec sed -i 's/need_relink=yes/need_relink=no/g' {} +
+  fi
+}
+
 post_makeinstall_target() {
 
   # -------------------------------

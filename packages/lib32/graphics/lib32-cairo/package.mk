@@ -1,7 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
-# Copyright (C) 2019-2022 Team LibreELEC (https://libreelec.tv)
-# Copyright (C) 2022-present 7Ji (https://github.com/7Ji)
 
 PKG_NAME="lib32-cairo"
 PKG_VERSION="$(get_pkg_version cairo)"
@@ -10,63 +7,43 @@ PKG_ARCH="aarch64"
 PKG_LICENSE="LGPL"
 PKG_SITE="http://cairographics.org/"
 PKG_URL=""
-PKG_DEPENDS_TARGET="lib32-toolchain lib32-zlib lib32-freetype lib32-fontconfig lib32-glib lib32-libpng lib32-pixman lib32-${OPENGLES}"
+PKG_DEPENDS_TARGET="lib32-toolchain lib32-zlib lib32-freetype lib32-fontconfig lib32-glib lib32-libpng lib32-pixman"
 PKG_PATCH_DIRS+=" $(get_pkg_directory cairo)/patches"
 PKG_LONGDESC="Cairo is a vector graphics library with cross-device output support."
-PKG_TOOLCHAIN="configure"
 PKG_BUILD_FLAGS="lib32"
 
-PKG_CONFIGURE_OPTS_TARGET="--disable-silent-rules \
-                            --enable-shared \
-                            --disable-static \
-                            --disable-gtk-doc \
-                            --enable-largefile \
-                            --enable-atomic \
-                            --disable-gcov \
-                            --disable-valgrind \
-                            --disable-xcb \
-                            --disable-xlib-xcb \
-                            --disable-xcb-shm \
-                            --disable-qt \
-                            --disable-quartz \
-                            --disable-quartz-font \
-                            --disable-quartz-image \
-                            --disable-win32 \
-                            --disable-win32-font \
-                            --disable-os2 \
-                            --disable-beos \
-                            --disable-cogl \
-                            --disable-drm \
-                            --disable-gallium \
-                            --enable-png \
-                            --disable-directfb \
-                            --disable-vg \
-                            --disable-wgl \
-                            --disable-script \
-                            --enable-ft \
-                            --enable-fc \
-                            --enable-ps \
-                            --enable-pdf \
-                            --enable-svg \
-                            --disable-test-surfaces \
-                            --disable-tee \
-                            --disable-xml \
-                            --enable-pthread \
-                            --enable-gobject=yes \
-                            --disable-full-testing \
-                            --disable-rpath \
-                            --disable-trace \
-                            --enable-interpreter \
-                            --disable-symbol-lookup \
-                            --enable-some-floating-point \
-                            --with-gnu-ld \
-                            --disable-xlib \
-                            --disable-xlib-xrender \
-                            --without-x \
-                            --disable-gl \
-                            --disable-glx \
-                            --enable-glesv2 \
-                            --enable-egl"
+################################################################################
+# FIXES (mantido do seu)
+################################################################################
+
+pre_configure_target() {
+  # Fix C23 / GCC 15
+  find ${PKG_BUILD} -name "pdiff.h" -exec sed -i 's|typedef int bool;||g' {} +
+  find ${PKG_BUILD} -name "pdiff.h" -exec sed -i '1i #include <stdbool.h>' {} +
+  find ${PKG_BUILD} -name "pdiff.c" -exec sed -i '1i #include <stdbool.h>' {} +
+
+  export CFLAGS="${CFLAGS} -std=gnu11 -Wno-implicit-function-declaration"
+
+  PKG_MESON_OPTS_TARGET="-Ddefault_library=shared \
+                        -Dtests=disabled \
+                        -Dgtk_doc=false \
+                        -Dpng=enabled \
+                        -Dzlib=enabled \
+                        -Dfreetype=enabled \
+                        -Dfontconfig=enabled \
+                        -Dglib=enabled \
+                        -Dsymbol-lookup=disabled \
+                        -Dtee=disabled \
+                        -Dxcb=disabled \
+                        -Dxlib-xcb=disabled \
+                        -Dquartz=disabled \
+                        -Dspectre=disabled \
+                        -Dxlib=disabled"
+}
+
+################################################################################
+# UNPACK (mantido)
+################################################################################
 
 unpack() {
   ${SCRIPTS}/get cairo
@@ -74,9 +51,10 @@ unpack() {
   tar --strip-components=1 -xf ${SOURCES}/cairo/cairo-${PKG_VERSION}.tar.xz -C ${PKG_BUILD}
 }
 
-post_configure_target() {
-  libtool_remove_rpath libtool
-}
+################################################################################
+# PÓS
+################################################################################
+
 
 post_makeinstall_target() {
   safe_remove ${INSTALL}/usr/include

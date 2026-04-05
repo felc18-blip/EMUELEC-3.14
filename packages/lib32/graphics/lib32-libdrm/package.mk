@@ -18,7 +18,9 @@ PKG_BUILD_FLAGS="lib32"
 
 get_graphicdrivers
 
-PKG_MESON_OPTS_TARGET="-Dnouveau=disabled \
+# FIX: Adicionamos --libdir=/usr/lib32 para o Meson não jogar em /usr/lib
+PKG_MESON_OPTS_TARGET="--libdir=/usr/lib32 \
+                       -Dnouveau=disabled \
                        -Domap=disabled \
                        -Dexynos=disabled \
                        -Dtegra=disabled \
@@ -36,9 +38,14 @@ unpack() {
 }
 
 post_makeinstall_target() {
-  # We don't need any binary, since we only want lib32
+  # Limpamos o que não é necessário para a lib32
   safe_remove ${INSTALL}/usr/bin
   safe_remove ${INSTALL}/usr/include
   safe_remove ${INSTALL}/usr/share
-  mv ${INSTALL}/usr/lib ${INSTALL}/usr/lib32
+
+  # Como usamos --libdir=/usr/lib32 lá no topo, o Meson já instalou no lugar certo.
+  # Se o diretório /usr/lib (64-bit) for criado vazio, nós removemos para não sujar a build.
+  if [ -d "${INSTALL}/usr/lib" ] && [ "${INSTALL}/usr/lib" != "${INSTALL}/usr/lib32" ]; then
+    rmdir --ignore-fail-on-non-empty ${INSTALL}/usr/lib
+  fi
 }

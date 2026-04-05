@@ -6,14 +6,25 @@ PKG_VERSION="1.6.1"
 PKG_SHA256="15d838c4f3375332fd95554619179b69e4ec91418a3a5296e7c631b7ed19e7ca"
 PKG_LICENSE="MIT"
 PKG_SITE="http://xmlstar.sourceforge.net"
-PKG_URL="http://netcologne.dl.sourceforge.net/project/xmlstar/${PKG_NAME}/${PKG_VERSION}/${PKG_NAME}-${PKG_VERSION}.tar.gz"
+PKG_URL="https://downloads.sourceforge.net/project/xmlstar/${PKG_NAME}/${PKG_VERSION}/${PKG_NAME}-${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_HOST="libxml2:host libxslt:host"
 PKG_DEPENDS_TARGET="toolchain libxml2 libxslt"
 PKG_LONGDESC="XMLStarlet is a command-line XML utility which allows the modification and validation of XML documents."
+PKG_BUILD_FLAGS="-cfg-libs -cfg-libs:host"
+
+pre_configure_host() {
+  export CFLAGS="${CFLAGS} -Wno-error -Wno-pointer-sign -Wno-incompatible-pointer-types"
+  # Força a linkagem da biblioteca de matemática (libm) no host
+  export LDFLAGS="${LDFLAGS} -lm"
+}
+
+pre_configure_target() {
+  # Força a linkagem da biblioteca de matemática (libm) no target (ARM)
+  export LDFLAGS="${LDFLAGS} -lm"
+}
 
 PKG_CONFIGURE_OPTS_HOST="  ac_cv_func_malloc_0_nonnull=yes \
                            ac_cv_func_realloc_0_nonnull=yes \
-                           --enable-static-libs \
                            LIBXML_CONFIG=${TOOLCHAIN}/bin/xml2-config \
                            LIBXSLT_CONFIG=${TOOLCHAIN}/bin/xslt-config \
                            --with-libxml-include-prefix=${TOOLCHAIN}/include/libxml2 \
@@ -23,16 +34,12 @@ PKG_CONFIGURE_OPTS_HOST="  ac_cv_func_malloc_0_nonnull=yes \
 
 PKG_CONFIGURE_OPTS_TARGET="ac_cv_func_malloc_0_nonnull=yes \
                            ac_cv_func_realloc_0_nonnull=yes \
-                           --enable-static-libs \
                            LIBXML_CONFIG=${SYSROOT_PREFIX}/usr/bin/xml2-config \
                            LIBXSLT_CONFIG=${SYSROOT_PREFIX}/usr/bin/xslt-config \
                            --with-libxml-include-prefix=${SYSROOT_PREFIX}/usr/include/libxml2 \
                            --with-libxml-libs-prefix=${SYSROOT_PREFIX}/usr/lib \
                            --with-libxslt-include-prefix=${SYSROOT_PREFIX}/usr/include \
                            --with-libxslt-libs-prefix=${SYSROOT_PREFIX}/usr/lib"
-
-# ADICIONADO: Força o link do iconv durante a execução do MAKE
-PKG_MAKE_OPTS_TARGET="LIBS=-liconv"
 
 post_makeinstall_host() {
   ln -sf xml ${TOOLCHAIN}/bin/xmlstarlet

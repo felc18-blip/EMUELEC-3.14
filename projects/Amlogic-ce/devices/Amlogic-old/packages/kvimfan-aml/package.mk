@@ -18,8 +18,13 @@ pre_make_target() {
 }
 
 make_target() {
-  kernel_make -C "$(kernel_path)" M="$PKG_BUILD"
-
+  make ARCH=$TARGET_KERNEL_ARCH \
+       CROSS_COMPILE=$TARGET_KERNEL_PREFIX \
+       EXTRA_CFLAGS="-std=gnu89 -Wno-error" \
+       KCFLAGS="-std=gnu89 -Wno-error" \
+       HOSTCFLAGS="-std=gnu89" \
+       -C "$(kernel_path)" \
+       M="$PKG_BUILD"
 }
 makeinstall_target() {
   mkdir -p $INSTALL/$(get_full_module_dir)/$PKG_NAME

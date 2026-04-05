@@ -7,6 +7,19 @@ PKG_SHA256="6b9a7cd29a12bb95598f5750e8763cee78836a1a207f85b74d8b3275b27e87ca"
 PKG_LICENSE="GPLv3"
 PKG_SITE="http://itstool.org"
 PKG_URL="http://files.itstool.org/itstool/itstool-${PKG_VERSION}.tar.bz2"
-PKG_DEPENDS_HOST="toolchain libxml2:host libxml2"
+PKG_DEPENDS_HOST="toolchain libxml2:host"
+PKG_DEPENDS_TARGET="toolchain libxml2"
 PKG_LONGDESC="ITS Tool allows you to translate your XML documents with PO files."
 PKG_TOOLCHAIN="autotools"
+
+# FIX: Forçamos o Python do Host a encontrar o libxml2 da Toolchain
+# Isso resolve o erro "Python module libxml2 is needed"
+pre_configure_host() {
+  export PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+  export PYTHONPATH="${HOST_DESTDIR}/usr/lib/python${PYTHON_VERSION}/site-packages"
+}
+
+pre_configure_target() {
+  export PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+  export PYTHONPATH="${SYSROOTPREFIX}/usr/lib/python${PYTHON_VERSION}/site-packages"
+}

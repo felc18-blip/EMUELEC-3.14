@@ -15,8 +15,8 @@ PKG_DEPENDS_HOST="toolchain:host distutilscross:host"
 PKG_CMAKE_OPTS_HOST="-DSDL_MALI=OFF -DSDL_KMSDRM=OFF -DSDL_X11=OFF"
 
 pre_configure_target() {
-  # 🔥 A VACINA: GCC 15 é rigoroso com ponteiros de função (ALSA/SDL2 mismatch)
-  export CFLAGS="${CFLAGS} -Wno-incompatible-pointer-types"
+  # Força o GCC 15 a ignorar a divergência de ponteiros do ALSA
+  export CFLAGS="${CFLAGS} -Wno-error=incompatible-pointer-types"
 }
 
 PKG_CMAKE_OPTS_TARGET="-DSDL_STATIC=OFF \

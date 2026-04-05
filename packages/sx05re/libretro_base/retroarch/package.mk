@@ -19,11 +19,11 @@
 ################################################################################
 
 PKG_NAME="retroarch"
-PKG_VERSION="e5eff6db27cd37c3c318741ee8bb9a3b8b60ec62" # v1.22.2
+PKG_VERSION="69a4f0ea1e8aaf442ae4858f2e7f2b31a1776576"
 PKG_SITE="https://github.com/libretro/RetroArch"
 PKG_URL="${PKG_SITE}.git"
 PKG_LICENSE="GPLv3"
-PKG_DEPENDS_TARGET="toolchain SDL2 alsa-lib libass openssl freetype zlib retroarch-assets core-info ffmpeg libass joyutils empty nss-mdns openal-soft libogg libvorbisidec libvorbis libvpx libpng libdrm pulseaudio miniupnpc flac"
+PKG_DEPENDS_TARGET="toolchain SDL2 alsa-lib openssl freetype zlib retroarch-assets retroarch-overlays core-info ffmpeg libass joyutils empty ${OPENGLES} samba avahi nss-mdns freetype openal-soft espeak"
 PKG_LONGDESC="Reference frontend for the libretro API."
 GET_HANDLER_SUPPORT="git"
 
@@ -42,18 +42,14 @@ fi
 fi
 
 pre_configure_target() {
-  cd ${PKG_BUILD}
-
-  # FIX V4L2 (kernel antigo - Amlogic OLD)
-  sed -i 's/fmt\.fmt\.pix\.quantization = V4L2_QUANTIZATION_LIM_RANGE;/#ifdef V4L2_QUANTIZATION_LIM_RANGE\nfmt.fmt.pix.quantization = V4L2_QUANTIZATION_LIM_RANGE;\n#endif/' \
-    cores/libretro-video-processor/video_processor_v4l2.c
-export CFLAGS="${CFLAGS} -O3 -fno-tree-vectorize -Wno-error=implicit-function-declaration -Wno-error=int-conversion"
-# Retroarch does not like -O3 for CHD loading with cheevos
-export CFLAGS="${CFLAGS} -O3 -fno-tree-vectorize"
+  # FIX CRÍTICO: Avisa o GCC que a função command_uds_new retorna um ponteiro (64 bits) e não um int (32 bits)
+  # Isso impede o corte do endereço de memória e o Segmentation Fault!
+  sed -i '1i struct command_handler *command_uds_new(void);' ${PKG_BUILD}/input/input_driver.c
 
 TARGET_CONFIGURE_OPTS=""
 PKG_CONFIGURE_OPTS_TARGET="--disable-qt \
                            --enable-alsa \
+                           --disable-v4l2 \
                            --enable-udev \
                            --disable-opengl1 \
                            --disable-opengl \

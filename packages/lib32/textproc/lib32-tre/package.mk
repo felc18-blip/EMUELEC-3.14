@@ -21,7 +21,16 @@ unpack() {
 }
 
 pre_configure_target() {
-  sed -i "s|AM_GNU_GETTEXT_VERSION(0.17)|AM_GNU_GETTEXT_REQUIRE_VERSION(0.17)|" ${PKG_BUILD}/configure.ac
+  # 🔥 A VACINA: Em vez de trocar a macro, vamos forçar a regeneração do build system
+  # Isso garante que o 'configure' seja criado corretamente para o seu ambiente atual
+  cd ${PKG_BUILD}
+
+  # Remove a linha problemática do Gettext que causa erro no configure
+  sed -i "s|AM_GNU_GETTEXT_VERSION(0.17)||g" configure.ac
+  sed -i "s|AM_GNU_GETTEXT_REQUIRE_VERSION(0.17)||g" configure.ac
+
+  # Regenera os scripts de build (necessário para aplicar mudanças no .ac)
+  autoreconf -vif
 }
 
 post_makeinstall_target() {

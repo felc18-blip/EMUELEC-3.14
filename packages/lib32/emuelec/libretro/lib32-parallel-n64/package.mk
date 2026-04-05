@@ -28,10 +28,20 @@ case ${DEVICE} in
   ;;
 esac
 
+
 unpack() {
   ${SCRIPTS}/get parallel-n64
   mkdir -p ${PKG_BUILD}
   tar --strip-components=1 -xf ${SOURCES}/parallel-n64/parallel-n64-${PKG_VERSION}.tar.gz -C ${PKG_BUILD}
+
+  # 🔥 VACINA BLINDADA: O "-print0" e o "-0" garantem que nomes com espaços ou # não quebrem o sed
+  find ${PKG_BUILD} -type f \( -name "*.h" -o -name "*.c" -o -name "*.cpp" \) -print0 | xargs -0 sed -i 's/\bfsqrt\b/fsqrt_n64/g'
+}
+
+pre_configure_target() {
+  # Força o padrão C99 e ignora avisos de tipos que o Parallel abusa
+  export CFLAGS="${CFLAGS} -std=gnu99 -fcommon -Wno-implicit-function-declaration"
+  export CXXFLAGS="${CXXFLAGS} -fcommon"
 }
 
 makeinstall_target() {

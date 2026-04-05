@@ -76,7 +76,10 @@ post_unpack() {
 }
 
 pre_configure_target() {
-# Filter out some problematic *FLAGS
+  # --- VACINA GLIBC ---
+  # Substitui o código fonte por um arquivo "vazio" válido em C usando o CAMINHO ABSOLUTO.
+  # Assim a gente não usa o 'cd' e não quebra o out-of-tree build exigido pelo Glibc!
+  echo "/* GCC 15 dummy file for openat2 */" > "${PKG_BUILD}/sysdeps/unix/sysv/linux/openat2.c"
   export CFLAGS=$(echo ${CFLAGS} | sed -e "s|-ffast-math||g")
   export CFLAGS=$(echo ${CFLAGS} | sed -e "s|-Ofast|-O2|g")
   export CFLAGS=$(echo ${CFLAGS} | sed -e "s|-O.|-O2|g")

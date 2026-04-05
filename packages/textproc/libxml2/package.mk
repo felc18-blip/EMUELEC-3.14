@@ -3,7 +3,7 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="libxml2"
-PKG_VERSION="2.11.5"
+PKG_VERSION="2.15.2"
 PKG_LICENSE="MIT"
 PKG_SITE="http://xmlsoft.org"
 PKG_URL="https://gitlab.gnome.org/GNOME/${PKG_NAME}/-/archive/v${PKG_VERSION}/${PKG_NAME}-v${PKG_VERSION}.tar.bz2"
@@ -17,11 +17,14 @@ PKG_CONFIGURE_OPTS_ALL="ac_cv_header_ansidecl_h=no \
                         --enable-shared \
                         --disable-silent-rules \
                         --enable-ipv6 \
-                        --without-lzma"
+                        --without-lzma \
+                        --without-python \
+                        --without-docbook \
+                        --disable-docs"
 
 PKG_CONFIGURE_OPTS_HOST="${PKG_CONFIGURE_OPTS_ALL} \
                          --with-zlib=${TOOLCHAIN} \
-                         --with-python"
+                         --without-python"
 
 PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_ALL} \
                            --with-zlib=${SYSROOT_PREFIX}/usr \

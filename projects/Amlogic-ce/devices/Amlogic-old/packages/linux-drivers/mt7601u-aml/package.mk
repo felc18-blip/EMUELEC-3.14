@@ -19,9 +19,11 @@ pre_make_target() {
 }
 
 make_target() {
+  # Adicionado o KCFLAGS para forçar o padrão GNU89 e ignorar avisos fatais do header
   make -C $(kernel_path) M=$PKG_BUILD \
     ARCH=$TARGET_KERNEL_ARCH \
-    CROSS_COMPILE=$TARGET_KERNEL_PREFIX
+    CROSS_COMPILE=$TARGET_KERNEL_PREFIX \
+    KCFLAGS="-std=gnu89 -Wno-error"
 }
 
 makeinstall_target() {

@@ -23,28 +23,20 @@ PKG_CMAKE_OPTS_TARGET="-DLIBRETRO=ON \
                         -DUSE_GLES=ON \
                         -DUSE_VULKAN=OFF"
 
+post_unpack() {
+  cd ${PKG_BUILD}
+  git submodule update --init --recursive --force
+}
+
 unpack() {
   ${SCRIPTS}/get flycast
   mkdir -p ${PKG_BUILD}
   tar cf - -C ${SOURCES}/flycast/flycast-${PKG_VERSION} ${PKG_TAR_COPY_OPTS} . | tar xf - -C ${PKG_BUILD}
 }
 
-pre_configure_target() {
-  cd ${PKG_BUILD}
-
-  git init
-  git submodule update --init --recursive core/deps/libchdr
-  git submodule update --init --recursive core/deps/asio
-
-CPUARCH=$(find ${PKG_BUILD} -path "*lzma*/src/CpuArch.c" | head -n1)
-
-if [ -f "$CPUARCH" ]; then
-  sed -i '1i\
-#ifndef HWCAP2_CRC32\n#define HWCAP2_CRC32 0\n#endif\n#ifndef HWCAP2_SHA1\n#define HWCAP2_SHA1 0\n#endif\n#ifndef HWCAP2_SHA2\n#define HWCAP2_SHA2 0\n#endif\n#ifndef HWCAP2_AES\n#define HWCAP2_AES 0\n#endif\n' "$CPUARCH"
-fi
-
-  find ${PKG_BUILD} -name flags.make -exec sed -i 's:isystem :I:g' {} \; 2>/dev/null
-  find ${PKG_BUILD} -name build.ninja -exec sed -i 's:isystem :I:g' {} \; 2>/dev/null
+pre_make_target() {
+  find ${PKG_BUILD} -name flags.make -exec sed -i "s:isystem :I:g" \{} \;
+  find ${PKG_BUILD} -name build.ninja -exec sed -i "s:isystem :I:g" \{} \;
 }
 
 makeinstall_target() {

@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
-# Copyright (C) 2016-2022 Team LibreELEC (https://libreelec.tv)
-# Copyright (C) 2022-present 7Ji
+# Copyright (C) 2016-present Team LibreELEC
 
 PKG_NAME="lib32-opus"
 PKG_VERSION="$(get_pkg_version opus)"
@@ -17,12 +16,20 @@ PKG_BUILD_FLAGS="lib32 +pic"
 
 PKG_CONFIGURE_OPTS_TARGET="--enable-static \
                            --disable-shared \
-                           --enable-fixed-point"
+                           --enable-fixed-point \
+                           --disable-intrinsics \
+                           --disable-asm"
 
 unpack() {
   ${SCRIPTS}/get opus
   mkdir -p ${PKG_BUILD}
   tar --strip-components=1 -xf ${SOURCES}/opus/opus-${PKG_VERSION}.tar.gz -C ${PKG_BUILD}
+}
+
+pre_configure_target() {
+  # limpa qualquer lixo anterior
+  export CFLAGS="${CFLAGS} -UOPUS_ARM_MAY_HAVE_NEON -DOPUS_ARM_MAY_HAVE_NEON=0"
+  export CXXFLAGS="${CXXFLAGS} -UOPUS_ARM_MAY_HAVE_NEON -DOPUS_ARM_MAY_HAVE_NEON=0"
 }
 
 post_makeinstall_target() {

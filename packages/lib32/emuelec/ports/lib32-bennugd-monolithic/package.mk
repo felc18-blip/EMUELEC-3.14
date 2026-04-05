@@ -21,21 +21,32 @@ unpack() {
 pre_configure_target() {
   chainfile="cmake-${TARGET_NAME}.conf"
 
+  # --- VACINA GCC 15 ---
+  # Como a compilação é manual, injetamos as permissividades direto em uma variável
+  # para passar dentro de cada cmake abaixo.
+  VACCINE="-std=gnu11 -Wno-error=incompatible-pointer-types -Wno-incompatible-pointer-types -Wno-error=int-conversion -Wno-int-conversion -Wno-implicit-function-declaration -Wno-return-type"
+
+  echo ">>> Compilando o BGDC..."
   PKG_CMAKE_SCRIPT="${PKG_BUILD}/projects/cmake/bgdc/CMakeLists.txt"
   cd ${PKG_BUILD}/projects/cmake/bgdc/
   cmake -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN}/etc/${chainfile} \
         -DCMAKE_INSTALL_PREFIX=/usr \
         -DCMAKE_BUILD_TYPE=MinSizeRel \
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+        -DCMAKE_C_FLAGS="${CFLAGS} ${VACCINE}" \
+        -DCMAKE_CXX_FLAGS="${CXXFLAGS} ${VACCINE}" \
         ${PKG_CMAKE_SCRIPT}
   make
 
+  echo ">>> Compilando o BGDI..."
   PKG_CMAKE_SCRIPT="${PKG_BUILD}/projects/cmake/bgdi/CMakeLists.txt"
   cd ${PKG_BUILD}/projects/cmake/bgdi/
   cmake -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN}/etc/${chainfile} \
         -DCMAKE_INSTALL_PREFIX=/usr \
         -DCMAKE_BUILD_TYPE=MinSizeRel \
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+        -DCMAKE_C_FLAGS="${CFLAGS} ${VACCINE}" \
+        -DCMAKE_CXX_FLAGS="${CXXFLAGS} ${VACCINE}" \
         ${PKG_CMAKE_SCRIPT}
   make
 }

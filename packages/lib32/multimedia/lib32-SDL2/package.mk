@@ -57,7 +57,8 @@ PKG_CMAKE_OPTS_TARGET="-DSDL_STATIC=OFF \
                        -DSDL_HIDAPI_JOYSTICK=OFF"
 
 SDL2_DIRECTORY="$(get_pkg_directory SDL2)"
-PKG_PATCH_DIRS+=" ${SDL2_DIRECTORY}/patches" 
+PKG_PATCH_DIRS+=" ${SDL2_DIRECTORY}/patches"
+
 case "${DEVICE}" in
   'Amlogic-ng'|'Amlogic-no'|'Amlogic-old')  # We should've used PROJECT=Amlogic-ce logically, but using these two device names here saves a comparasion (only device needs to be compared)
     PKG_PATCH_DIRS+=" ${SDL2_DIRECTORY}/patches/Amlogic"
@@ -87,6 +88,12 @@ unpack() {
   ${SCRIPTS}/get SDL2
   mkdir -p ${PKG_BUILD}
   tar --strip-components=1 -xf ${SOURCES}/SDL2/SDL2-${PKG_VERSION}.tar.gz -C ${PKG_BUILD}
+}
+
+pre_configure_target() {
+  # --- VACINA GCC 15 (Ponteiros incompativeis do ALSA) ---
+  # Transforma o erro de ponteiro (void vs int) em apenas um aviso
+  export CFLAGS="${CFLAGS} -Wno-error=incompatible-pointer-types"
 }
 
 post_makeinstall_target() {

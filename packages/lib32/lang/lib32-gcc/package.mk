@@ -33,6 +33,7 @@ GCC_COMMON_CONFIGURE_OPTS="--target=${LIB32_TARGET_NAME} \
                            --enable-checking=release \
                            --without-ppl \
                            --without-cloog \
+                           --disable-werror \
                            --disable-libada \
                            --disable-libmudflap \
                            --disable-libitm \

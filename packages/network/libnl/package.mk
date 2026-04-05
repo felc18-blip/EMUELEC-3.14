@@ -20,21 +20,15 @@ PKG_CONFIGURE_OPTS_TARGET="--enable-static \
                            --with-pic"
 
 pre_configure_target() {
-  # 1. CRIAMOS OS HEADERS FALSOS (Para não dar "No such file")
+  # 1. Mocking de Headers (Satisfaz o #include sem precisar do Kernel novo)
   mkdir -p ${PKG_BUILD}/include/linux
   touch ${PKG_BUILD}/include/linux/ila.h
-  touch ${PKG_BUILD}/include/linux/lwtunnel.h
-
-  # 2. ESVAZIAMOS O CÓDIGO-FONTE DO MÓDULO ILA (O golpe de mestre)
-  # Isso faz o Makefile compilar um arquivo vazio, ignorando os erros de "undeclared"
-  echo "/* NextOS Elite: ILA is not supported on Kernel 3.14 */" > ${PKG_BUILD}/lib/route/nh_encap_ila.c
-
-  # 3. Fazemos o mesmo com o LWTUNNEL, que costuma ser o próximo a dar erro
-  echo "/* NextOS Elite: LWT is not supported on Kernel 3.14 */" > ${PKG_BUILD}/lib/route/nh_encap_lwt.c
-
-  # Garante que o compilador use nossos headers falsos primeiro
+  # 2. Stubbing de Módulos (Garante que o Makefile não quebre por falta de símbolos)
+  echo "/* NextOS Elite: ILA bypass for Kernel 3.14 */" > ${PKG_BUILD}/lib/route/nh_encap_ila.c
+  # 3. Injeção de Flags
   export CFLAGS="${TARGET_CFLAGS} -I${PKG_BUILD}/include"
 
+  # 4. Cleanup de segurança
   cd ${PKG_BUILD}
   rm -rf .${TARGET_NAME}
 }

@@ -35,8 +35,11 @@ unpack() {
 post_makeinstall_target() {
   sed -e "s:\(['= ]\)/usr:\\1${SYSROOT_PREFIX}/usr:g" -i ${SYSROOT_PREFIX}/usr/bin/xml2-config
 
-  safe_remove ${INSTALL}/usr/bin
-  safe_remove ${INSTALL}/usr/include
-  safe_remove ${INSTALL}/usr/share
+  # Só removemos as pastas se elas existirem, para evitar avisos do QA CHECK
+  [ -d "${INSTALL}/usr/bin" ]     && safe_remove ${INSTALL}/usr/bin
+  [ -d "${INSTALL}/usr/include" ] && safe_remove ${INSTALL}/usr/include
+  [ -d "${INSTALL}/usr/share" ]   && safe_remove ${INSTALL}/usr/share
+
+  # Movemos a biblioteca para a pasta correta de 32 bits
   mv ${INSTALL}/usr/lib ${INSTALL}/usr/lib32
 }

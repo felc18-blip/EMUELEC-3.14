@@ -7,24 +7,45 @@ PKG_NAME="lib32-ffmpeg"
 PKG_VERSION="$(get_pkg_version ffmpeg)"
 PKG_NEED_UNPACK="$(get_pkg_directory ffmpeg)"
 PKG_ARCH="aarch64"
-PKG_LICENSE="GPL-3.0-only"
+PKG_LICENSE="LGPLv2.1+"
 PKG_SITE="https://ffmpeg.org"
 PKG_URL=""
-# ELITE: Dependências sincronizadas para o ambiente 32-bit
-PKG_DEPENDS_TARGET="lib32-toolchain lib32-zlib lib32-bzip2 lib32-openssl lib32-SDL2 lib32-libxml2 lib32-libdrm lib32-systemd-libs"
+PKG_DEPENDS_TARGET="lib32-toolchain lib32-zlib lib32-bzip2 lib32-openssl lib32-SDL2"
 PKG_LONGDESC="FFmpeg is a complete, cross-platform solution to record, convert and stream audio and video."
 PKG_BUILD_FLAGS="lib32 -gold"
 
 FF_DIRECTORY="$(get_pkg_directory ffmpeg)"
-PKG_PATCH_DIRS+=" ${FF_DIRECTORY}/patches/postproc \
+PKG_PATCH_DIRS+=" ${FF_DIRECTORY}/patches \
                   ${FF_DIRECTORY}/patches/libreelec \
                   ${FF_DIRECTORY}/patches/v4l2-request \
-                  ${FF_DIRECTORY}/patches/v4l2-drmprime" 
+                  ${FF_DIRECTORY}/patches/v4l2-drmprime"
 
+# Dependencies
 get_graphicdrivers
 
-# ELITE: Ativação segura para lib32 (M2M e Udev ativos, Request em OFF para evitar erros de headers)
-PKG_FFMPEG_V4L2="--enable-libudev --enable-libdrm"
+if [ "${V4L2_SUPPORT}" = "yes" ]; then
+  PKG_DEPENDS_TARGET+=" lib32-libdrm"
+  PKG_NEED_UNPACK+=" $(get_pkg_directory lib32-libdrm)"
+  PKG_FFMPEG_V4L2="--enable-v4l2_m2m --enable-libdrm"
+
+  if [ "${PROJECT}" = "Rockchip" ]; then
+    PKG_V4L2_REQUEST="yes"
+    PKG_DEPENDS_TARGET+=" lib32-systemd-libs"
+    PKG_NEED_UNPACK+=" $(get_pkg_directory lib32-systemd-libs)"
+    PKG_FFMPEG_V4L2+=" --enable-libudev --enable-v4l2-request"
+  else
+    PKG_V4L2_REQUEST="no"
+    PKG_FFMPEG_V4L2+=" --disable-libudev --disable-v4l2-request"
+  fi
+else
+  PKG_FFMPEG_V4L2="--disable-v4l2_m2m --disable-libudev --disable-v4l2-request"
+fi
+
+if [ "${DISPLAYSERVER}" != "x11" ] && [ "${PROJECT}" != "Amlogic-ce" ]; then
+  PKG_DEPENDS_TARGET+=" lib32-libdrm"
+  PKG_NEED_UNPACK+=" $(get_pkg_directory lib32-libdrm)"
+  PKG_FFMPEG_LIBDRM=" --enable-libdrm"
+fi
 
 unpack() {
   ${SCRIPTS}/get ffmpeg
@@ -35,14 +56,10 @@ unpack() {
 pre_configure_target() {
   cd ${PKG_BUILD}
   rm -rf .${TARGET_NAME}
-  if [ "${DISTRO}" = "EmuELEC" ]; then
+  if [ ${DISTRO} == "EmuELEC" ]; then
     sed -i "s|int hide_banner = 0|int hide_banner = 1|" ${PKG_BUILD}/fftools/cmdutils.c
     sed -i "s|SDL2_CONFIG=\"\${cross_prefix}sdl2-config\"|SDL2_CONFIG=\"${SYSROOT_PREFIX}/usr/bin/sdl2-config\"|" ${PKG_BUILD}/configure
   fi
-
-  # ELITE: Garante que o compilador use os caminhos de 32-bit do SYSROOT
-  export EXTRA_CFLAGS="-I${SYSROOT_PREFIX}/usr/include"
-  export EXTRA_LDFLAGS="-L${SYSROOT_PREFIX}/usr/lib"
 }
 
 configure_target() {
@@ -62,8 +79,8 @@ configure_target() {
               --host-cc="${HOST_CC}" \
               --host-cflags="${HOST_CFLAGS}" \
               --host-ldflags="${HOST_LDFLAGS}" \
-              --extra-cflags="${CFLAGS} ${EXTRA_CFLAGS}" \
-              --extra-ldflags="${LDFLAGS} ${EXTRA_LDFLAGS}" \
+              --extra-cflags="${CFLAGS}" \
+              --extra-ldflags="${LDFLAGS}" \
               --extra-libs="${PKG_FFMPEG_LIBS}" \
               --disable-static \
               --enable-shared \
@@ -81,7 +98,6 @@ configure_target() {
               --enable-avcodec \
               --enable-avformat \
               --enable-swscale \
-              --enable-postproc \
               --enable-avfilter \
               --enable-pthreads \
               --enable-network \
@@ -93,18 +109,16 @@ configure_target() {
               ${PKG_FFMPEG_V4L2} \
               --disable-vaapi \
               --disable-vdpau \
+              ${PKG_FFMPEG_LIBDRM} \
               --enable-runtime-cpudetect \
               --disable-hardcoded-tables \
-              --disable-encoders \
               --enable-encoder=ac3 \
               --enable-encoder=aac \
               --enable-encoder=wmav2 \
               --enable-encoder=mjpeg \
               --enable-encoder=png \
               --enable-encoder=mpeg4 \
-              --enable-encoder=libx264 \
               --enable-hwaccels \
-              --disable-muxers \
               --enable-muxer=spdif \
               --enable-muxer=adts \
               --enable-muxer=asf \
@@ -129,6 +143,7 @@ configure_target() {
               --disable-libmp3lame \
               --disable-libopenjpeg \
               --disable-librtmp \
+              --disable-libdav1d \
               --disable-libspeex \
               --disable-libtheora \
               --disable-libvo-amrwbenc \
@@ -136,28 +151,17 @@ configure_target() {
               --disable-libvpx \
               --disable-libx264 \
               --disable-libxavs \
-              --enable-libxml2 \
               --disable-libxvid \
               --enable-zlib \
               --enable-asm \
               --disable-altivec \
               --enable-neon \
-              --disable-symver \
-              --enable-ffmpeg \
-              --enable-ffplay \
-              --disable-ffprobe
+              --disable-symver
 }
 
 post_makeinstall_target() {
   safe_remove ${INSTALL}/usr/bin
   safe_remove ${INSTALL}/usr/include
   safe_remove ${INSTALL}/usr/share
-
-  # ELITE: Marreta para garantir libpostproc 32-bit (antes de mover para lib32)
-  echo "Instalando libpostproc 32-bit manualmente..."
-  cp -P ${PKG_BUILD}/libpostproc/libpostproc.so* ${INSTALL}/usr/lib/ 2>/dev/null || true
-  mkdir -p ${INSTALL}/usr/lib/pkgconfig
-  cp ${PKG_BUILD}/libpostproc/libpostproc.pc ${INSTALL}/usr/lib/pkgconfig/ 2>/dev/null || true
-
   mv ${INSTALL}/usr/lib ${INSTALL}/usr/lib32
 }

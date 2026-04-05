@@ -124,4 +124,4 @@ index 84596b04ec..8e89a7bb13 100644
  	g_Config.flash0Directory = File::GetExeDirectory() / "assets/flash0";
  	if (getenv("HOME") != nullptr) {
  		g_Config.defaultCurrentDirectory = Path(getenv("HOME"));
-		
++	}

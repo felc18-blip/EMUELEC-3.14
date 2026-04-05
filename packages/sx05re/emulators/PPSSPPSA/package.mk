@@ -10,7 +10,7 @@ PKG_URL="${PKG_SITE}.git"
 PKG_VERSION="afbc66a318b86432642b532c575241f3716642ef" # v1.20.2
 CHEAT_DB_VERSION="7c9fe1ae71155626cea767aed53f968de9f4051f" # Update cheat.db (17/01/2026)
 PKG_LICENSE="GPLv2"
-PKG_DEPENDS_TARGET="toolchain libzip SDL2 zlib zip"
+PKG_DEPENDS_TARGET="toolchain libzip SDL2 SDL2_ttf freetype fontconfig zlib zip"
 PKG_SHORTDESC="PPSSPPDL"
 PKG_LONGDESC="PPSSPP Standalone"
 GET_HANDLER_SUPPORT="git"
@@ -76,6 +76,7 @@ else
 fi
 
 pre_configure_target() {
+ find ${PKG_BUILD} -name "CMakeLists.txt" -exec sed -i 's/SDL2_ttf::SDL2_ttf/SDL2_ttf/g' {} \;
   sed -i 's/\-O[23]//g' ${PKG_BUILD}/CMakeLists.txt
   sed -i "s|include_directories(/usr/include/drm)|include_directories(${SYSROOT_PREFIX}/usr/include/drm)|" ${PKG_BUILD}/CMakeLists.txt
 }
