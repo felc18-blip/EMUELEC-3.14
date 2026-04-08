@@ -71,6 +71,18 @@ A sinergia entre a toolchain de ponta (GCC 15, glibc 2.43), o novo Systemd 257.1
 
 ---
 
+## Projeto e Independência
+
+NextOS Elite Edition é um projeto independente baseado no EmuELEC.
+
+Este sistema não faz parte do projeto oficial EmuELEC e não possui qualquer vínculo com sua equipe, organização ou desenvolvimento.
+
+Todo o desenvolvimento deste projeto é realizado de forma independente.
+
+Este repositório não representa o EmuELEC oficial.
+
+---
+
 ## Desenvolvimento e Compilação
 
 O ambiente de build foi totalmente migrado e otimizado para **Arch Linux**. A adoção de um sistema base *rolling release* permitiu a integração da toolchain mais moderna disponível atualmente, incluindo **GCC 15**, **glibc 2.43** e **glib2 2.88.0**.
@@ -86,12 +98,3 @@ freeimage freetype2 curl rapidjson alsa-lib mesa boost cmake \
 vlc texinfo go openssl patchelf xmlstarlet jre-openjdk \
 libxslt libvpx rdfind lzop
 
-## Projeto e Independência
-
-NextOS Elite Edition é um projeto independente baseado no EmuELEC.
-
-Este sistema não faz parte do projeto oficial EmuELEC e não possui qualquer vínculo com sua equipe, organização ou desenvolvimento.
-
-Todo o desenvolvimento deste projeto é realizado de forma independente.
-
-Este repositório não representa o EmuELEC oficial.
