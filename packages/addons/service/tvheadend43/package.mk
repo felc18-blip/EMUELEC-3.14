@@ -2,16 +2,16 @@
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="tvheadend43"
-PKG_VERSION="905b4f0d0387818cbbf7012bf4dffb25e9893748"
-PKG_SHA256="3decc29681e7eefac7a734116078b6f36fa125d81c8b9c9998b96070fcbe53a0"
-PKG_VERSION_NUMBER="4.3-2091"
-PKG_REV="0"
+PKG_VERSION="37453bc3fe5f9e10f3428ebb1abdc613f8b07186"
+PKG_SHA256="0ced1ea6ce8b78ac9bfc7e6e8cdc908a57840d25276b5248039661483faad705"
+PKG_VERSION_NUMBER="4.3-2637"
+PKG_REV="3"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.tvheadend.org"
 PKG_URL="https://github.com/tvheadend/tvheadend/archive/${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain avahi comskip curl dvb-apps ffmpegx libdvbcsa libhdhomerun \
-                    libiconv openssl pcre2 pngquant:host Python3:host tvh-dtv-scan-tables"
+PKG_DEPENDS_TARGET="toolchain argtable2 avahi comskip curl dvb-apps ffmpegx libdvbcsa libhdhomerun \
+                    libiconv openssl pcre2 pngquant:host Python3:host dtv-scan-tables"
 PKG_DEPENDS_CONFIG="ffmpegx"
 PKG_SECTION="service"
 PKG_SHORTDESC="Tvheadend: a TV streaming server for Linux"
@@ -19,7 +19,7 @@ PKG_LONGDESC="Tvheadend (${PKG_VERSION_NUMBER}): is a TV streaming server for Li
 PKG_BUILD_FLAGS="-sysroot"
 
 PKG_IS_ADDON="yes"
-PKG_ADDON_NAME="Tvheadend Server 4.3 (Alpha)"
+PKG_ADDON_NAME="Tvheadend Server 4.3"
 PKG_ADDON_TYPE="xbmc.service"
 
 # basic transcoding options

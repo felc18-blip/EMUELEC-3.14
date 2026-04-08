@@ -2,18 +2,17 @@
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="oscam"
-PKG_VERSION="db7c4cbdbd34a9b0464070b1a46e146e6029a2cb" # 2022-10-22
-PKG_SHA256="b5dd1d0dc71553c8504d6982b6bae437d6bef17c6cd8a38ac4710a38300018cf"
-PKG_VERSION_NUMBER="11715"
-PKG_REV="0"
+PKG_VERSION="11946"
+PKG_SHA256="5fbcaa87be0eab05a6d81d49d9390069421557efd2c4fea578519d19d2cf3ada"
+PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
-PKG_SITE="https://www.streamboard.tv/oscam/wiki"
-PKG_URL="https://repo.or.cz/oscam.git/snapshot/${PKG_VERSION}.tar.gz"
+PKG_SITE="https://git.streamboard.tv/common/oscam/-/wikis"
+PKG_URL="https://git.streamboard.tv/common/oscam/-/archive/${PKG_VERSION}/oscam-${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain openssl pcsc-lite"
 PKG_SECTION="service.softcam"
 PKG_SHORTDESC="OSCam: an Open Source Conditional Access Modul"
-PKG_LONGDESC="OSCam(${PKG_VERSION_NUMBER}) is a software to be used to decrypt digital television channels, as an alternative for a conditional access module."
+PKG_LONGDESC="OSCam is a software to be used to decrypt digital television channels, as an alternative for a conditional access module."
 
 PKG_IS_ADDON="yes"
 PKG_ADDON_NAME="OSCam"
@@ -59,7 +58,6 @@ PKG_CMAKE_OPTS_TARGET="\
   -DHAVE_DVBAPI=1 \
   -DHAVE_LIBCRYPTO=1 \
   -DSTATIC_LIBUSB=1 \
-  -DTOUCH=ON \
   -DWEBIF=1 \
   -DWEBIF_LIVELOG=1 \
   -DWEBIF_JQUERY=1 \
@@ -67,16 +65,17 @@ PKG_CMAKE_OPTS_TARGET="\
   -DWITH_SSL=1 \
   -DWITH_STAPI=0"
 
-pre_configure_target() {
-  export OSCAM_ADDON_VERSION="${PKG_VERSION_NUMBER}"
-}
-
 makeinstall_target() {
   :
 }
 
 addon() {
-  mkdir -p ${ADDON_BUILD}/${PKG_ADDON_ID}/bin
+  mkdir -p ${ADDON_BUILD}/${PKG_ADDON_ID}/{bin,lib.private}
     cp -P ${PKG_BUILD}/.${TARGET_NAME}/oscam ${ADDON_BUILD}/${PKG_ADDON_ID}/bin
     cp -P ${PKG_BUILD}/.${TARGET_NAME}/utils/list_smargo ${ADDON_BUILD}/${PKG_ADDON_ID}/bin
+    cp -L $(get_install_dir pcsc-lite)/usr/lib/libpcsclite.so.1 ${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private
+    cp -L $(get_install_dir pcsc-lite)/usr/lib/libpcsclite_real.so.1 ${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private
+
+  patchelf --add-rpath '${ORIGIN}/../lib.private' ${ADDON_BUILD}/${PKG_ADDON_ID}/bin/oscam
+  patchelf --add-rpath '${ORIGIN}/../lib.private' ${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/libpcsclite.so.1
 }
