@@ -19,13 +19,13 @@
 ################################################################################
 
 PKG_NAME="retroarch"
-PKG_VERSION="69a4f0ea1e8aaf442ae4858f2e7f2b31a1776576"
+PKG_VERSION="fae7468de15b32a0e105e45325e5ca85e62ea7d4"
 PKG_SITE="https://github.com/libretro/RetroArch"
 PKG_URL="${PKG_SITE}.git"
 PKG_LICENSE="GPLv3"
 PKG_DEPENDS_TARGET="toolchain SDL2 alsa-lib openssl freetype zlib retroarch-assets retroarch-overlays core-info ffmpeg libass joyutils empty ${OPENGLES} samba avahi nss-mdns freetype openal-soft espeak"
 PKG_LONGDESC="Reference frontend for the libretro API."
-GET_HANDLER_SUPPORT="git"
+PKG_BUILD_FLAGS="+speed +lto"
 
 if [ "${DEVICE}" = "Amlogic-ng" ] || [ "${DEVICE}" = "Amlogic-no" ] || [ "${DEVICE}" = "Amlogic-old" ]; then
   PKG_PATCH_DIRS="${DEVICE}"
@@ -42,9 +42,6 @@ fi
 fi
 
 pre_configure_target() {
-  # FIX CRÍTICO: Avisa o GCC que a função command_uds_new retorna um ponteiro (64 bits) e não um int (32 bits)
-  # Isso impede o corte do endereço de memória e o Segmentation Fault!
-  sed -i '1i struct command_handler *command_uds_new(void);' ${PKG_BUILD}/input/input_driver.c
 
 TARGET_CONFIGURE_OPTS=""
 PKG_CONFIGURE_OPTS_TARGET="--disable-qt \
