@@ -2,12 +2,12 @@
 # Copyright (C) 2022-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="moby"
-PKG_VERSION="28.3.1"
-PKG_SHA256="367cf6b179fd1c476913a98b85f1dd0e06d365a4396c257d8ddab4cf7166b260"
+PKG_VERSION="29.4.0"
+PKG_SHA256="5c72d84b3dc5558b8520a6687c6d7ee4f13b95edc351a408717e314616a5bfd8"
 PKG_LICENSE="ASL"
 PKG_SITE="https://mobyproject.org/"
-PKG_URL="https://github.com/moby/moby/archive/v${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain go:host systemd"
+PKG_URL="https://github.com/moby/moby/archive/docker-v${PKG_VERSION}.tar.gz"
+PKG_DEPENDS_TARGET="toolchain go:host nftables systemd"
 PKG_LONGDESC="Moby is an open-source project created by Docker to enable and accelerate software containerization."
 PKG_TOOLCHAIN="manual"
 
