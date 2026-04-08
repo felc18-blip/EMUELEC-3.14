@@ -16,6 +16,14 @@ PKG_SHORTDESC="ARM optimized PCSX fork"
 PKG_TOOLCHAIN="make"
 PKG_BUILD_FLAGS="lib32 +speed -gold"
 
+if [ "${OPENGL_SUPPORT}" = "yes" ] && [ ! "${PREFER_GLES}" = "yes" ]; then
+  PKG_DEPENDS_TARGET+=" ${OPENGL} glu libglvnd"
+
+elif [ "${OPENGLES_SUPPORT}" = yes ]; then
+  PKG_DEPENDS_TARGET+=" ${OPENGLES}"
+  PKG_PATCH_DIRS+=" gles"
+fi
+
 unpack() {
   ${SCRIPTS}/get desmume
   mkdir -p ${PKG_BUILD}

@@ -1353,6 +1353,9 @@
             },
             {
               "name": "dosbox_svn"
+            },
+            {
+              "name": "dosbox_core"
             }
           ]
         }
@@ -1500,8 +1503,19 @@
           "name": "dolphin",
           "cores": [
             {
-              "name": "dolphin",
+              "name": "dolphin-wii",
               "default": true
+            },
+            {
+              "name": "dolphin-gc"
+            }
+          ]
+        },
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "dolphin"
             }
           ]
         }
@@ -2292,6 +2306,9 @@
             },
             {
               "name": "desmume2015"
+            },
+            {
+              "name": "desmume_32b"
             }
           ]
         }
@@ -2327,10 +2344,10 @@
               "name": "fceumm"
             },
             {
-              "name": "fceumm_mod"
+              "name": "mesen"
             },
             {
-              "name": "mesen"
+              "name": "quicknes"
             }
           ]
         }
@@ -2366,10 +2383,10 @@
               "name": "fceumm"
             },
             {
-              "name": "fceumm_mod"
+              "name": "mesen"
             },
             {
-              "name": "mesen"
+              "name": "quicknes"
             }
           ]
         }
@@ -2405,10 +2422,10 @@
               "name": "fceumm"
             },
             {
-              "name": "fceumm_mod"
+              "name": "mesen"
             },
             {
-              "name": "mesen"
+              "name": "quicknes"
             }
           ]
         }
@@ -2441,10 +2458,10 @@
               "name": "fceumm"
             },
             {
-              "name": "fceumm_mod"
+              "name": "mesen"
             },
             {
-              "name": "mesen"
+              "name": "quicknes"
             }
           ]
         }
@@ -2972,6 +2989,9 @@
               "name": "mesen-s"
             },
             {
+              "name": "mesen"
+            },
+            {
               "name": "mednafen_supafaust"
             },
             {
@@ -3104,6 +3124,9 @@
               "name": "mesen-s"
             },
             {
+              "name": "mesen"
+            },
+            {
               "name": "mednafen_supafaust"
             },
             {
@@ -3168,6 +3191,9 @@
             },
             {
               "name": "mesen-s"
+            },
+            {
+              "name": "mesen"
             },
             {
               "name": "mednafen_supafaust"
@@ -3258,7 +3284,37 @@
               "default": true
             },
             {
+              "name": "snes9x2010"
+            },
+            {
+              "name": "snes9x2002"
+            },
+            {
+              "name": "snes9x2005"
+            },
+            {
+              "name": "snes9x2005_plus"
+            },
+            {
               "name": "mesen-s"
+            },
+            {
+              "name": "mesen"
+            },
+            {
+              "name": "mednafen_supafaust"
+            },
+            {
+              "name": "bsnes_hd_beta"
+            },
+            {
+              "name": "bsnes_mercury_performance"
+            },
+            {
+              "name": "bsnes_mercury_balanced"
+            },
+            {
+              "name": "bsnes_mercury_accuracy"
             }
           ]
         }
@@ -3292,12 +3348,42 @@
               "default": true
             },
             {
+              "name": "snes9x2010"
+            },
+            {
+              "name": "snes9x2002"
+            },
+            {
+              "name": "snes9x2005"
+            },
+            {
+              "name": "snes9x2005_plus"
+            },
+            {
               "name": "mesen-s"
+            },
+            {
+              "name": "mesen"
+            },
+            {
+              "name": "mednafen_supafaust"
+            },
+            {
+              "name": "bsnes_hd_beta"
+            },
+            {
+              "name": "bsnes_mercury_performance"
+            },
+            {
+              "name": "bsnes_mercury_balanced"
+            },
+            {
+              "name": "bsnes_mercury_accuracy"
             }
           ]
         }
       ]
-     },
+    },
     {
       "name": "virtualboy",
       "fullname": "Nintendo Virtual Boy",
@@ -3514,6 +3600,35 @@
             },
             {
               "name": "opera_lr"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3ds",
+      "fullname": "Nintendo 3DS",
+      "manufacturer": "Nintendo",
+      "release": "2011",
+      "hardware": "handheld",
+      "path": "/storage/roms/3ds",
+      "platform": "3ds",
+      "theme": "3ds",
+      "command": "default",
+      "extensions": [
+        ".3ds",
+        ".cia",
+        ".app",
+        ".7z",
+        ".zip"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
+            {
+              "name": "panda3ds",
+              "default": true
             }
           ]
         }
@@ -3910,9 +4025,6 @@
               "default": true
             },
             {
-              "name": "flycast_32b"
-            },
-            {
               "name": "morpheuscast_xtreme_32b"
             }
           ]
@@ -3938,9 +4050,6 @@
           "cores": [
             {
               "name": "flycast"
-            },
-            {
-              "name": "flycast_32b"
             }
           ]
         }
@@ -3972,7 +4081,7 @@
               "default": true
             },
             {
-              "name": "flycast_32b"
+              "name": "morpheuscast_xtreme_32b"
             }
           ]
         },
@@ -3997,9 +4106,6 @@
           "cores": [
             {
               "name": "flycast"
-            },
-            {
-              "name": "flycast_32b"
             }
           ]
         }
@@ -4573,7 +4679,7 @@
         }
       ]
     },
-    {
+{
       "name": "saturn",
       "fullname": "Sega Saturn",
       "manufacturer": "Sega",
@@ -4596,6 +4702,9 @@
           "name": "libretro",
           "cores": [
             {
+              "name": "beetle_saturn"
+            },
+            {
               "name": "mednafen_saturn",
               "default": true
             },
@@ -4607,14 +4716,6 @@
             },
             {
               "name": "yabasanshiro"
-            }
-          ]
-        },
-        {
-          "name": "mednafen",
-          "cores": [
-            {
-              "name": "mednafen"
             }
           ]
         }
@@ -4795,7 +4896,7 @@
         }
       ]
     },
-    {
+{
       "name": "psx",
       "fullname": "Sony Playstation",
       "manufacturer": "Sony",
@@ -4824,6 +4925,12 @@
         {
           "name": "libretro",
           "cores": [
+            {
+              "name": "pcsx_rearmed_new_32b"
+            },
+            {
+              "name": "pcsx_rearmed_new"
+            },
             {
               "name": "pcsx_rearmed_32b",
               "default": true

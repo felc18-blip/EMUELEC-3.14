@@ -1,19 +1,21 @@
 ## DISTRO INFORMATION ###
 
 # Name of the Distro to build (full name, without special characters)
-  DISTRONAME="EmuELEC"
+  DISTRONAME="NextOS"
 
 # short project description
-  DESCRIPTION="Retro emulation for Amlogic Devices."
-
+  DESCRIPTION="NextOS-Elite-Edition: High Performance Emulation for S905X."
+  DISTRO_BUILD_ID="Elite-Edition"
+  LIBREELEC_BUILD="Elite-Edition"
+  COREELEC_BUILD="Elite-Edition"
 
 ### USER INTERFACE SETTINGS ###
 
 # Welcome Message for e.g. SSH Server (up to 5 Lines)
   GREETING0="##############################################"
-  GREETING1="#                 EmuELEC                    #"
-  GREETING2="#     Retro emulation for Amlogic Devices    #"
-  GREETING3="#             Based on CoreELEC              #"
+  GREETING1="#            NextOS-Elite-Edition            #"
+  GREETING2="#    Custom Retro Emulation for S905X        #"
+  GREETING3="#          Based on EmuELEC/CoreELEC         #"
   GREETING4="##############################################"
 
 # Root password to integrate in the target system
