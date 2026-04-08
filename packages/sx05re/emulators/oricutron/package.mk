@@ -2,7 +2,7 @@
 # Copyright (C) 2024
 
 PKG_NAME="oricutron"
-PKG_VERSION="a76131d"
+PKG_VERSION="c38103a"
 PKG_REV="1"
 PKG_ARCH="aarch64"
 PKG_LICENSE="GPL-2.0"
@@ -16,13 +16,20 @@ PKG_TOOLCHAIN="make"
 pre_make_target() {
   cd "$PKG_BUILD"
 
+  # Limpezas do EmuELEC Original
   sed -i \
     -e 's/filereq_gtk/filereq_sdl/g;s/msgbox_gtk/msgbox_sdl/g' \
     -e 's/[[:space:]]*\(gui_x11\|render_gl\)\.o//g;/\(gui_x11\|render_gl\)\.c/d' \
-    -e 's/-D__OPENGL_AVAILABLE__//g;s/ -l\(GL\|GLU\|X11\)//g;s/-m64//g;s| -L/usr/lib64||g' \
+    -e 's/-D__OPENGL_AVAILABLE__//g;s/ -l\(GL\|GLU\|X11\)//g;s/-m64//g' \
     -e '/pkg-config.*gtk/d;s/^\t\$(CXX)/\t\$(CC)/' \
     -e 's/msgbox_sdl\.o/& emuelec_stub.o/' \
     Makefile
+
+  # O HACK DE OURO: Substitui o "-lm" nativo do Makefile pela SDL2 inteira
+  sed -i 's/-lm/-lm -lSDL2 -lpthread/g' Makefile
+
+  # Remove o caminho 64-bits do host que atrapalha o cross-compile
+  sed -i 's|-L/usr/lib64||g' Makefile
 
   cat > emuelec_stub.c <<'EOF'
 void clipboard_copy(const char *t){(void)t;}
@@ -35,10 +42,10 @@ EOF
 make_target() {
   cd "$PKG_BUILD"
 
+  # O Makefile agora já tem o -lSDL2 embutido nele graças ao nosso sed!
   make PLATFORM=linux CC="$CC" CXX="$CC" \
-    CFLAGS="$CFLAGS -I$SYSROOT_PREFIX/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DAUDIO_BUFLEN=1024 -D__CBCOPY__ -D__CBPASTE__ -DAPP_NAME_FULL='\"Oricutron\"' -DAPP_YEAR='\"2024\"' -DVERSION_COPYRIGHTS='\"Oricutron (c)2024\"'" \
-    LDFLAGS="$LDFLAGS -L$SYSROOT_PREFIX/usr/lib" \
-    LIBS="-lSDL -lpthread -lm"
+    CFLAGS="$CFLAGS -I$SYSROOT_PREFIX/usr/include/SDL2 -D_GNU_SOURCE=1 -D_REENTRANT -DAUDIO_BUFLEN=1024 -D__CBCOPY__ -D__CBPASTE__ -DAPP_NAME_FULL='\"Oricutron\"' -DAPP_YEAR='\"2024\"' -DVERSION_COPYRIGHTS='\"Oricutron (c)2024\"'" \
+    LDFLAGS="$LDFLAGS -L$SYSROOT_PREFIX/usr/lib"
 }
 
 makeinstall_target() {
