@@ -1,0 +1,16 @@
+
+ =================================================================================
+ ERROR: Project not found. Use a valid project or create a new config
+ =================================================================================
+
+ Valid projects:
+ - ARM
+ - Allwinner
+ - Amlogic
+ - Amlogic-ce
+ - Generic
+ - NXP
+ - Qualcomm
+ - RPi
+ - Rockchip
+ - Samsung

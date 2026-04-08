@@ -1,0 +1,31 @@
+[Unit]
+Description=RetroArch emulator frontend (NextOS Fixed)
+ConditionPathExists=/var/lock/start.retro
+# --- ADICIONE ESTA LINHA ---
+# Isso obriga o EmulationStation a PARAR antes deste serviço iniciar
+Conflicts=emustation.service
+
+[Service]
+Type=simple
+StandardInput=tty
+StandardOutput=tty
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+
+Environment=DISPLAY=:0.0
+Environment=HOME=/storage
+# Vamos usar o áudio real agora, já que sabemos que ele funciona
+Environment=SDL_AUDIODRIVER=alsa
+
+# Aumentamos o sleep para 2 segundos para garantir que a GPU Mali limpou o cache
+ExecStartPre=/bin/sleep 2
+ExecStart=/usr/bin/retroarch --config /storage/.config/retroarch/retroarch.cfg
+
+KillMode=process
+TimeoutStopSec=3
+# Desativamos o restart automático para testes, para não virar um loop infinito
+Restart=no
+
+[Install]
+WantedBy=emuelec.target
