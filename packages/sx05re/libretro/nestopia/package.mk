@@ -19,23 +19,15 @@
 ################################################################################
 
 PKG_NAME="nestopia"
-PKG_VERSION="c0ae3bcbe78a1a21a20384b96b70774cc165d2c2"
-PKG_REV="1"
-PKG_ARCH="any"
+PKG_VERSION="5deada54077fae87e2873f5ad9ef77e3ab7af5e1"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/nestopia"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain"
-PKG_PRIORITY="optional"
-PKG_SECTION="libretro"
-PKG_SHORTDESC="Libretro implementation of NEStopia. (Nintendo Entertainment System)"
-PKG_LONGDESC="This project is a fork of the original Nestopia source code, plus the Linux port. The purpose of the project is to enhance the original, and ensure it continues to work on modern operating systems."
+PKG_LONGDESC="Libretro implementation of NEStopia. (Nintendo Entertainment System)"
 
-PKG_IS_ADDON="no"
 PKG_TOOLCHAIN="make"
-PKG_AUTORECONF="no"
 PKG_USE_CMAKE="no"
-
 
 make_target() {
   cd ${PKG_BUILD}
@@ -46,3 +38,4 @@ makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro
   cp libretro/nestopia_libretro.so ${INSTALL}/usr/lib/libretro/
 }
+

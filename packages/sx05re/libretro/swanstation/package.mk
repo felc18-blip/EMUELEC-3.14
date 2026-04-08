@@ -3,16 +3,21 @@
 
 PKG_NAME="swanstation"
 PKG_VERSION="4d309c05fd7bdc503d91d267bd542edb8d192b09"
-PKG_SHA256="bf41b6df7ab1eeaafc8548eb4732775153535b12d42de826e578b7f2492c6843"
-PKG_ARCH="aarch64"
 PKG_LICENSE="GPLv3"
 PKG_SITE="https://github.com/libretro/swanstation"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain nasm:host ${OPENGLES}"
-PKG_SECTION="libretro"
-PKG_SHORTDESC="Fast PlayStation 1 emulator for PC and Android"
+PKG_DEPENDS_TARGET="toolchain nasm:host"
+PKG_LONGDESC="SwanStation - PlayStation 1, aka. PSX Emulator"
 PKG_TOOLCHAIN="cmake"
 PKG_BUILD_FLAGS="-lto"
+
+if [ ! "${OPENGL}" = "no" ]; then
+  PKG_DEPENDS_TARGET+=" ${OPENGL} glu libglvnd"
+fi
+
+if [ "${OPENGLES_SUPPORT}" = yes ]; then
+  PKG_DEPENDS_TARGET+=" ${OPENGLES}"
+fi
 
 pre_configure_target() {
  PKG_CMAKE_OPTS_TARGET+=" -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRETRO_CORE=ON "

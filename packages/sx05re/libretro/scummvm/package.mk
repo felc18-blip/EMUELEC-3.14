@@ -19,35 +19,22 @@
 ################################################################################
 
 PKG_NAME="scummvm"
-PKG_VERSION="c9e94a9d7417119c94f4a3b21f4284c3dda926e2"
-PKG_REV="1"
-PKG_ARCH="any"
+PKG_VERSION="9d31b31c179fd4a43f7cfc383a3435a9070c6aa8"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/scummvm"
 PKG_URL="${PKG_SITE}.git"
 PKG_DEPENDS_TARGET="toolchain"
-PKG_PRIORITY="optional"
-PKG_SECTION="libretro"
-PKG_SHORTDESC="ScummVM with libretro backend."
-PKG_LONGDESC="ScummVM is a program which allows you to run certain classic graphical point-and-click adventure games, provided you already have their data files."
+PKG_LONGDESC="ScummVM with libretro backend."
 
-PKG_IS_ADDON="no"
 PKG_TOOLCHAIN="make"
-PKG_AUTORECONF="no"
 PKG_BUILD_FLAGS="-lto"
 
-post_unpack() {
-  sed -i "s|DEFINES  += -Wno-multichar|#DEFINES  += -Wno-multichar|" ${PKG_BUILD}/Makefile.common
-}
-
-make_target() {
-  cd "${PKG_BUILD}/backends/platform/libretro"
-  make all platform=rpi4_64
+pre_make_target() {
+  CXXFLAGS+=" -DHAVE_POSIX_MEMALIGN=1"
+  cd ${PKG_BUILD}/backends/platform/libretro
 }
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro
-  cp "${PKG_BUILD}/backends/platform/libretro/scummvm_libretro."{so,info} ${INSTALL}/usr/lib/libretro/
-  mkdir -p ${INSTALL}/usr/config/emuelec/configs/scummvm
-  cp ${PKG_BUILD}/backends/platform/libretro/scummvm.zip ${INSTALL}/usr/config/emuelec/configs/scummvm
+  cp scummvm_libretro.so ${INSTALL}/usr/lib/libretro/
 }

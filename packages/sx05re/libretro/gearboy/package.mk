@@ -1,19 +1,12 @@
 PKG_NAME="gearboy"
-PKG_VERSION="71967ca559d339a3531568b33038882add237cd3"
-PKG_REV="1"
-PKG_ARCH="any"
+PKG_VERSION="37c21f776a54a7bfac2b2135b1b776d2e31fa93d"
 PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/drhelius/Gearboy"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain"
-PKG_PRIORITY="optional"
-PKG_SECTION="libretro"
-PKG_SHORTDESC="Game Boy / Gameboy Color emulator for iOS, Mac, Raspberry Pi, Windows and Linux"
 PKG_LONGDESC="Game Boy / Gameboy Color emulator for iOS, Mac, Raspberry Pi, Windows and Linux"
 
-PKG_IS_ADDON="no"
 PKG_TOOLCHAIN="make"
-PKG_AUTORECONF="no"
 
 make_target() {
   make -C platforms/libretro/

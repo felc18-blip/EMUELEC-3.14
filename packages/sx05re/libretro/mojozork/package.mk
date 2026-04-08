@@ -2,24 +2,19 @@
 # Copyright (C) 2025-present EmuELEC (https://github.com/EmuELEC)
 
 PKG_NAME="mojozork"
-PKG_VERSION="517ccff5ad6a811f948fadc0489b45c32f177c42"
-PKG_SHA256=""
-PKG_LICENSE="Zlib"
+PKG_VERSION="5c8d81f8db53c206ace6952472e7a7e68bd8e752"
 PKG_SITE="https://github.com/icculus/mojozork"
-PKG_URL="https://github.com/icculus/mojozork/archive/${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain"
-PKG_LONGDESC="MojoZork: Z-Machine implementation as libretro core"
-PKG_TOOLCHAIN="manual"
+PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
+PKG_DEPENDS_TARGET="toolchain sqlite"
+PKG_LONGDESC="A simple Z-Machine implementation in a single C file"
+PKG_TOOLCHAIN="cmake"
 
-PKG_LIBNAME="mojozork_libretro.so"
-PKG_LIBPATH="${PKG_LIBNAME}"
-
-make_target() {
-  cd ${PKG_BUILD}
-  ${CC} -o ${PKG_LIBNAME} mojozork-libretro.c -shared -fPIC ${CFLAGS} ${LDFLAGS}
-}
+PKG_CMAKE_OPTS_TARGET="-DMOJOZORK_LIBRETRO=ON \
+                       -DMOJOZORK_STANDALONE_DEFAULT=OFF \
+                       -DMOJOZORK_MULTIZORK_DEFAULT=OFF \
+                       -DCMAKE_POLICY_VERSION_MINIMUM=3.5"
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro
-  cp ${PKG_LIBPATH} ${INSTALL}/usr/lib/libretro/
+  cp ${PKG_BUILD}/.${TARGET_NAME}/mojozork_libretro.so ${INSTALL}/usr/lib/libretro/
 }

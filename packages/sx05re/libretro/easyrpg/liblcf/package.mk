@@ -1,30 +1,32 @@
+################################################################################
+#      This file is part of OpenELEC - http://www.openelec.tv
+#      Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
+#      Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
+#
+#  OpenELEC is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  OpenELEC is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with OpenELEC.  If not, see <http://www.gnu.org/licenses/>.
+################################################################################
+
 PKG_NAME="liblcf"
-PKG_VERSION="0.8"
-# Hash do commit oficial da tag v0.8
-PKG_REV="606288281fe3527353c76065b56e1ebdc0c9baae"
+PKG_VERSION="92c4450a1bc1acb58bd02bbb99b57e5036919cdf"
 PKG_LICENSE="MIT"
 PKG_SITE="https://github.com/EasyRPG/liblcf"
-# URL via commit: Impossível dar 404 se o repositório existe
-PKG_URL="${PKG_SITE}/archive/${PKG_REV}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain expat icu"
+PKG_URL="${PKG_SITE}.git"
+PKG_DEPENDS_TARGET="toolchain expat icu inih"
 PKG_LONGDESC="Library to handle RPG Maker 2000/2003 and EasyRPG projects"
-
-PKG_USE_CMAKE="yes"
-PKG_TOOLCHAIN="cmake"
+GET_HANDLER_SUPPORT="git"
 
 PKG_CMAKE_OPTS_TARGET="-DCMAKE_BUILD_TYPE=Release"
-
-pre_configure_target() {
-  # VACINA GCC 15: Corrige o acesso a membros de templates no arquivo dbbitarray.h
-  # Necessário para o compilador de 2026 não travar no swap do template
-  if [ -f "${PKG_BUILD}/src/lcf/dbbitarray.h" ]; then
-    sed -i 's/std::swap(_proxy._base, o._base);/std::swap(_proxy._base, o._proxy._base);/g' ${PKG_BUILD}/src/lcf/dbbitarray.h
-    sed -i 's/std::swap(_proxy._idx, o._idx);/std::swap(_proxy._idx, o._proxy._idx);/g' ${PKG_BUILD}/src/lcf/dbbitarray.h
-  fi
-
-  # Relaxa o rigor do GCC 15 para códigos de templates antigos
-  export CXXFLAGS="${CXXFLAGS} -fpermissive -Wno-template-body"
-}
 
 pre_make_target() {
   find ${PKG_BUILD} -name flags.make -exec sed -i "s:isystem :I:g" \{} \;

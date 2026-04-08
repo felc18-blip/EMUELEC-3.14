@@ -2,13 +2,12 @@
 # Copyright (C) 2024-present Team EmuELEC (https://emuelec.org)
 
 PKG_NAME="beetle-saturn"
-PKG_VERSION="b4df47a9f0f30d09eb95b07a4435d0f435a2e95d"
+PKG_VERSION="06c9daa7ff6de42955437d29a80d8fc4ececc8d3"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/beetle-saturn-libretro"
 PKG_URL="${PKG_SITE}.git"
 PKG_DEPENDS_TARGET="toolchain"
-PKG_SECTION="libretro"
-PKG_SHORTDESC="Beetle Saturn libretro, a fork from mednafen"
+PKG_LONGDESC="Beetle Saturn libretro, a fork from mednafen"
 PKG_TOOLCHAIN="make"
 
 if [ ! "${OPENGL}" = "no" ]; then
@@ -19,7 +18,15 @@ if [ "${OPENGLES_SUPPORT}" = yes ]; then
   PKG_DEPENDS_TARGET+=" ${OPENGLES}"
 fi
 
+make_target() {
+  if [ "${ARCH}" == "i386" -o "${ARCH}" == "x86_64" ]; then
+    make platform=unix CC=${CC} CXX=${CXX} AR=${AR}
+  else
+    make platform=armv CC=${CC} CXX=${CXX} AR=${AR}
+  fi
+}
+
 makeinstall_target() {
-  mkdir -p $INSTALL/usr/lib/libretro
-  cp mednafen_saturn_*.so $INSTALL/usr/lib/libretro/
+  mkdir -p ${INSTALL}/usr/lib/libretro
+  cp mednafen_saturn_libretro.so ${INSTALL}/usr/lib/libretro/beetle_saturn_libretro.so
 }

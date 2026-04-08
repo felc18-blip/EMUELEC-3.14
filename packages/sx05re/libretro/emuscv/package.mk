@@ -1,42 +1,24 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2022-present AmberELEC (https://github.com/AmberELEC)
 
 PKG_NAME="emuscv"
 PKG_VERSION="dfce10df090ce3f5eb23bdbee289702ec1478246"
-PKG_SHA256=""
-PKG_LICENSE="GPL-3.0-or-later"
+#PKG_ARCH="aarch64"
 PKG_SITE="https://gitlab.com/MaaaX-EmuSCV/libretro-emuscv"
 PKG_URL="${PKG_SITE}.git"
-
-PKG_ARCH="any"
-PKG_SECTION="emuelec/libretro"
-PKG_DEPENDS_TARGET="toolchain SDL2 zlib"
-PKG_SHORTDESC="EmuSCV libretro core"
+PKG_DEPENDS_TARGET="toolchain bin2c:host SDL2"
+PKG_LONGDESC="An EPOCH/YENO Super Cassette Vision (1984) home video game emulator for Libretro"
 PKG_TOOLCHAIN="make"
-PKG_GIT_CLONE_SINGLE="yes"
 
-pre_make_target() {
-  export PATH="${SYSROOT_PREFIX}/usr/bin:${PATH}"
+PKG_MAKE_OPTS_TARGET="-C . platform=unix"
 
-  mkdir -p sys
-  : > sys/io.h
-
-  sed -i 's|-I/usr/include/SDL2||g' Makefile.libretro
-
-  echo "Building host bin2c..."
-
-  # FORÇA HOST (ESSA É A CHAVE)
-  gcc tools/bin2c/bin2c.c -o tools/bin2c/bin2c || exit 1
-  chmod +x tools/bin2c/bin2c
-
-  g++ tools/dasm7801/dasm7801.cpp -o tools/dasm7801/dasm7801 || exit 1
-}
-
-make_target() {
-  make -f Makefile.libretro platform=unix \
-    CC="${CC}" CXX="${CXX}" AR="${AR}" RANLIB="${RANLIB}" STRIP="${STRIP}"
+pre_configure_target() {
+  export TERM=xterm
+  CXXFLAGS+=" -I$(get_build_dir glibc)/sysdeps/unix/sysv/linux/x86"
+  sed -i 's~tools/bin2c/~'${TOOLCHAIN}'/usr/bin/~g' Makefile.libretro
 }
 
 makeinstall_target() {
-  mkdir -p "${INSTALL}/usr/lib/libretro"
-  cp emuscv_libretro.so "${INSTALL}/usr/lib/libretro/"
+  mkdir -p ${INSTALL}/usr/lib/libretro
+  cp ${PKG_BUILD}/emuscv_libretro.so ${INSTALL}/usr/lib/libretro/
 }

@@ -19,16 +19,11 @@
 ################################################################################
 
 PKG_NAME="puae"
-PKG_VERSION="bea8c084beaf576f54dc1be42d715d424265cda2"
-PKG_REV="1"
-PKG_ARCH="any"
+PKG_VERSION="0043cf9c061bd9b81dbc1869c2761017139cfc63"
 PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/libretro/libretro-uae"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain"
-PKG_PRIORITY="optional"
-PKG_SECTION="libretro"
-PKG_SHORTDESC="WIP libretro port of UAE (P-UAE and libco) Expect bugs"
 PKG_LONGDESC="WIP libretro port of UAE (P-UAE and libco) Expect bugs"
 PKG_TOOLCHAIN="make"
 

@@ -19,12 +19,12 @@
 ################################################################################
 
 PKG_NAME="prboom"
-PKG_VERSION="93c8e7a2074e4fd8410398e3d571c6d9afec1d84"
+PKG_VERSION="9d412db570d3291829b308e6d1ac17f04acdda17"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/libretro-prboom"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain"
-PKG_SHORTDESC="libretro implementation of Doom"
+PKG_LONGDESC="libretro implementation of Doom"
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro

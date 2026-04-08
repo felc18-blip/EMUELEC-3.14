@@ -2,32 +2,19 @@
 # Copyright (C) 2020-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="dosbox-pure"
-PKG_VERSION="f587236b2d016f4f16d672e9ce2829bdf507bf9b"
-PKG_REV="1"
-PKG_ARCH="any"
+PKG_VERSION="b9f8bc681c55301b7430070b1c2057b3744ad480"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/schellingb/dosbox-pure"
 PKG_URL="${PKG_SITE}.git"
-PKG_DEPENDS_TARGET="toolchain linux glibc glib systemd dbus alsa-lib SDL2 SDL2_net SDL_sound libpng zlib libvorbis flac libogg fluidsynth-git munt opusfile"
-PKG_LONGDESC="DOSBox Pure is a new fork of DOSBox built for RetroArch/Libretro aiming for simplicity and ease of use. "
+PKG_DEPENDS_TARGET="toolchain"
+PKG_LONGDESC="A port of DOSBox to libretro"
+GET_HANDLER_SUPPORT="git"
 PKG_TOOLCHAIN="make"
-PKG_BUILD_FLAGS="+lto"
-
-
-pre_configure_target() {
-
-if [ "${DEVICE}" == "Amlogic-old" ]; then
-	PKG_MAKE_OPTS_TARGET=" platform=emuelec"
-elif [ "${DEVICE}" == "Amlogic-ng" ] || [ "${DEVICE}" == "Amlogic-no" ] || ["${DEVICE}" == "Amlogic-ogu" ]; then
-	PKG_MAKE_OPTS_TARGET=" platform=emuelec-ng"
-else
-	PKG_MAKE_OPTS_TARGET=" platform=emuelec-hh"
-fi	
-}
+PKG_PATCH_DIRS+="${DEVICE}"
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro
-  cp dosbox_pure_libretro.so ${INSTALL}/usr/lib/libretro/dosbox_pure_libretro.so
-  cp dosbox_pure_libretro.info ${INSTALL}/usr/lib/libretro/dosbox_pure_libretro.info
-  
+  ${STRIP} --strip-debug dosbox_pure_libretro.so
+  cp dosbox_pure_libretro.so ${INSTALL}/usr/lib/libretro/
 }
+

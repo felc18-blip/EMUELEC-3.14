@@ -25,8 +25,7 @@ pre_configure_target() {
   sed -e "s|^GIT_VERSION ?.*$|GIT_VERSION := \" ${PKG_VERSION:0:7}\"|" -i Makefile
   sed -i 's/\-O[23]/-Ofast/' ${PKG_BUILD}/Makefile
 
-  # FORÇA GLES (CRÍTICO)
-  PKG_MAKE_OPTS_TARGET+=" HAVE_OPENGL=0 HAVE_OPENGLES=1 FORCE_GLES=1"
+  PKG_MAKE_OPTS_TARGET+=" HAVE_OPENGL=0 HAVE_OPENGLES=1 FORCE_GLES=1 GLES=1 GLES3=0 HAVE_GLES3=0"
 
   case ${DEVICE} in
     RK3*|S922X*)

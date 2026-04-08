@@ -19,28 +19,30 @@
 ################################################################################
 
 PKG_NAME="picodrive"
-PKG_VERSION="3cd193ed1c7a2ffa94e69334367c64c136de0c7d"
+PKG_VERSION="c4332d608c1005a46ce51236ade9894e0d32e52b"
 PKG_LICENSE="MAME"
-PKG_SITE="https://github.com/irixxxx/picodrive"
+PKG_SITE="https://github.com/libretro/picodrive"
 PKG_URL="${PKG_SITE}.git"
 PKG_DEPENDS_TARGET="toolchain"
-PKG_PRIORITY="optional"
-PKG_SECTION="libretro"
-PKG_SHORTDESC="Libretro implementation of PicoDrive. (Sega Megadrive/Genesis/Sega Master System/Sega GameGear/Sega CD/32X)"
-PKG_LONGDESC="This is yet another Megadrive / Genesis / Sega CD / Mega CD / 32X / SMS emulator, which was written having ARM-based handheld devices in mind (such as smartphones and handheld consoles like GP2X and Pandora), but also runs on non-ARM little-endian hardware too."
+PKG_LONGDESC="Libretro implementation of PicoDrive. (Sega Megadrive/Genesis/Sega Master System/Sega GameGear/Sega CD/32X)"
 GET_HANDLER_SUPPORT="git"
 PKG_BUILD_FLAGS="-gold"
 PKG_TOOLCHAIN="make"
 
+PKG_PATCH_DIRS="${PROJECT}"
+
+pre_configure_target() {
+export CFLAGS="${CFLAGS} -Wno-error=incompatible-pointer-types"
+}
+
+configure_target() {
+  :
+}
+
 make_target() {
-  if [ "${ARCH}" == "arm" ]; then
-    make -C .. -f Makefile.libretro platform=armv6
-  elif [ "${ARCH}" == "aarch64" ]; then
   cd ${PKG_BUILD}
-    make -f Makefile.libretro platform=arm64
-  else
-    make -C .. -f Makefile.libretro
-  fi
+#  ${PKG_BUILD}/configure --platform=generic
+  make -f Makefile.libretro
 }
 
 makeinstall_target() {

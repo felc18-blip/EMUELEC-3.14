@@ -1,6 +1,7 @@
 ################################################################################
 #      This file is part of OpenELEC - http://www.openelec.tv
 #      Copyright (C) 2009-2012 Stephan Raue (stephan@openelec.tv)
+#      Copyright (C) 2020      351ELEC team (https://github.com/fewtarius/351ELEC)
 #
 #  This Program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,21 +20,14 @@
 ################################################################################
 
 PKG_NAME="freeintv"
-PKG_VERSION="0e0e58503386304c5e7ac860c135583bc52e2e49"
-PKG_REV="1"
-PKG_ARCH="any"
+PKG_VERSION="1b51f41238ef9691d9fe16722f7d093bb6a6e379"
 PKG_LICENSE="GPLv3"
 PKG_SITE="https://github.com/libretro/FreeIntv"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain"
-PKG_PRIORITY="optional"
-PKG_SECTION="libretro"
-PKG_SHORTDESC="FreeIntv is a libretro emulation core for the Mattel Intellivision."
 PKG_LONGDESC="FreeIntv is a libretro emulation core for the Mattel Intellivision."
 
-PKG_IS_ADDON="no"
 PKG_TOOLCHAIN="make"
-PKG_AUTORECONF="no"
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro

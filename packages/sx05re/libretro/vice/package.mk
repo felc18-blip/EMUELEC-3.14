@@ -19,29 +19,19 @@
 ################################################################################
 
 PKG_NAME="vice"
-PKG_VERSION="e9f8ac034ddef3025f0567768f7af8219f7cfdb8"
-PKG_SHA256="83c68b33ba42d2cf885705f8b703112ed5c35593bac0618f062f704957ab6c9f"
-PKG_REV="1"
-PKG_ARCH="any"
+PKG_VERSION="91d0d4d884acd44b5240dfcdbd8bdc2f0f757dfd"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/vice-libretro"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain"
-PKG_PRIORITY="optional"
-PKG_SECTION="libretro"
-PKG_SHORTDESC="Versatile Commodore 8-bit Emulator version 3.0"
 PKG_LONGDESC="Versatile Commodore 8-bit Emulator version 3.0"
-
-PKG_IS_ADDON="no"
 PKG_TOOLCHAIN="make"
-PKG_AUTORECONF="no"
-PKG_BUILD_FLAGS="-lto"
 
 make_target() {
-  if [ "${ARCH}" == "arm" ]; then
-    CFLAGS="${CFLAGS} -DARM -DALIGN_DWORD -mstructure-size-boundary=32 -mthumb-interwork -falign-functions=16 -marm"
+  if [ ! -d "built" ]
+  then
+    mkdir built
   fi
-  mkdir -p built
   for EMUTYPE in x128 x64sc x64dtv xscpu64 xplus4 xvic xcbm5x0 xcbm2 xpet x64
   do
     make clean
@@ -52,5 +42,9 @@ make_target() {
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro
-  cp built/vice_*_libretro.so ${INSTALL}/usr/lib/libretro/
+  cp built/vice_x128_libretro.so ${INSTALL}/usr/lib/libretro/
+  cp built/vice_x64_libretro.so ${INSTALL}/usr/lib/libretro/
+  cp built/vice_xplus4_libretro.so ${INSTALL}/usr/lib/libretro/
+  cp built/vice_xvic_libretro.so ${INSTALL}/usr/lib/libretro/
+  cp built/vice_xpet_libretro.so ${INSTALL}/usr/lib/libretro/
 }

@@ -20,22 +20,16 @@
 ################################################################################
 
 PKG_NAME="easyrpg"
-PKG_VERSION="6ba2f54ed4e2c12b5bd73fc326600a67cf595dde"
-PKG_ARCH="any"
+PKG_VERSION="31de2a75e2187360bc55b1b43f9524779485fe8a"
 PKG_LICENSE="GPLv3"
 PKG_SITE="https://github.com/easyrpg/player"
 PKG_URL="${PKG_SITE}.git"
 PKG_GIT_CLONE_BRANCH="0-8-0-stable"
-PKG_DEPENDS_TARGET="toolchain zlib libfmt liblcf icu pixman libspeexdsp mpg123 libsndfile libvorbis opusfile wildmidi libxmp-lite fluidsynth harfbuzz libpng retroarch"
-PKG_PRIORITY="optional"
-PKG_SECTION="libretro"
-PKG_SHORTDESC="An unofficial libretro port of the EasyRPG/Player."
+PKG_DEPENDS_TARGET="toolchain zlib libfmt liblcf icu pixman libspeexdsp mpg123 libsndfile libvorbis opusfile wildmidi libxmp-lite fluidsynth harfbuzz libpng retroarch inih"
 PKG_LONGDESC="An unofficial libretro port of the EasyRPG/Player."
 GET_HANDLER_SUPPORT="git"
 PKG_BUILD_FLAGS="+pic"
-
-PKG_IS_ADDON="no"
-PKG_AUTORECONF="no"
+PKG_GIT_CLONE_BRANCH="master"
 
 PKG_CMAKE_OPTS_TARGET="-DPLAYER_TARGET_PLATFORM=libretro \
                        -DBUILD_SHARED_LIBS=ON \

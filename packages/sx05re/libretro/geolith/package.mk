@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2024-present EmuELEC (https://github.com/emuelec)
+# Copyright (C) 2024-present ArchR (https://github.com/archr-linux/Arch-R)
 
 PKG_NAME="geolith"
-PKG_VERSION="a137836711bbbd6e279310dc6e91bedc03904016"
+PKG_VERSION="1391cef3d373cd2aaf4f8a0478b9d6f831c7dfac"
 PKG_ARCH="aarch64"
 PKG_LICENSE="BSD"
 PKG_SITE="https://github.com/libretro/geolith-libretro"
