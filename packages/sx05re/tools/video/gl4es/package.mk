@@ -2,10 +2,10 @@
 # Copyright (C) 2021-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="gl4es"
-PKG_VERSION="83b074dcb0028e239da2ad9789db80cc1d5f2544"
-PKG_SHA256="2031be77b49398cdf945c110e59530a48113c35fd69c0a7381be21fc9eaccc79"
-PKG_GIT_CLONE_BRANCH="sk_hacks"
-PKG_SITE="https://github.com/JohnnyonFlame/gl4es"
+PKG_VERSION="9e8037b0c344127993e7d66a17ff42228b0bb806"
+PKG_SHA256="d118b691929dac75cdffb1f57e938944c9c419c5f75ecae2ec8b57e82673f04f"
+PKG_GIT_CLONE_BRANCH="master"
+PKG_SITE="https://github.com/ptitSeb/gl4es"
 PKG_LICENSE="GPL"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain ${OPENGLES}"
@@ -15,9 +15,9 @@ PKG_TOOLCHAIN="cmake-make"
 pre_configure_target() {
 
 if [[ "${DEVICE}" == "Amlogic"* ]]; then
-	PKG_CMAKE_OPTS_TARGET=" -DNOX11=1 -DODROID=1 -DGBM=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+    PKG_CMAKE_OPTS_TARGET=" -DNOX11=1 -DODROID=1 -DGBM=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5"
 else
-	PKG_CMAKE_OPTS_TARGET=" -DNOX11=1 -DODROID=1 -DGBM=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+    PKG_CMAKE_OPTS_TARGET=" -DNOX11=1 -DODROID=1 -DGBM=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5"
 fi
 
 }
@@ -42,4 +42,3 @@ ln -sf libGL.so ${INSTALL}/usr/lib/libGL.so.1
 #  # 3. Copia o pkgconfig para o CMake não se perder
 #  mkdir -p ${SYSROOT_PREFIX}/usr/lib/pkgconfig
 #  cp -rf ${PKG_DIR}/pkgconfig/gl.pc ${SYSROOT_PREFIX}/usr/lib/pkgconfig/
-#}
