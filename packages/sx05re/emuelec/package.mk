@@ -10,8 +10,8 @@ PKG_SECTION="emuelec"
 PKG_LONGDESC="EmuELEC Meta Package"
 PKG_TOOLCHAIN="manual"
 
-PKG_EXPERIMENTAL="nestopiaCV easyrpg smsplus-gx wasm4 snes9x2005_plus snes9x2005 race ecwolf fileman portmaster quasi88 xmil np2kai hypseus-singe ikemen-go viceSA doublecherrygb play yabasanshiro mupen64plus-sa flycast"
-PKG_EMUS="${LIBRETRO_CORES} drastic-advanced vircon32-lr mu mojozork gametank-lr gametank32-lr emuscv duckstation-lr crocods bsneshd b2 drastic-sa mame2003-xtreme-lr mame2015 mame2003-midway-lr opera bsnes-mercury-performance-lr bsnes-mercury-accuracy-lr mupen64plus-nx-lr bsnes-mercury-balanced-lr mupen64plus-lr morpheuscast-xtreme32-lr fbalpha2019-lr ludicrousn64-xtreme32-lr ludicrousn64-xtreme-lr beetle-psx-lr desmume-2015 ppsspp ppssppsa PPSSPPSDL PPSSPPSA desmume melonds advancemame amiberry amiberry-lite hatarisa openbor dosbox-staging mupen64plus-nx mupen64plus-nx-alt scummvmsa stellasa solarus dosbox-pure pcsx_rearmed potator freej2me flycastsa fmsx-libretro jzintv xroar x16 simcoupe ti99sim oricutron"
+PKG_EXPERIMENTAL="nestopiaCV mesen tic-80 panda3ds-lr dolphin dosbox-core quicknes mesen-s easyrpg smsplus-gx wasm4 snes9x2005_plus snes9x2005 race ecwolf fileman portmaster quasi88 xmil np2kai hypseus-singe ikemen-go viceSA doublecherrygb play yabasanshiro mupen64plus-sa flycast flycast-dojo same_cdi"
+PKG_EMUS="${LIBRETRO_CORES} beetle-saturn pico-8 drastic-advanced vircon32 mu mojozork gametank-lr gametank32-lr emuscv duckstation-lr crocods bsneshd b2 drastic-sa mame2003-xtreme-lr mame2015 mame2003-midway-lr opera bsnes-mercury-performance-lr bsnes-mercury-accuracy-lr mupen64plus-nx-lr bsnes-mercury-balanced-lr mupen64plus-lr morpheuscast-xtreme32-lr pcsx_rearmed-lr fbalpha2019-lr ludicrousn64-xtreme32-lr ludicrousn64-xtreme-lr beetle-psx desmume-2015 ppsspp ppssppsa PPSSPPSDL PPSSPPSA desmume melonds advancemame amiberry amiberry-lite hatarisa openbor dosbox-staging mupen64plus-nx mupen64plus-nx-alt scummvmsa stellasa solarus dosbox-pure pcsx_rearmed potator freej2me flycastsa fmsx-libretro jzintv xroar x16 simcoupe ti99sim oricutron"
 PKG_COMPRESS="gzip minizip idtech lynx yamlcpp textviewer rapidxml libcroco pugixml pyFDT cifs-utils"
 PKG_DEPENDS_TARGET+=" emuelec-tools ${PKG_EMUS} ${PKG_EXPERIMENTAL} ${PKG_COMPRESS}"
 
@@ -42,10 +42,11 @@ if [ "${ARCH}" == "aarch64" ]; then
                         lib32-essential \
                         lib32-retroarch \
                         emuelec-32bit-info \
-                        lib32-flycast \
                         lib32-mupen64plus \
                         lib32-pcsx_rearmed \
                         lib32-uae4arm \
+                        lib32-desmume \
+                        lib32-pcsx_rearmed-lr \
                         lib32-parallel-n64 \
                         lib32-bennugd-monolithic \
                         lib32-droidports \
@@ -53,14 +54,21 @@ if [ "${ARCH}" == "aarch64" ]; then
 						            lib32-libxcrypt \
                         lib32-libusb"
 
-  if [ "${DEVICE}" == "Amlogic-ng" ] || [ "${DEVICE}" == "Amlogic-no" ] || [ "${DEVICE}" == "RK356x" ] || [ "${DEVICE}" == "OdroidM1" ]; then
+# Bloco Unificado para Dispositivos Potentes
+if [ "${DEVICE}" == "Amlogic-ng" ] || [ "${DEVICE}" == "Amlogic-no" ] || [ "${DEVICE}" == "RK356x" ] || [ "${DEVICE}" == "OdroidM1" ]; then
     PKG_DEPENDS_TARGET+=" dolphinSA"
-  fi
+    # Se o MAME também for só para eles, ele entra aqui
+fi
 
-  if [ "${DEVICE}" == "Amlogic-old" ]; then
+# Bloco para o MAME (Incluindo o seu Amlogic-old)
+if [[ "${DEVICE}" =~ ^(Amlogic-ng|Amlogic-no|RK356x|OdroidM1|Amlogic-old)$ ]]; then
+    PKG_DEPENDS_TARGET+=" mame"
+fi
+
+if [ "${DEVICE}" == "Amlogic-old" ]; then
     # Removemos APENAS o duckstation original para usar o seu novo -sa
     # O resto (Saturn/Yabasanshiro e CDI) deixamos passar para a build
-for discore in yabasanshiro yabasanshiroSA_1_5 yabasanshiro-libretro; do
+for discore in yabasanshiro fceumm-mod yabasanshiroSA_1_5 yabasanshiro-libretro; do
   PKG_DEPENDS_TARGET=$(echo ${PKG_DEPENDS_TARGET} | sed "s|${discore}| |g")
 done
     
@@ -72,10 +80,6 @@ done
   fi
 fi
 
-# We make sure MAME is the last package from EE to be built.
-if [ "${DEVICE}" == "Amlogic-ng" ] || [ "${DEVICE}" == "Amlogic-no" ] || [ "${DEVICE}" == "RK356x" ] || [ "${DEVICE}" == "OdroidM1" ]; then
-	PKG_DEPENDS_TARGET+=" mame"
-fi
 
 # These packages do not yet compile for OdroidM1
 if [ "${DEVICE}" == "RK356x" ] || [ "${DEVICE}" == "OdroidM1" ]; then

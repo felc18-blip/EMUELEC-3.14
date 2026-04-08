@@ -234,8 +234,11 @@ case ${PLATFORM} in
                 fi
                 ;;
         "n64")
-                set_kill_keys "mupen64plus"
-
+                if [ "${EMU}" = "daedalusx64" ]; then
+                    set_kill_keys "daedalusx64"
+                    RUNTHIS='${TBASH} start_daedalusx64.sh "${ROMNAME}"'
+                else
+                    set_kill_keys "mupen64plus"
                 if [ "${EMU}" = "rice" ]; then
                     RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}" rice'
                 elif [ "${EMU}" = "gl64mk2" ]; then
@@ -244,6 +247,7 @@ case ${PLATFORM} in
                     RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}" gliden64'
                 else
                     RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}"'
+                fi
                 fi
                 ;;
         "amiga"|"amigacd32")
