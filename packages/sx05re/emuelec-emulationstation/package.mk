@@ -2,23 +2,20 @@
 # Copyright (C) 2019-present Shanti Gilbert
 
 PKG_NAME="emuelec-emulationstation"
-PKG_VERSION="4826365da13164770f824a27f6bf6be0a9074040"
+PKG_VERSION="3988ff33f5d162da1662e764a3d4d2dd00898db5"
 PKG_GIT_CLONE_BRANCH="EmuELEC"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
-PKG_SITE="https://github.com/EmuELEC/emuelec-emulationstation"
+
+PKG_SITE="https://github.com/felc18-blip/emuelec-emulationstation-nextos"
 PKG_URL="${PKG_SITE}.git"
-PKG_DEPENDS_TARGET="toolchain SDL2 freetype freeimage vlc rapidjson ${OPENGLES} SDL2_mixer fping p7zip espeak"
-PKG_SECTION="emuelec"
-PKG_SHORTDESC="Emulationstation emulator frontend"
-PKG_BUILD_FLAGS="-gold"
-GET_HANDLER_SUPPORT="git"
 
 PKG_DEPENDS_TARGET="toolchain SDL2 freetype freeimage vlc rapidjson ${OPENGLES} SDL2_mixer fping p7zip espeak es-theme-art-book-next"
 
 PKG_SECTION="emuelec"
 PKG_SHORTDESC="Emulationstation emulator frontend"
+
 PKG_BUILD_FLAGS="-gold"
 GET_HANDLER_SUPPORT="git"
 
@@ -38,16 +35,7 @@ pre_configure_target() {
 
   git submodule update --init --recursive
 
-PKG_CMAKE_OPTS_TARGET=" \
-  -DENABLE_EMUELEC=1 \
-  -DDISABLE_KODI=1 \
-  -DENABLE_FILEMANAGER=0 \
-  -DGLES2=1 \
-  -DENABLE_TTS=0 \
-  -DENABLE_UPDATES=1 \
-  -DCEC=0 \
-  -DENABLE_PULSE=1 \
-  -DUSE_SYSTEM_PUGIXML=1"
+PKG_CMAKE_OPTS_TARGET="-DENABLE_EMUELEC=1 -D_ENABLEEMUELEC=1 -DDISABLE_KODI=1 -DENABLE_FILEMANAGER=0 -DGLES2=1 -DENABLE_TTS=0 -DENABLE_UPDATES=1 -DCEC=0 -DENABLE_PULSE=1 -DUSE_SYSTEM_PUGIXML=1"
 
   if [ -f ${PKG_DIR}/api_keys.txt ]; then
     while IFS="" read -r p || [ -n "${p}" ]; do
@@ -69,13 +57,13 @@ makeinstall_target() {
 	mkdir -p ${INSTALL}/usr/config/emuelec/configs/locale/i18n/charmaps
 	cp -rf ${PKG_BUILD}/locale/lang/* ${INSTALL}/usr/config/emuelec/configs/locale/
 	cp -PR "$(get_build_dir glibc)/localedata/charmaps/UTF-8" ${INSTALL}/usr/config/emuelec/configs/locale/i18n/charmaps/UTF-8
-	
+
 	mkdir -p ${INSTALL}/usr/lib
 	ln -sf /storage/.config/emuelec/configs/locale ${INSTALL}/usr/lib/locale
-	
+
 	mkdir -p ${INSTALL}/usr/config/emulationstation/resources
     cp -rf ${PKG_BUILD}/resources/* ${INSTALL}/usr/config/emulationstation/resources/
-    
+
     mkdir -p ${INSTALL}/usr/bin
     ln -sf /storage/.config/emulationstation/resources ${INSTALL}/usr/bin/resources
     cp -rf ${PKG_BUILD}/emulationstation ${INSTALL}/usr/bin
@@ -83,7 +71,7 @@ makeinstall_target() {
 
 	mkdir -p ${INSTALL}/etc/emulationstation/
 	ln -sf /storage/.config/emulationstation/themes ${INSTALL}/etc/emulationstation/
-   
+
 	mkdir -p ${INSTALL}/usr/config/emulationstation
 	cp -rf ${PKG_DIR}/config/scripts ${INSTALL}/usr/config/emulationstation
 	cp -rf ${PKG_DIR}/config/*.cfg ${INSTALL}/usr/config/emulationstation
@@ -94,13 +82,13 @@ makeinstall_target() {
 
 	chmod +x ${INSTALL}/usr/config/emulationstation/scripts/*
 	chmod +x ${INSTALL}/usr/config/emulationstation/scripts/configscripts/*
-	find ${INSTALL}/usr/config/emulationstation/scripts/ -type f -exec chmod o+x {} \; 
-	
+	find ${INSTALL}/usr/config/emulationstation/scripts/ -type f -exec chmod o+x {} \;
+
 	# Vertical Games are only supported in the OdroidGoAdvance
     if [[ ${DEVICE} != "OdroidGoAdvance" ]]; then
         sed -i "s|, vertical||g" "${INSTALL}/usr/config/emulationstation/es_features.cfg"
     fi
-	
+
 	# Amlogic project has an issue with mixed audio
     if [[ "${DEVICE}" == "Amlogic-old" ]]; then
         sed -i "s|</config>|	<bool name=\"StopMusicOnScreenSaver\" value=\"false\" />\n</config>|g" "${INSTALL}/usr/config/emulationstation/es_settings.cfg"
@@ -110,7 +98,7 @@ makeinstall_target() {
         sed -i "s|<\/config>|	<string name=\"GamelistViewStyle\" value=\"Small Screen\" />\n<\/config>|g" "${INSTALL}/usr/config/emulationstation/es_settings.cfg"
         sed -i "s|value=\"panel\" />|value=\"small panel\" />|g" "${INSTALL}/usr/config/emulationstation/es_settings.cfg"
     fi
-    
+
     if  [[ "${DEVICE}" == "GameForce" ]]; then
     	mkdir -p ${INSTALL}/usr/config/emulationstation/themesettings
         sed -i "s|<\/config>|	<string name=\"subset.ratio\" value=\"43\" />\n<\/config>|g" "${INSTALL}/usr/config/emulationstation/es_settings.cfg"
@@ -129,7 +117,7 @@ if [[ "${DEVICE}" != "Amlogic-ng" || "${DEVICE}" != "Amlogic-ne" || "${DEVICE}" 
         xmlstarlet ed -L -P -d "/systemList/system[name='philips-cdi']" ${CORESFILE}
         xmlstarlet ed -L -P -d "/systemList/system/emulators/emulator[@name='Duckstation']" ${CORESFILE}
     fi
-    
+
     for discore in ${remove_cores}; do
         sed -i "s|<core>${discore}</core>||g" ${CORESFILE}
         sed -i '/^[[:space:]]*$/d' ${CORESFILE}
@@ -150,7 +138,7 @@ fi
 
 }
 
-post_install() {  
+post_install() {
 	enable_service emustation.service
 	mkdir -p ${INSTALL}/usr/share
 	ln -sf /storage/.config/emuelec/configs/locale ${INSTALL}/usr/share/locale
