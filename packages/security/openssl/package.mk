@@ -4,12 +4,13 @@
 
 
 PKG_NAME="openssl"
-PKG_VERSION="3.6.1"
-PKG_SHA256="b1bfedcd5b289ff22aee87c9d600f515767ebf45f77168cb6d64f231f518a82e"
+PKG_VERSION="3.6.2"
+PKG_SHA256="aaf51a1fe064384f811daeaeb4ec4dce7340ec8bd893027eee676af31e83a04f"
 PKG_LICENSE="Apache-2.0"
 PKG_SITE="https://openssl-library.org"
 PKG_URL="https://github.com/openssl/openssl/releases/download/${PKG_NAME}-${PKG_VERSION}/${PKG_NAME}-${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain"
+PKG_DEPENDS_HOST="ccache:host"
+PKG_DEPENDS_TARGET="autotools:host gcc:host"
 PKG_LONGDESC="The Open Source toolkit for Secure Sockets Layer and Transport Layer Security"
 PKG_TOOLCHAIN="configure"
 PKG_BUILD_FLAGS="+local-cc"

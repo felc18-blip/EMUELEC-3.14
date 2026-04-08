@@ -1,13 +1,10 @@
 ## DISTRO INFORMATION ###
 
 # Name of the Distro to build (full name, without special characters)
-  DISTRONAME="NextOS"
+  DISTRONAME="NextOS-Retro-Elite-Edition"
 
 # short project description
   DESCRIPTION="NextOS-Elite-Edition: High Performance Emulation for S905X."
-  DISTRO_BUILD_ID="Elite-Edition"
-  LIBREELEC_BUILD="Elite-Edition"
-  COREELEC_BUILD="Elite-Edition"
 
 ### USER INTERFACE SETTINGS ###
 

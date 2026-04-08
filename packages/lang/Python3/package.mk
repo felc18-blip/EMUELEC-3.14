@@ -3,13 +3,15 @@
 # Adaptado para NextOS-Elite-Edition / EmuELEC Base
 
 PKG_NAME="Python3"
-PKG_VERSION="3.14.3"
-PKG_SHA256="a97d5549e9ad81fe17159ed02c68774ad5d266c72f8d9a0b5a9c371fe85d902b"
+# When changing PKG_VERSION remember to sync PKG_PYTHON_VERSION!
+# PKG_SHA256="a97d5549e9ad81fe17159ed02c68774ad5d266c72f8d9a0b5a9c371fe85d902b"
+PKG_VERSION="3.14.4"
+PKG_SHA256="d923c51303e38e249136fc1bdf3568d56ecb03214efdef48516176d3d7faaef8"
 PKG_LICENSE="OSS"
 PKG_SITE="https://www.python.org/"
 PKG_URL="https://www.python.org/ftp/python/${PKG_VERSION}/${PKG_NAME::-1}-${PKG_VERSION}.tar.xz"
 
-# ATENÇÃO: Python 3.14 exige 'mpdecimal' como dependência. 
+# ATENÇÃO: Python 3.14 exige 'mpdecimal' como dependência.
 # Você precisará ter o package do 'mpdecimal' no seu sistema no futuro.
 PKG_DEPENDS_HOST="zlib:host bzip2:host libffi:host mpdecimal:host util-linux:host autoconf-archive:host openssl:host"
 PKG_DEPENDS_TARGET="autotools:host gcc:host toolchain Python3:host sqlite expat zlib bzip2 xz openssl libffi readline mpdecimal ncurses util-linux"
