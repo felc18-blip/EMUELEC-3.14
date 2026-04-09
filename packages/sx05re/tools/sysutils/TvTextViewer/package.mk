@@ -9,23 +9,16 @@ PKG_DEPENDS_TARGET="toolchain SDL2"
 PKG_SHORTDESC="Full-screen text viewer tool with gamepad controls"
 PKG_TOOLCHAIN="make"
 
-GET_HANDLER_SUPPORT="git"
-PKG_GIT_SUBMODULES="yes"
-
-if [ ! "${OPENGL}" = "no" ]; then
-  PKG_DEPENDS_TARGET+=" ${OPENGL} glu"
-fi
-
-if [ "${OPENGLES_SUPPORT}" = yes ]; then
-  PKG_DEPENDS_TARGET+=" ${OPENGLES}"
-fi
-
 pre_configure_target() {
- cd ${PKG_BUILD}
- sed -i "s|\`sdl2-config|\`${SYSROOT_PREFIX}/usr/bin/sdl2-config|g" Makefile
+  cd ${PKG_BUILD}
+
+  # Força a inicialização e atualização dos submódulos do Git diretamente na pasta de build
+  git submodule update --init --recursive
+
+  sed -i "s|\`sdl2-config|\`${SYSROOT_PREFIX}/usr/bin/sdl2-config|g" Makefile
 }
 
-makeinstall_target() {
-  mkdir -p ${INSTALL}/usr/bin
-  cp text_viewer ${INSTALL}/usr/bin
+makeinstall_target(){
+mkdir -p ${INSTALL}/usr/bin
+cp text_viewer ${INSTALL}/usr/bin
 }
