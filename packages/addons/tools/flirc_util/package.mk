@@ -2,8 +2,9 @@
 # Copyright (C) 2023-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="flirc_util"
-PKG_VERSION="8d3c86e8bb419ad44297c1b186f0cdc7dfcac915" # 30/10/2023
-PKG_SHA256="fc460e6ce5477cb6b83c90a5f8b2ebb9876ed23cdd813a6a4a0fdc3730052a2b"
+PKG_VERSION="280cccbb333f5be30fc48ea958ca103d2fce6fec"
+PKG_SHA256="fc0a79e2e08b96d6cb8d69a7ee3a0cec6445f690ff432dbe62945f583213940e"
+PKG_REV="0"
 PKG_LICENSE="FLIRC"
 PKG_SITE="http://www.flirc.tv"
 PKG_URL="https://github.com/flirc/sdk/archive/${PKG_VERSION}.tar.gz"
@@ -30,7 +31,8 @@ make_target() {
 }
 
 addon() {
-  mkdir -p ${ADDON_BUILD}/${PKG_ADDON_ID}/{bin,lib}
+  mkdir -p ${ADDON_BUILD}/${PKG_ADDON_ID}/{bin,lib.private}
     cp -P ${PKG_BUILD}/build/flirc_util ${ADDON_BUILD}/${PKG_ADDON_ID}/bin/
-    cp -P $(get_install_dir hidapi)/usr/lib/libhidapi-hidraw.so* ${ADDON_BUILD}/${PKG_ADDON_ID}/lib
+    patchelf --add-rpath '${ORIGIN}/../lib.private' ${ADDON_BUILD}/${PKG_ADDON_ID}/bin/flirc_util
+    cp -P $(get_install_dir hidapi)/usr/lib/libhidapi-hidraw.so* ${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private
 }
