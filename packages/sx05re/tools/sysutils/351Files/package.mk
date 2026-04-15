@@ -13,25 +13,19 @@ PKG_LONGDESC="File Manager"
 PKG_TOOLCHAIN="make"
 
 pre_configure_target() {
-  # Limpa referências a PC para garantir build ARM
   sed -i "s|ifeq (\$(DEVICE),PC)||g" Makefile
   sed -i "s|endif||g" Makefile
   sed -i "s|START_PATH = \$(PWD)||g" Makefile
-
-  # CORREÇÃO: Usa o caminho direto do sysroot sem duplicar
   sed -i "s|sdl2-config|${SYSROOT_PREFIX}/usr/bin/sdl2-config|g" Makefile
   sed -i "s|g++|\$(CXX)|g" Makefile
 
-  EEDV="PC"
-  if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ]; then
-      EEDV="EE_HH"
-  fi
+	EEDV="PC"
 
-  # Adicionamos as flags de inclusão manualmente para garantir que ele ache o SDL.h
-  PKG_MAKE_OPTS_TARGET="START_PATH=/storage DEVICE=${EEDV} RES_PATH=/emuelec/configs/fm/res"
+if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ]; then
+	EEDV="EE_HH"
+fi
 
-  # Força o compilador a olhar na pasta correta do SDL2 caso o sdl2-config falhe
-  export CXXFLAGS="${CXXFLAGS} -I${SYSROOT_PREFIX}/usr/include/SDL2"
+  PKG_MAKE_OPTS_TARGET=" START_PATH="/storage" DEVICE=${EEDV} RES_PATH="/emuelec/configs/fm/res""
 }
 
 
@@ -41,8 +35,8 @@ makeinstall_target() {
   mkdir -p ${INSTALL}/usr/config/emuelec/configs/fm
   cp 351Files ${INSTALL}/usr/bin/
   cp -rf res ${INSTALL}/usr/config/emuelec/configs/fm/
-  
+
   cp -rf ${PKG_DIR}/config/* ${INSTALL}/usr/config/emuelec/configs/
-  
-  
+
+
 }
