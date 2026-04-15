@@ -11,8 +11,8 @@ PKG_DEPENDS_TARGET="toolchain go:host"
 PKG_LONGDESC="The Docker CLI"
 PKG_TOOLCHAIN="manual"
 
-# Git commit of the matching release https://github.com/docker/cli/releases
-export PKG_GIT_COMMIT="ef23cbc4315ae76c744e02d687c09548ede461bd"
+# Git commit of the matching tag https://github.com/docker/cli/tags
+export PKG_GIT_COMMIT="9d7ad9ff180b43ae5577d048a7bac1159ce7bacf"
 
 configure_target() {
   go_configure
@@ -24,7 +24,7 @@ configure_target() {
   export VERSION=${PKG_VERSION}
   export BUILDTIME="$(date --utc)"
 
-  cat > "${PKG_BUILD}/go.mod" << EOF
+  cat >"${PKG_BUILD}/go.mod" <<EOF
 module github.com/docker/cli
 
 go 1.18

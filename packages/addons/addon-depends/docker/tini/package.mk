@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2009-2016 Lukas Rusak (lrusak@libreelec.tv)
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="tini"
@@ -13,7 +12,7 @@ PKG_LONGDESC="Tini is a simplest init system."
 
 PKG_MAKE_OPTS_TARGET="tini-static"
 
-pre_configure_target(){
+pre_configure_target() {
   sed -i "s|@tini_VERSION_GIT@| - git.${PKG_VERSION}|" ${PKG_BUILD}/src/tiniConfig.h.in
 }
 

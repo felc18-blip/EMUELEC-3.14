@@ -12,7 +12,7 @@
 --- a/daemon/daemon_unix.go	2022-06-03 10:30:24.000000000 -0700
 +++ b/daemon/daemon_unix.go	2022-06-07 14:34:55.315558083 -0700
 @@ -1598,8 +1598,6 @@
-
+ 
  func (daemon *Daemon) setupSeccompProfile(cfg *config.Config) error {
  	switch profile := cfg.SeccompProfile; profile {
 -	case "", config.SeccompProfileDefault:

@@ -12,6 +12,9 @@ PKG_DEPENDS_TARGET="toolchain"
 PKG_LONGDESC="Applications for initial setup, testing and operation of an DVB device supporting the DVB-S, DVB-C, DVB-T, and ATSC."
 PKG_BUILD_FLAGS="-sysroot"
 
+PKG_MAKE_OPTS_TARGET="enable_shared=no"
+PKG_MAKEINSTALL_OPTS_TARGET="enable_shared=no"
+
 pre_make_target() {
   export PERL_USE_UNSAFE_INC=1
 }

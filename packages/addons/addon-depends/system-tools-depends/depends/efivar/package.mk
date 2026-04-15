@@ -27,7 +27,7 @@ pre_make_target() {
 }
 
 make_target() {
-  make CROSS_COMPILE=${TARGET_NAME}- -C src/ libefivar.a libefiboot.a efivar.h efivar
+  make CROSS_COMPILE=${TARGET_NAME}- -C src/ libefivar.a libefiboot.a efivar.h efivar-static
 }
 
 makeinstall_host() {

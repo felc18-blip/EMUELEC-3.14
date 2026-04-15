@@ -1,25 +1,24 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2009-2016 Lukas Rusak (lrusak@libreelec.tv)
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="runc"
-PKG_VERSION="1.3.0"
-PKG_SHA256="3262492ce42bea0919ee1a2d000b6f303fd14877295bc38d094876b55fdd448b"
+PKG_VERSION="1.4.1"
+PKG_SHA256="a09f5e2f5b3b5e488bd3ee45c0be8f1e9078692174411dc5193f56a7e0de8078"
 PKG_LICENSE="APL"
 PKG_SITE="https://github.com/opencontainers/runc"
 PKG_URL="https://github.com/opencontainers/runc/archive/v${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain go:host libseccomp"
+PKG_DEPENDS_CONFIG="libseccomp"
 PKG_LONGDESC="A CLI tool for spawning and running containers according to the OCI specification."
 PKG_TOOLCHAIN="manual"
 
 # Git commit of the matching release https://github.com/opencontainers/runc/releases
-PKG_GIT_COMMIT="6724737f999df9ee0d8ca5c6d7b81f97adc34374"
+export PKG_GIT_COMMIT="c67132530367ecd401dbe800bf13b96052212f3f"
 
 pre_make_target() {
   go_configure
 
   export LDFLAGS="-w -extldflags -static -X main.gitCommit=${PKG_GIT_COMMIT} -X main.version=$(cat ./VERSION) -extld ${CC}"
-  export PKG_CONFIG_PATH="$(get_install_dir libseccomp)/usr/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
   mkdir -p ${GOPATH}
   if [ -d ${PKG_BUILD}/vendor ]; then

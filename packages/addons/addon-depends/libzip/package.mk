@@ -8,5 +8,30 @@ PKG_SHA256="8a247f57d1e3e6f6d11413b12a6f28a9d388de110adc0ec608d893180ed7097b"
 PKG_LICENSE="GPL"
 PKG_SITE="https://libzip.org/"
 PKG_URL="https://libzip.org/download/${PKG_NAME}-${PKG_VERSION}.tar.xz"
-PKG_DEPENDS_TARGET="toolchain zlib zstd"
+PKG_DEPENDS_TARGET="toolchain zlib bzip2"
 PKG_LONGDESC="A C library for reading, creating, and modifying zip archives."
+
+PKG_CMAKE_OPTS_TARGET="-DENABLE_COMMONCRYPTO=OFF \
+                       -DENABLE_GNUTLS=OFF \
+                       -DENABLE_MBEDTLS=OFF \
+                       -DENABLE_OPENSSL=OFF \
+                       -DENABLE_WINDOWS_CRYPTO=OFF \
+                       -DENABLE_ZSTD=OFF \
+                       -DBUILD_TOOLS=OFF \
+                       -DBUILD_REGRESS=OFF \
+                       -DBUILD_EXAMPLES=OFF \
+                       -DBUILD_DOC=OFF \
+                       -DBUILD_SHARED_LIBS=ON"
+
+# Adicione isso para garantir que o bzip2 seja linkado corretamente nas dependências
+pre_configure_target() {
+  export TARGET_LDFLAGS="${TARGET_LDFLAGS} -lbz2 -lz"
+}
+
+post_makeinstall_target() {
+  # REMOVIDO: rm -rf ${INSTALL}/usr/lib (Isso matava a biblioteca!)
+
+  # OPCIONAL: Limpeza de lixo que realmente não serve para o sistema final
+  rm -rf ${INSTALL}/usr/share
+  rm -rf ${INSTALL}/usr/bin
+}

@@ -10,10 +10,7 @@ PKG_SITE="https://www.mesa3d.org/"
 PKG_URL="https://archive.mesa3d.org/demos/${PKG_NAME}-${PKG_VERSION}.tar.xz"
 PKG_DEPENDS_TARGET="toolchain libX11 mesa glu glew"
 PKG_LONGDESC="Mesa 3D demos - installed are the well known glxinfo and glxgears."
-PKG_TOOLCHAIN="autotools"
 PKG_BUILD_FLAGS="-sysroot"
-
-PKG_CONFIGURE_OPTS_TARGET="--without-glut"
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/bin
