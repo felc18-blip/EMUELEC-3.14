@@ -19,9 +19,9 @@ index ba9ce69..08e8c87 100644
 -		uint32_t back;
 +		uint32_t len = 0;
 +		uint32_t back = 0;
- 
+
  		if (coder->fast_mode)
  			lzma_lzma_optimum_fast(coder, mf, &back, &len);
--- 
+--
 2.14.1
 
