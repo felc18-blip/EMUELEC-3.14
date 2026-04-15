@@ -1,8 +1,34 @@
 #!/bin/sh
 
-# SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2018-present Team CoreELEC (https://coreelec.org)
-
+# Cria as pastas de overlay caso o /var seja montado em tmpfs no boot
+mkdir -p /var/lib
 mkdir -p /var/lib32
-ln -sf /usr/lib/libMali.so /var/lib/libMali.so
-ln -sf /usr/lib32/libMali.m450.so /var/lib32/libMali.so
+
+DT_COMPAT="/proc/device-tree/compatible"
+
+# Detecta o hardware e linka as duas arquiteturas ao mesmo tempo
+if [ -f "$DT_COMPAT" ]; then
+
+  if grep -q "g12b" "$DT_COMPAT"; then
+    # Gondul (Ex: S922X, A311D - Odroid N2/N2+)
+    ln -sf /usr/lib/libMali.gondul.so /var/lib/libMali.so
+    ln -sf /usr/lib32/libMali.gondul.so /var/lib32/libMali.so
+
+  elif grep -qE "g12a|sm1|sc2" "$DT_COMPAT"; then
+    # Dvalin (Ex: S905X2, S905X3, S905W2)
+    ln -sf /usr/lib/libMali.dvalin.so /var/lib/libMali.so
+    ln -sf /usr/lib32/libMali.dvalin.so /var/lib32/libMali.so
+
+  elif grep -qiE "gxl|gxm|gxbb" "$DT_COMPAT"; then
+    # M450 (Ex: S905X, S905W, S912, S905 original)
+    ln -sf /usr/lib/libMali.m450.so /var/lib/libMali.so
+    ln -sf /usr/lib32/libMali.m450.so /var/lib32/libMali.so
+  fi
+
+fi
+
+# FALLBACK - usa M450 se a placa for desconhecida ou a detecção falhar
+if [ ! -e /var/lib/libMali.so ]; then
+  ln -sf /usr/lib/libMali.m450.so /var/lib/libMali.so
+  ln -sf /usr/lib32/libMali.m450.so /var/lib32/libMali.so
+fi
