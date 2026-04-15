@@ -2,10 +2,10 @@
 #
 # SPDX-License-Identifier: MIT
 #
-# This file can and should be sourced by ports for various parameters to 
+# This file can and should be sourced by ports for various parameters to
 # minimize script customizations and allow for easier future updates
 # like adding additional supported devices.
-# Thanks to JohnnyonFlame, dhwz, romadu, and shantigilbert for the 
+# Thanks to JohnnyonFlame, dhwz, romadu, and shantigilbert for the
 # suggestion and assistance with this.
 # Source used for gptokeyb available at
 # https://github.com/christianhaitian/gptokeyb
@@ -43,7 +43,7 @@ sudo echo "Testing for sudo..." > /dev/null 2>&1
 if [ $? != 0 ]; then
   echo "No sudo present."
   export ESUDO=""
-  export ESUDOKILL="-1" # for 351Elec and EmuELEC use "-1" (numeric one) or "-k" 
+  export ESUDOKILL="-1" # for 351Elec and EmuELEC use "-1" (numeric one) or "-k"
   export ESUDOKILL2="-1"
   export SDL_GAMECONTROLLERCONFIG_FILE="$controlfolder/gamecontrollerdb.txt"
 else
@@ -68,11 +68,11 @@ if [[ -e "/usr/share/plymouth/themes/text.plymouth" ]]; then
 elif [ "${OS_NAME}" == "JELOS" ] || [ "${OS_NAME}" == "UnofficialOS" ]; then
   raloc="/usr/bin"
   raconf="--config /storage/.config/retroarch/retroarch.cfg"
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib32
+  export LD_LIBRARY_PATH="/usr/lib32:/lib32:$LD_LIBRARY_PATH"
 elif [[ -e "/storage/.config/.OS_ARCH" ]] || [ -z $ESUDO ]; then
   raloc="/usr/bin"
   raconf="--config /storage/roms/gamedata/retroarch/config/retroarch.cfg"
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib32
+  export LD_LIBRARY_PATH="/usr/lib32:/lib32:$LD_LIBRARY_PATH"
 fi
 
 SDLDBFILE="${SDL_GAMECONTROLLERCONFIG_FILE}"
@@ -176,5 +176,13 @@ if [ ! -z "$ESUDO" ]; then
   $ESUDO chmod 666 /dev/uinput
 fi
 
+# garante gmloader do sistema
+export PATH="/usr/bin:$PATH"
+
+# fallback seguro
+command -v gmloader >/dev/null 2>&1 || {
+  gmloader() { /usr/bin/gmloader "$@"; }
+  export -f gmloader
+}
 export GPTOKEYB2="$ESUDO env LD_PRELOAD=$controlfolder/libinterpose.${DEVICE_ARCH}.so $controlfolder/gptokeyb2 $ESUDOKILL2"
 export GPTOKEYB="$GPTOKEYB2"

@@ -53,6 +53,10 @@ if [ ! -f "$PM_DIR/PortMaster.sh" ]; then
     chmod +x "$PM_DIR/PortMaster.sh"
 fi
 
+# 🔥 CRIA LAUNCHER NO PORTS_SCRIPTS
+ln -sf "$PM_DIR/PortMaster.sh" "$PORTS_SCRIPTS_DIR/PortMaster.sh"
+chmod +x "$PORTS_SCRIPTS_DIR/PortMaster.sh"
+
 # 6. Limpeza de arquivos desnecessários
 [ -f "$PM_DIR/tasksetter" ] && rm -f "$PM_DIR/tasksetter"
 
@@ -88,3 +92,6 @@ fi
 cd "$PM_DIR" || exit 1
 
 ./PortMaster.sh > /storage/portmaster.log 2>&1
+
+sleep 1
+systemctl restart emustation 2>/dev/null || systemctl restart emulationstation 2>/dev/null

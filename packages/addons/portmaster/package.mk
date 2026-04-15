@@ -8,9 +8,9 @@ PKG_URL="${PKG_SITE}/releases/download/${PKG_VERSION}/PortMaster.zip"
 COMPAT_URL="https://github.com/RetroGFX/UnofficialOSAddOns/raw/main/compat.zip"
 PKG_LICENSE="MIT"
 PKG_ARCH="arm aarch64"
-PKG_DEPENDS_TARGET="toolchain gptokeyb gamecontrollerdb wget control-gen"
+PKG_DEPENDS_TARGET="toolchain gptokeyb gamecontrollerdb wget control-gen list-guid gst-plugins-base"
 PKG_TOOLCHAIN="manual"
-PKG_LONGDESC="Portmaster - a simple tool that allows you to download various game ports"
+PKG_LONGDESC="Portmaster - a simple tool that allows you to download various game ports "
 
 makeinstall_target() {
   export STRIP=true
