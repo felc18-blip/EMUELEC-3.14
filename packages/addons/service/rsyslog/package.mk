@@ -2,14 +2,15 @@
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="rsyslog"
-PKG_VERSION="8.2308.0"
-PKG_SHA256="02086b9121e872cea69e5d0f6c8e2d8ebff33234b3cad5503665378d3af2e3c9"
-PKG_REV="1"
+PKG_VERSION="8.2602.0"
+PKG_SHA256="4fe5256cea046d77546d36042d090e384184bc24041ecda5d03c03d35d1eabbb"
+PKG_REV="0"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/rsyslog"
 PKG_URL="https://www.rsyslog.com/files/download/rsyslog/${PKG_NAME}-${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain curl libestr libfastjson libgcrypt liblogging liblognorm librelp util-linux zlib"
+PKG_DEPENDS_TARGET="toolchain protobuf-c:host curl libestr libfastjson libgcrypt liblogging liblognorm librelp protobuf-c snappy util-linux zlib"
+PKG_DEPENDS_CONFIG="protobuf-c snappy libyaml"
 PKG_SECTION="service"
 PKG_SHORTDESC="Rsyslog: a rocket-fast system for log processing."
 PKG_LONGDESC="Rsyslog (${PKG_VERSION}) offers high-performance, great security features and a modular design."
@@ -43,8 +44,7 @@ addon() {
      ${ADDON_BUILD}/${PKG_ADDON_ID}/bin/
 
   mkdir -p ${ADDON_BUILD}/${PKG_ADDON_ID}/lib/rsyslog
-  for l in $(find ${PKG_INSTALL}/usr/lib -name *.so)
-  do
+  for l in $(find ${PKG_INSTALL}/usr/lib -name *.so); do
     cp ${l} ${ADDON_BUILD}/${PKG_ADDON_ID}/lib/rsyslog/
   done
 }

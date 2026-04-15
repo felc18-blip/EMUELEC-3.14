@@ -2,17 +2,16 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="mariadb"
-PKG_VERSION="10.11.5"
-PKG_REV="2"
-PKG_SHA256="4c9484048d4d0c71dd076ab33fc2a9ce8510bdf762886de0d63fe52496f3dbbb"
+PKG_VERSION="12.3.1"
+PKG_REV="0"
+PKG_SHA256="2da62b57da70975d0865d4a1ae4ae4cf422e1b7dcc709eba855cf14f5104617e"
 PKG_LICENSE="GPL2"
 PKG_SITE="https://mariadb.org"
-PKG_URL="https://downloads.mariadb.com/MariaDB/${PKG_NAME}-${PKG_VERSION}/source/${PKG_NAME}-${PKG_VERSION}.tar.gz"
+PKG_URL="https://archive.mariadb.org/${PKG_NAME}-${PKG_VERSION}/source/${PKG_NAME}-${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_HOST="toolchain:host ncurses:host openssl:host"
 PKG_DEPENDS_TARGET="toolchain binutils boost bzip2 libaio libfmt libxml2 lz4 lzo ncurses openssl pcre2 systemd zlib mariadb:host"
 PKG_SHORTDESC="MariaDB is a community-developed fork of the MySQL."
 PKG_LONGDESC="MariaDB (${PKG_VERSION}) is a fast SQL database server and a drop-in replacement for MySQL."
-PKG_TOOLCHAIN="cmake"
 PKG_BUILD_FLAGS="-gold -sysroot"
 
 PKG_IS_ADDON="yes"
@@ -23,7 +22,6 @@ PKG_ADDON_TYPE="xbmc.service"
 configure_package() {
   PKG_CMAKE_OPTS_HOST=" \
     -DCMAKE_INSTALL_MESSAGE=NEVER \
-    -DSTACK_DIRECTION=-1 \
     -DHAVE_IB_GCC_ATOMIC_BUILTINS=1 \
     -DCMAKE_CROSSCOMPILING=OFF"
 
@@ -32,11 +30,11 @@ configure_package() {
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_CONFIG=mysql_release \
     -DFEATURE_SET=classic \
-    -DSTACK_DIRECTION=1 \
     -DDISABLE_LIBMYSQLCLIENT_SYMBOL_VERSIONING=ON \
     -DCMAKE_CROSSCOMPILING=ON \
     -DIMPORT_EXECUTABLES=${PKG_BUILD}/.${HOST_NAME}/import_executables.cmake \
     -DWITHOUT_AWS_KEY_MANAGEMENT=ON \
+    -DWITHOUT_HASHICORP_KEY_MANAGEMENT=ON \
     -DWITH_EXTRA_CHARSETS=complex \
     -DWITH_SSL=system \
     -DWITH_SSL=${SYSROOT_PREFIX}/usr \
@@ -46,6 +44,7 @@ configure_package() {
     -DWITH_ZLIB=bundled \
     -DWITH_EDITLINE=bundled \
     -DWITH_LIBEVENT=bundled \
+    -DCONNECT_WITH_JDBC=OFF \
     -DCONNECT_WITH_LIBXML2=bundled \
     -DSKIP_TESTS=ON \
     -DWITH_DEBUG=OFF \
@@ -55,6 +54,8 @@ configure_package() {
     -DWITH_EMBEDDED_SERVER=OFF \
     -DWITHOUT_SERVER=OFF \
     -DPLUGIN_AUTH_SOCKET=STATIC \
+    -DPLUGIN_OQGRAPH=NO \
+    -DPLUGIN_S3=NO \
     -DDISABLE_SHARED=NO \
     -DENABLED_PROFILING=OFF \
     -DENABLE_STATIC_LIBS=OFF \
@@ -66,7 +67,10 @@ configure_package() {
     -DMASK_LONGDOUBLE_EXITCODE=0 \
     -DMASK_LONGDOUBLE_EXITCODE__TRYRUN_OUTPUT='' \
     -DSTAT_EMPTY_STRING_BUG_EXITCODE=0 \
-    -DSTAT_EMPTY_STRING_BUG_EXITCODE__TRYRUN_OUTPUT=''"
+    -DSTAT_EMPTY_STRING_BUG_EXITCODE__TRYRUN_OUTPUT='' \
+    -DHAVE_SYSTEM_LIBFMT_EXITCODE=0 \
+    -DHAVE_SYSTEM_LIBFMT_EXITCODE__TRYRUN_OUTPUT='' \
+    -DWITH_LIBFMT=system"
 }
 
 make_host() {
