@@ -1,44 +1,52 @@
 ################################################################################
 #      This file is part of OpenELEC - http://www.openelec.tv
 #      Copyright (C) 2009-2012 Stephan Raue (stephan@openelec.tv)
-#
-#  This Program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2, or (at your option)
-#  any later version.
-#
-#  This Program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with OpenELEC.tv; see the file COPYING.  If not, write to
-#  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston, MA 02110, USA.
-#  http://www.gnu.org/copyleft/gpl.html
 ################################################################################
 
 PKG_NAME="desmume"
 PKG_VERSION="7f05a8d447b00acd9e0798aee97b4f72eb505ef9"
-PKG_SHA256="2bcbf364f91fcaf533f3b8e1b03a0dae1ebc54df54ee3973c1e0bf79dc32bda6"
-PKG_REV="1"
-PKG_ARCH="any"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/desmume"
-PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain linux glibc libpcap"
-PKG_PRIORITY="optional"
-PKG_SECTION="libretro"
-PKG_SHORTDESC="libretro wrapper for desmume NDS emulator."
-PKG_LONGDESC="libretro wrapper for desmume NDS emulator."
+PKG_URL="${PKG_SITE}.git"
+PKG_DEPENDS_TARGET="toolchain libpcap"
+PKG_LONGDESC="DeSmuME - Nintendo DS libretro"
 PKG_TOOLCHAIN="make"
 
+if [ "${OPENGL_SUPPORT}" = "yes" ] && [ ! "${PREFER_GLES}" = "yes" ]; then
+  PKG_DEPENDS_TARGET+=" ${OPENGL} glu"
+
+elif [ "${OPENGLES_SUPPORT}" = yes ]; then
+  PKG_DEPENDS_TARGET+=" ${OPENGLES}"
+  PKG_PATCH_DIRS+=" gles"
+fi
+
+
+pre_configure_target() {
+  cd ${PKG_BUILD}/desmume/src/frontend/libretro
+  # Evita que o GCC 15 aborte por avisos bobos no código legado
+  export CFLAGS="${CFLAGS} -Wno-error"
+  export CXXFLAGS="${CXXFLAGS} -Wno-error"
+}
+
 make_target() {
-cd ${PKG_BUILD}/desmume/src/frontend/libretro
-make CC=${CC} platform=arm64-unix
+  case ${ARCH} in
+    arm)
+      make CC=${CC} CXX=${CXX} platform=armv-unix-${TARGET_FLOAT}float-${TARGET_CPU}
+      ;;
+    aarch64)
+      # Desativa explicitamente o JIT x86 que causa o erro de 'impossible constraint'
+      make CC=${CC} CXX=${CXX} platform=unix-aarch64 DESMUME_JIT=0 DESMUME_JIT_ARM=0
+      ;;
+    x86_64)
+      make CC=${CC} CXX=${CXX} platform=unix
+      ;;
+    *)
+      make CC=${CC} CXX=${CXX} platform=unix DESMUME_JIT=0
+      ;;
+  esac
 }
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro
-  cp ${PKG_BUILD}/desmume/src/frontend/libretro/desmume_libretro.so ${INSTALL}/usr/lib/libretro/
+  cp desmume_libretro.so ${INSTALL}/usr/lib/libretro/
 }

@@ -3,9 +3,9 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="audiodecoder.snesapu"
-PKG_VERSION="20.2.0-Nexus"
-PKG_SHA256="f216a7d25c864986618118236c575687ab62d129a16cb1f73c15860948d9ac92"
-PKG_REV="5"
+PKG_VERSION="22.0.2-Piers"
+PKG_SHA256="51ab224f20a47100161ebd3dc286b2ca7e1d1b1bb9a09bc84ad45bc380606a36"
+PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/xbmc/audiodecoder.snesapu"

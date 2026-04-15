@@ -3,10 +3,9 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="visualization.projectm"
-PKG_VERSION="20.2.0-Nexus"
-PKG_SHA256="42599b0093ebc6730c3190ce28036a87042814af830441f3cb28ef11676277ae"
+PKG_VERSION="22.0.3-Piers"
+PKG_SHA256="4e62c07bc3519b91e60f7c83dded3e37fc423d6bf6b18a2974df24a56fb3a285"
 PKG_REV="1"
-PKG_ARCH="x86_64"
 PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/xbmc/visualization.projectm"
 PKG_URL="https://github.com/xbmc/visualization.projectm/archive/${PKG_VERSION}.tar.gz"
@@ -18,8 +17,8 @@ PKG_LONGDESC="visualization.projectm"
 PKG_IS_ADDON="yes"
 PKG_ADDON_TYPE="xbmc.player.musicviz"
 
-if [ "${OPENGL}" = "no" ]; then
-  exit 0
+if [ "${OPENGL_SUPPORT}" = "yes" ]; then
+  PKG_DEPENDS_TARGET+=" ${OPENGL}"
 fi
 
 pre_configure_target() {
