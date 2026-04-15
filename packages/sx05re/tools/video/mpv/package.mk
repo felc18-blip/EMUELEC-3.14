@@ -34,19 +34,23 @@ PKG_MESON_OPTS_TARGET="
 "
 
 pre_configure_target() {
+  # 1. Forçamos o link com C++ de forma bruta
+  # Isso resolve o erro 'undefined reference to std::to_chars'
+  export TARGET_LDFLAGS="${TARGET_LDFLAGS} -lstdc++ -lm -lMali"
+
+  # 2. Informamos ao Meson para usar essas flags adicionais
+  PKG_MESON_OPTS_TARGET+=" -Dc_link_args='-lstdc++' -Dcpp_link_args='-lstdc++'"
+
   cd ${PKG_BUILD}
-  
+
   echo ">>> Aplicando patch de compatibilidade IO para Kernel antigo..."
+  # Ajuste no patch para ser mais agressivo
   if [ -f osdep/io.c ]; then
+    sed -i 's/#define HAVE_MEMFD_CREATE 1/#define HAVE_MEMFD_CREATE 0/g' osdep/io.c
     sed -i 's/#define HAVE_MEMFD_CREATE 0/\/* #undef HAVE_MEMFD_CREATE *\//g' osdep/io.c
   fi
 
-  # O TRUQUE: 
-  # O script do EmuELEC vai tentar rodar o meson setup dentro da pasta atual.
-  # Mas o Meson exige uma pasta separada. 
-  # Alteramos a variável PKG_MESON_SCRIPT para apontar um nível acima, 
-  # fazendo com que o diretório atual seja tratado como o diretório de BUILD 'limpo'.
-  
+  # Criamos a pasta de build
   mkdir -p .aarch64-libreelec-linux-gnu
   cd .aarch64-libreelec-linux-gnu
   PKG_MESON_SCRIPT="../meson.build"
