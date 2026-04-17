@@ -10,6 +10,7 @@ PKG_URL=""
 PKG_DEPENDS_TARGET="lib32-toolchain lib32-zlib lib32-freetype lib32-fontconfig lib32-glib lib32-libpng lib32-pixman"
 PKG_PATCH_DIRS+=" $(get_pkg_directory cairo)/patches"
 PKG_LONGDESC="Cairo is a vector graphics library with cross-device output support."
+PKG_TOOLCHAIN="meson"
 PKG_BUILD_FLAGS="lib32"
 
 ################################################################################
@@ -54,7 +55,6 @@ unpack() {
 ################################################################################
 # PÓS
 ################################################################################
-
 
 post_makeinstall_target() {
   safe_remove ${INSTALL}/usr/include
