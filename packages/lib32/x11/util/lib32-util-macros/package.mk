@@ -17,7 +17,7 @@ PKG_BUILD_FLAGS="lib32"
 unpack() {
   ${SCRIPTS}/get util-macros
   mkdir -p ${PKG_BUILD}
-  tar --strip-components=1 -xf ${SOURCES}/util-macros/util-macros-${PKG_VERSION}.tar.bz2 -C ${PKG_BUILD}
+  tar --strip-components=1 -xf ${SOURCES}/util-macros/util-macros-${PKG_VERSION}.tar.xz -C ${PKG_BUILD}
 }
 
 pre_configure_target() {

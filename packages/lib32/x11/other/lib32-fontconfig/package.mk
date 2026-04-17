@@ -27,7 +27,8 @@ PKG_CONFIGURE_OPTS_TARGET="--with-arch=${LIB32_TARGET_ARCH} \
 unpack() {
   ${SCRIPTS}/get fontconfig
   mkdir -p ${PKG_BUILD}
-  tar --strip-components=1 -xf ${SOURCES}/fontconfig/fontconfig-${PKG_VERSION}.tar.gz -C ${PKG_BUILD}
+  SRC=$(ls ${SOURCES}/fontconfig/*.tar.* | head -n1)
+tar --strip-components=1 -xf ${SRC} -C ${PKG_BUILD}
 }
 
 pre_configure_target() {
