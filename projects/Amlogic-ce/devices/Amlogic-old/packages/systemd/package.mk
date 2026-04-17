@@ -56,7 +56,7 @@ PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Ddefault-dnssec=no \
                        -Dimportd=false \
                        -Dremote=false \
-                       -Dutmp=true \
+                       -Dutmp=false \
                        -Dhibernate=false \
                        -Denvironment-d=false \
                        -Dbinfmt=false \
@@ -91,7 +91,7 @@ PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Dnss-myhostname=false \
                        -Dnss-mymachines=false \
                        -Dnss-resolve=false \
-                       -Dnss-systemd=true \
+                       -Dnss-systemd=false \
                        -Dman=false \
                        -Dhtml=false \
                        -Dlink-udev-shared=true \
