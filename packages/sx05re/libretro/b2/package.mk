@@ -1,9 +1,9 @@
 PKG_NAME="b2"
-PKG_VERSION="ffcfcddc5ba05a97e04372672879bc25284ff653"
+PKG_VERSION="b16e3a4a91fed4d6d2ccb227211119da7b39c8d1"
 PKG_LICENSE="GPLv3"
 PKG_SITE="https://github.com/zoltanvb/b2-libretro"
 PKG_URL="https://github.com/zoltanvb/b2-libretro/archive/${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain"
+PKG_DEPENDS_TARGET="toolchain util-linux"
 PKG_LONGDESC="Adaptation of Tom Seddon's b2 emulator for BBC Micro"
 
 PKG_TOOLCHAIN="make"

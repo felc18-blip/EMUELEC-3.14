@@ -2,12 +2,14 @@
 # Copyright (C) 2019 Trond Haugland (trondah@gmail.com)
 
 PKG_NAME="mame"
-PKG_VERSION="a90e86e100f79533f257ac2b30ccefe26a76daad"
+PKG_VERSION="a891bc3b98c5a9f00848c953c8768007c6d339cb"
+PKG_ARCH="any"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/mame"
 PKG_URL="https://github.com/libretro/mame/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain zlib flac sqlite expat"
-PKG_LONGDESC="MAME - Multiple Arcade Machine Emulator"
+PKG_SECTION="libretro"
+PKG_SHORTDESC="MAME - Multiple Arcade Machine Emulator"
 PKG_TOOLCHAIN="make"
 PKG_BUILD_FLAGS="-lto +pic"
 
@@ -67,3 +69,4 @@ makeinstall_target() {
   mkdir -p ${INSTALL}/usr/config/retroarch/savefiles/mame/hi
   cp plugins/hiscore/hiscore.dat ${INSTALL}/usr/config/retroarch/savefiles/mame/hi
 }
+

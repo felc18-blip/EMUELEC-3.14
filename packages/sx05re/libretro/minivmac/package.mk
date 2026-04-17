@@ -3,7 +3,7 @@
 # EmuELEC package for Mini vMac (libretro-minivmac) core
 
 PKG_NAME="minivmac"
-PKG_VERSION="6b468a9610aa422fe1b01bf56d73b636976d2b97"
+PKG_VERSION="ac7fdac318261e1e3464081bf300cc3db30c74af"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/libretro-minivmac"
 PKG_URL="${PKG_SITE}.git"

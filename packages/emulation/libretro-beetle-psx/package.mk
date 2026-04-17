@@ -2,22 +2,23 @@
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="libretro-beetle-psx"
-PKG_VERSION="17df2b9b93ba20c520c4592deed4531afc37bc7a"
-PKG_SHA256="505c0db4bab3ff81bae5230ea52618a48e2ee84e24f1c3783c1ea4d91d9bc6e4"
+PKG_VERSION="3ea167a60bc37bd0c257592bb9a7f559a50465c4"
+PKG_SHA256="dbcba416de72abf1478d5a6af2658d9eb2685389041e6c5fb59de3f2c28348a8"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/beetle-psx-libretro"
 PKG_URL="https://github.com/libretro/beetle-psx-libretro/archive/${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain kodi-platform"
-PKG_LONGDESC="Fork of Mednafen PSX"
+PKG_DEPENDS_TARGET="toolchain"
+PKG_LONGDESC="Standalone port of Mednafen PSX to libretro."
+PKG_TOOLCHAIN="make"
 
 PKG_LIBNAME="mednafen_psx_libretro.so"
 PKG_LIBPATH="${PKG_LIBNAME}"
 PKG_LIBVAR="BEETLE-PSX_LIB"
 
-PKG_MAKE_OPTS_TARGET="GIT_VERSION=${PKG_VERSION:0:7} LINK_STATIC_LIBCPLUSPLUS=0"
+PKG_MAKE_OPTS_TARGET="HAVE_CDROM=1 LINK_STATIC_LIBCPLUSPLUS=0"
 
 makeinstall_target() {
   mkdir -p ${SYSROOT_PREFIX}/usr/lib/cmake/${PKG_NAME}
   cp ${PKG_LIBPATH} ${SYSROOT_PREFIX}/usr/lib/${PKG_LIBNAME}
-  echo "set(${PKG_LIBVAR} ${SYSROOT_PREFIX}/usr/lib/${PKG_LIBNAME})" > ${SYSROOT_PREFIX}/usr/lib/cmake/${PKG_NAME}/${PKG_NAME}-config.cmake
+  echo "set(${PKG_LIBVAR} ${SYSROOT_PREFIX}/usr/lib/${PKG_LIBNAME})" >${SYSROOT_PREFIX}/usr/lib/cmake/${PKG_NAME}/${PKG_NAME}-config.cmake
 }

@@ -52,3 +52,4 @@
  
  	configuration { "linux-gcc", "x32", "Release" }
  		targetdir (_buildDir .. "linux_gcc" .. "/bin/x32/Release")
+		

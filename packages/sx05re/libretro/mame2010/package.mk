@@ -19,8 +19,7 @@
 ################################################################################
 
 PKG_NAME="mame2010"
-PKG_VERSION="c5b413b71e0a290c57fc351562cd47ba75bac105"
-PKG_SHA256="38270732ef2b503583e96a3c83cd5ba8d4ca6510d1f24f2b00bf6703eb74070d"
+PKG_VERSION="29095383c0281100fee2ee09f1438d8ae990c510"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="MAME"

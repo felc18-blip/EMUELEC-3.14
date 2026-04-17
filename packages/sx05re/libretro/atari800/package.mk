@@ -19,8 +19,8 @@
 ################################################################################
 
 PKG_NAME="atari800"
-PKG_VERSION="6a18cb23cc4a7cecabd9b16143d2d7332ae8d44b"
-PKG_SHA256="0fa8456f611975f80e0edba37a9cb4935918a94d30f6d42f8fa0679e76a9971a"
+PKG_VERSION="a9b9c433d8cb6c8e8eb08d14d3e95b430549723a"
+PKG_SHA256="ede94745442a3be88f54203e96616589f61329b2281cbfd8a58d9bd800bf7eda"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"

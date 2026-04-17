@@ -19,32 +19,36 @@
 ################################################################################
 
 PKG_NAME="melonds"
-PKG_VERSION="7a3c11ff970cd36ca806961fae6db94b30dd5401"
-PKG_SHA256="382d7522a626a7bd590b4d5dca0d76a2dd0805f41ab6ec130b683ee45b4a937d"
+PKG_VERSION="e548eba517ccb964ddba31dcf8f0136041f5bb05"
 PKG_REV="1"
-PKG_ARCH="any"
 PKG_LICENSE="GPLv3"
-PKG_SITE="https://github.com/libretro/melonds"
-PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
+PKG_SITE="https://git.libretro.com/libretro/melonDS"
+PKG_URL="${PKG_SITE}.git"
 PKG_DEPENDS_TARGET="toolchain"
 PKG_PRIORITY="optional"
 PKG_SECTION="libretro"
-PKG_SHORTDESC="DS emulator, sorta"
-PKG_LONGDESC="DS emulator, sorta"
-
-PKG_IS_ADDON="no"
+PKG_SHORTDESC="MelonDS - Nintendo DS emulator for libretro"
 PKG_TOOLCHAIN="make"
-PKG_AUTORECONF="no"
-PKG_USE_CMAKE="no"
 
+if [ ! "${OPENGL}" = "no" ]; then
+  PKG_DEPENDS_TARGET+=" ${OPENGL} glu libglvnd"
+fi
 
+if [ "${OPENGLES_SUPPORT}" = yes ]; then
+  PKG_DEPENDS_TARGET+=" ${OPENGLES}"
+fi
 
-configure_target() {
+pre_make_target() {
+
   cd ${PKG_BUILD}
-  PKG_MAKE_OPTS_TARGET+=" HAVE_OPENGL=0 HAVE_NEON=1"
+  if [ -e "CMakeLists.txt" ]
+  then
+    rm CMakeLists.txt
+  fi
 }
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro
   cp melonds_libretro.so ${INSTALL}/usr/lib/libretro/
 }
+
