@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2019 Trond Haugland (github.com/escalade)
 # Copyright (C) 2022-present Shanti Gilbert (https://github.com/shantigilbert)
-
 PKG_NAME="hlsdk-portable"
-PKG_VERSION="895b28d0379f8902051d2b733029fc6a0fa9989c"
+PKG_VERSION="ae84bfc0c3598fcff605a7b3bb963abe8ec3e295"
 PKG_LICENSE="GPLv3"
 PKG_SITE="https://github.com/FWGS/hlsdk-portable"
 PKG_URL="${PKG_SITE}.git"

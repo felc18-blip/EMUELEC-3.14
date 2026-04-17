@@ -1,12 +1,21 @@
-#!/bin/bash
+PORTFILE="$1"
+LIBSRC="/usr/config/emuelec/configs/gmloader/libc++_shared.so"
 
-# SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2021-present Shanti Gilbert (https://github.com/shantigilbert)
+# Garante lib externa (mantém comportamento atual)
+[ ! -e "/storage/roms/ports/gmloader/libc++_shared.so" ] && \
+cp "$LIBSRC" "/storage/roms/ports/gmloader/libc++_shared.so"
 
-# Source predefined functions and variables
-. /etc/profile
+# Injeta no .port se não existir
+if ! unzip -l "$PORTFILE" | grep -q "lib/armeabi-v7a/libc++_shared.so"; then
+    echo "Injetando libc++ no port..."
 
-[ ! -e "/storage/roms/ports/gmloader/libc++_shared.so" ] && cp "/usr/config/emuelec/configs/gmloader/libc++_shared.so" "/storage/roms/ports/gmloader/libc++_shared.so"
+    mkdir -p /tmp/gmloader_fix/lib/armeabi-v7a
+    cp "$LIBSRC" /tmp/gmloader_fix/lib/armeabi-v7a/
+
+    (cd /tmp/gmloader_fix && zip -r "$PORTFILE" lib)
+
+    rm -rf /tmp/gmloader_fix
+fi
 
 cd /storage/roms/ports/gmloader
-gmloader "${1}"
+gmloader "$PORTFILE"

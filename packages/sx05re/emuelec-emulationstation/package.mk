@@ -11,7 +11,7 @@ PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/felc18-blip/emuelec-emulationstation-nextos"
 PKG_URL="${PKG_SITE}.git"
 
-PKG_DEPENDS_TARGET="toolchain SDL2 freetype freeimage vlc rapidjson ${OPENGLES} SDL2_mixer pugixml fping p7zip espeak es-theme-art-book-next"
+PKG_DEPENDS_TARGET="toolchain SDL2 freetype freeimage curl vlc rapidjson ${OPENGLES} SDL2_mixer pugixml fping p7zip espeak es-theme-art-book-next"
 
 PKG_SECTION="emuelec"
 PKG_SHORTDESC="Emulationstation emulator frontend"
