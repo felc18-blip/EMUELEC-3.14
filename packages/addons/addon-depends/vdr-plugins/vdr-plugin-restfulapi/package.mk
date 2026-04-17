@@ -3,11 +3,11 @@
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="vdr-plugin-restfulapi"
-PKG_VERSION="0.2.6.6"
-PKG_SHA256="a392c8ac9da58bce06674208711a786209ce802e77f93b48d21e424fa79f5eba"
+PKG_VERSION="92762bb5a9d9c7df7ab832aab0737fa12d9805c9"
+PKG_SHA256="5992e3d5a2b14b18c0bb5493d791e8f5bba0adb7eb31bba3f930b7dd48478969"
 PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/yavdr/vdr-plugin-restfulapi"
-PKG_URL="https://github.com/yavdr/${PKG_NAME}/archive/refs/tags/${PKG_VERSION}.tar.gz"
+PKG_URL="https://github.com/yavdr/${PKG_NAME}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain vdr cxxtools vdr-plugin-wirbelscan"
 PKG_NEED_UNPACK="$(get_pkg_directory vdr) $(get_pkg_directory vdr-plugin-wirbelscan)"
 PKG_LONGDESC="Allows to access many internals of the VDR via a restful API."

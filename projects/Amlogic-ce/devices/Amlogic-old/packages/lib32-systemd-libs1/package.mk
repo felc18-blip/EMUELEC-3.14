@@ -1,0 +1,192 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
+# Copyright (C) 2018-2022 Team LibreELEC (https://libreelec.tv)
+# Copyright (C) 2022-present 7Ji (https://github.com/7Ji)
+
+PKG_NAME="lib32-systemd-libs"
+PKG_VERSION="$(get_pkg_version systemd)"
+PKG_NEED_UNPACK="$(get_pkg_directory systemd)"
+PKG_ARCH="aarch64"
+PKG_LICENSE="LGPL2.1+"
+PKG_SITE="http://www.freedesktop.org/wiki/Software/systemd"
+PKG_URL=""
+PKG_DEPENDS_TARGET="lib32-toolchain lib32-glibc Jinja2:host lib32-libcap lib32-util-linux lib32-libxcrypt"
+SD_DIRECTORY="$(get_pkg_directory systemd)"
+PKG_PATCH_DIRS+=" ${SD_DIRECTORY}/patches"
+PKG_LONGDESC="A system and session manager for Linux, compatible with SysV and LSB init scripts."
+PKG_BUILD_FLAGS="lib32"
+
+if [ "${DEVICE}" = "Amlogic-old" ]; then
+  PKG_PATCH_DIRS+=" ${SD_DIRECTORY}/patches/amlogic"
+fi
+
+PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
+                       -Drootprefix=/usr \
+                       -Dsplit-usr=false \
+					   -Dvmspawn=disabled \
+                       -Dsplit-bin=true \
+                       -Ddefault-hierarchy=unified \
+                       -Dtty-gid=5 \
+                       -Dtests=false \
+                       -Dseccomp=false \
+                       -Dselinux=false \
+                       -Dapparmor=false \
+                       -Dpolkit=false \
+                       -Dacl=false \
+                       -Daudit=false \
+                       -Dblkid=true \
+                       -Dkmod=false \
+                       -Dpam=false \
+                       -Dmicrohttpd=false \
+                       -Dlibcryptsetup=false \
+                       -Dlibcurl=false \
+                       -Dlibidn=false \
+                       -Dlibidn2=false \
+                       -Dlibiptc=false \
+                       -Dqrencode=false \
+                       -Dgcrypt=false \
+                       -Dgnutls=false \
+                       -Dopenssl=false \
+                       -Delfutils=false \
+                       -Dzlib=false \
+                       -Dbzip2=false \
+                       -Dxz=false \
+                       -Dlz4=false \
+                       -Dxkbcommon=false \
+                       -Dpcre2=false \
+                       -Dglib=false \
+                       -Ddbus=false \
+                       -Ddefault-dnssec=no \
+                       -Dimportd=false \
+                       -Dremote=false \
+                       -Dutmp=true \
+                       -Dhibernate=false \
+                       -Denvironment-d=false \
+                       -Dbinfmt=false \
+                       -Dcoredump=false \
+                       -Dresolve=false \
+                       -Dlogind=false \
+                       -Dhostnamed=false \
+                       -Dlocaled=false \
+                       -Dmachined=false \
+                       -Dportabled=false \
+                       -Dnetworkd=false \
+                       -Dtimedated=false \
+                       -Dtimesyncd=false \
+                       -Dfirstboot=false \
+                       -Drandomseed=false \
+                       -Dbacklight=false \
+                       -Dvconsole=false \
+                       -Dquotacheck=false \
+                       -Dsysusers=false \
+                       -Dtmpfiles=true \
+                       -Dhwdb=true \
+                       -Drfkill=false \
+                       -Dldconfig=false \
+                       -Defi=false \
+                       -Dtpm=false \
+                       -Dima=false \
+                       -Dsmack=false \
+                       -Dgshadow=false \
+                       -Didn=false \
+                       -Dnss-myhostname=false \
+                       -Dnss-mymachines=false \
+                       -Dnss-resolve=false \
+                       -Dnss-systemd=false \
+                       -Dman=false \
+                       -Dhtml=false \
+                       -Dlink-udev-shared=true \
+                       -Dlink-systemctl-shared=true \
+                       -Dbashcompletiondir=no \
+                       -Dzshcompletiondir=no \
+                       -Dkmod-path=/usr/bin/kmod \
+                       -Dmount-path=/usr/bin/mount \
+                       -Dumount-path=/usr/bin/umount \
+                       -Ddebug-tty=${DEBUG_TTY} \
+                       -Dpkgconfigdatadir=/usr/lib/pkgconfig \
+                       -Dversion-tag=${PKG_VERSION}"
+
+if [ "${DEVICE}" != "Amlogic-old" ]; then
+  PKG_MESON_OPTS_TARGET+=" -Dfdisk=false \
+                           -Dhomed=false \
+                           -Dlink-networkd-shared=false \
+                           -Dp11kit=false \
+                           -Dpwquality=false \
+                           -Drepart=false \
+                           -Duserdb=false"
+fi
+
+unpack() {
+  ${SCRIPTS}/get systemd
+  mkdir -p ${PKG_BUILD}
+  tar --strip-components=1 -xf ${SOURCES}/systemd/systemd-${PKG_VERSION}.tar.gz -C ${PKG_BUILD}
+}
+
+pre_configure_target() {
+  # 1. Patch para Kernels antigos (TIOCGPTPEER foi adicionado no 4.13)
+  sed -i '/#include <sys\/ioctl.h>/a #ifndef TIOCGPTPEER\n#define TIOCGPTPEER _IOR('\''T'\'', 0x41, int)\n#endif' ${PKG_BUILD}/src/basic/terminal-util.c
+
+  # 2. Criar o linux/nsfs.h falso (Indispensável para o systemd 257 no Kernel 3.14)
+  mkdir -p ${PKG_BUILD}/src/basic/linux
+  cat <<EOF > ${PKG_BUILD}/src/basic/linux/nsfs.h
+#ifndef _LINUX_NSFS_H
+#define _LINUX_NSFS_H
+#include <linux/ioctl.h>
+#define NSIO    0xb7
+#define NS_GET_USERNS   _IO(NSIO, 0x1)
+#define NS_GET_PARENT   _IO(NSIO, 0x2)
+#define NS_GET_NSTYPE   _IO(NSIO, 0x3)
+#define NS_GET_OWNER_UID _IO(NSIO, 0x4)
+#endif
+EOF
+
+  # 3. Adicionar o caminho do nosso header falso nas flags de 32 bits
+  export TARGET_CFLAGS="${TARGET_CFLAGS} -I${PKG_BUILD}/src/basic"
+
+  # Flags originais do NextOS Elite
+  export TARGET_CFLAGS="${TARGET_CFLAGS} -fno-schedule-insns -fno-schedule-insns2 -Wno-format-truncation"
+  export LC_ALL=en_US.UTF-8
+}
+
+make_target() {
+  ninja ${NINJA_OPTS}
+
+  # strip direto no output real
+  find . -name "libudev.so*" -exec ${TARGET_PREFIX}strip {} \; 2>/dev/null || true
+  find . -name "libsystemd.so*" -exec ${TARGET_PREFIX}strip {} \; 2>/dev/null || true
+}
+
+makeinstall_target() {
+  mkdir -p "${INSTALL}/usr/lib32"
+  mkdir -p "${SYSROOT_PREFIX}/usr/lib"
+
+  # copiar libs reais (path correto do meson)
+  for i in $(find . -name "libudev.so*" -o -name "libsystemd.so*"); do
+    cp -va "$i" "${INSTALL}/usr/lib32/"
+    cp -va "$i" "${SYSROOT_PREFIX}/usr/lib/"
+  done
+
+  # headers
+  mkdir -p "${SYSROOT_PREFIX}/usr/include/systemd"
+  cp -va ../src/libudev/libudev.h "${SYSROOT_PREFIX}/usr/include/" 2>/dev/null || true
+  cp -va ../src/systemd/_sd-common.h "${SYSROOT_PREFIX}/usr/include/systemd/" 2>/dev/null || true
+
+  for i in bus-protocol \
+           bus-vtable \
+           bus \
+           daemon \
+           device \
+           event \
+           hwdb \
+           id128 \
+           journal \
+           login \
+           messages \
+           path; do
+    cp -va "../src/systemd/sd-${i}.h" "${SYSROOT_PREFIX}/usr/include/systemd/" 2>/dev/null || true
+  done
+
+  # pkg-config (corrigido)
+  mkdir -p "${SYSROOT_PREFIX}/usr/lib/pkgconfig"
+  find . -name "*.pc" -exec cp -va {} "${SYSROOT_PREFIX}/usr/lib/pkgconfig/" \; 2>/dev/null || true
+}

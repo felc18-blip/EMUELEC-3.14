@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# read config files
+for config in /etc/profile.d/*; do
+  if [ -f "$config" ] ; then
+    . $config
+  fi
+done
+
+# garantir diretório
+mkdir -p /run/libreelec
+
+# generate system-wide environment file
+cat <<EOF >/run/libreelec/environment
+PATH=${PATH}
+LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+EOF
