@@ -3,13 +3,14 @@
 # Copyright (C) 2020-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="parted"
-PKG_VERSION="3.6"
+PKG_VERSION="3.7"
+PKG_SHA256="008de57561a4f3c25a0648e66ed11e7b30be493889b64334a6d70f2c1951ef7b"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.gnu.org/software/parted/"
-PKG_URL="http://ftp.gnu.org/gnu/parted/${PKG_NAME}-${PKG_VERSION}.tar.xz"
-PKG_DEPENDS_HOST="toolchain:host util-linux:host"
-PKG_DEPENDS_TARGET="toolchain util-linux parted:host"
-PKG_DEPENDS_INIT="toolchain util-linux:init parted"
+PKG_URL="https://ftpmirror.gnu.org/parted/${PKG_NAME}-${PKG_VERSION}.tar.xz"
+PKG_DEPENDS_HOST="autotools:host util-linux:host"
+PKG_DEPENDS_TARGET="autotools:host gcc:host util-linux parted:host"
+PKG_DEPENDS_INIT="autotools:host gcc:host util-linux:init parted"
 PKG_LONGDESC="GNU Parted is a program for creating, destroying, resizing, checking and copying partitions."
 
 PKG_CONFIGURE_OPTS_TARGET="--disable-device-mapper \

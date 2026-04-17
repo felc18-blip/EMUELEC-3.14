@@ -1,112 +1,95 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2018-present Team CoreELEC (https://coreelec.org)
+# Copyright (C) 2018-present Team CoreELEC (https://coreelec.org) / Adapted for EmuELEC
 
 PKG_NAME="nfs-utils"
-PKG_VERSION="2.6.4"
-PKG_SHA256="c0ae376ac056011ed0954deba2362d7d8193c653b500b68a543aec512cd2ecfa"
-PKG_LICENSE="GPL-2.0+"
-PKG_SITE="http://nfs.sourceforge.net/"
-PKG_URL="${SOURCEFORGE_SRC}/nfs/nfs-utils/$PKG_VERSION/$PKG_NAME-$PKG_VERSION.tar.bz2"
-PKG_DEPENDS_HOST="toolchain"
-PKG_DEPENDS_TARGET="toolchain nfs-utils:host systemd sqlite libtirpc rpcsvc-proto libevent libdevmapper"
-PKG_LONGDESC="The NFS Utilities package contains the userspace server and client tools necessary to use the kernel NFS abilities."
+PKG_VERSION="2.9.1"
+PKG_SHA256="302846343bf509f8f884c23bdbd0fe853b7f7cbb6572060a9082279d13b21a2c"
+PKG_LICENSE="GPL-2.0-or-later"
+PKG_SITE="http://www.linux-nfs.org/"
+PKG_URL="https://www.kernel.org/pub/linux/utils/nfs-utils/${PKG_VERSION}/nfs-utils-${PKG_VERSION}.tar.xz"
+PKG_DEPENDS_TARGET="toolchain systemd sqlite libtirpc libevent keyutils libnl libxml2 readline rpcbind util-linux"
+PKG_LONGDESC="Linux NFS userland utility package"
 
 post_unpack() {
-  # we use own proc-fs-nfsd.mount file to also load nfsd module
-  cp $PKG_DIR/system.d/* $PKG_BUILD/systemd
+  # Mantido: copia o arquivo de mount customizado do diretório do pacote (se existir)
+  if [ -d "$PKG_DIR/system.d" ]; then
+    cp $PKG_DIR/system.d/* $PKG_BUILD/systemd/ 2>/dev/null || true
+  fi
 
-  # move path /var/lib/nfs -> /run/nfs
-  #   nfsdcld[3268]: cld_inotify_setup: inotify_add_watch failed: No such file or directory
+  # Mantido: Move caminhos do /var/lib/nfs (que é read-only no EmuELEC) para /run/nfs (tmpfs)
   find $PKG_BUILD -type f -exec sed -i \
     -e 's|/var/lib/nfs|/run/nfs|g' \
     -e 's|var-lib-nfs|run-nfs|g' {} \;
 
-  mv $PKG_BUILD/systemd/var-lib-nfs-rpc_pipefs.mount \
-     $PKG_BUILD/systemd/run-nfs-rpc_pipefs.mount
-  mv $PKG_BUILD/systemd/var-lib-nfs-rpc_pipefs.mount.in \
-     $PKG_BUILD/systemd/run-nfs-rpc_pipefs.mount.in
-}
-
-pre_configure_host() {
-  cd $PKG_BUILD
-  rm -rf .$HOST_NAME
-
-[ -f /etc/lsb-release ] && ( grep -q "22.04" /etc/lsb-release ) && CFLAGS+=" -I/usr/include/tirpc"
-
-  PKG_CONFIGURE_OPTS_HOST=" \
-    --with-statedir=/run/nfs \
-    --with-rpcgen=internal \
-    libsqlite3_cv_is_recent=unknown \
-    ac_cv_header_rpc_rpc_h=yes \
-    ac_cv_header_event2_event_h=yes \
-    ac_cv_lib_event_core_event_base_dispatch=yes \
-    --disable-nfsdcld \
-    --disable-nfsv4 \
-    --disable-nfsv41 \
-    --disable-gss \
-    --disable-uuid \
-    --disable-ipv6 \
-    --disable-caps \
-    --disable-tirpc \
-    --without-systemd \
-    --without-tcp-wrappers"
+  if [ -f "$PKG_BUILD/systemd/var-lib-nfs-rpc_pipefs.mount" ]; then
+    mv $PKG_BUILD/systemd/var-lib-nfs-rpc_pipefs.mount \
+       $PKG_BUILD/systemd/run-nfs-rpc_pipefs.mount
+  fi
+  if [ -f "$PKG_BUILD/systemd/var-lib-nfs-rpc_pipefs.mount.in" ]; then
+    mv $PKG_BUILD/systemd/var-lib-nfs-rpc_pipefs.mount.in \
+       $PKG_BUILD/systemd/run-nfs-rpc_pipefs.mount.in
+  fi
 }
 
 pre_configure_target() {
-  cd $PKG_BUILD
-  rm -rf .$TARGET_NAME
-
-  PKG_CONFIGURE_OPTS_TARGET=" \
+  cd ${PKG_BUILD}
+  rm -rf .${TARGET_NAME}
+CFLAGS+=" -Wno-error"
+CFLAGS+=" -DNETLINK_EXT_ACK=0"
+PKG_CONFIGURE_OPTS_TARGET=" \
     --with-systemd=/usr/lib/systemd/system \
     --with-nfsconfig=/storage/.config/nfs.conf \
     --with-statduser=$(whoami) \
     --with-statedir=/run/nfs \
-    --with-rpcgen=$PKG_BUILD/tools/rpcgen/rpcgen \
     --enable-nfsv4 \
-    --enable-nfsv41 \
+    --disable-nfsv41 \
     --enable-tirpc \
     --enable-uuid \
     --disable-gss \
     --disable-ipv6 \
-    --without-tcp-wrappers"
+    --disable-nfsdcld \
+    --disable-nfsdcltrack \
+    --disable-nfsrahead \
+    --disable-ldap \
+    --without-netlink \
+    --without-tcp-wrappers \
+    --disable-nfsdctl"
 
-  # use different paths /etc -> /storage/.config
+  # Mantido: Força os caminhos de configuração para a partição mutável do EmuELEC (/storage/.config)
   # /etc/exports
   CFLAGS+=" -D_PATH_EXPORTS=\\\"/storage/.config/exports\\\""
   # /etc/exports.d
   CFLAGS+=" -D_PATH_EXPORTS_D=\\\"/storage/.config/exports.d\\\""
   # /etc/idmapd.conf
   CFLAGS+=" -D_PATH_IDMAPDCONF=\\\"/storage/.config/idmapd.conf\\\""
-  # we don't have nobody user and group
+  # EmuELEC não possui usuário/grupo nobody
   CFLAGS+=" -DNFS4NOBODY_USER=\\\"root\\\""
   CFLAGS+=" -DNFS4NOBODY_GROUP=\\\"root\\\""
-}
-
-make_host() {
-  make rpcgen -C tools/rpcgen
-}
-
-makeinstall_host() {
-  : #
 }
 
 post_makeinstall_target() {
   mkdir -p $INSTALL/usr/config
 
-  cp nfs.conf $INSTALL/usr/config
-  cp support/nfsidmap/idmapd.conf $INSTALL/usr/config
-  cp $PKG_DIR/config/* $INSTALL/usr/config
+  [ -f "nfs.conf" ] && cp nfs.conf $INSTALL/usr/config/
+  [ -f "support/nfsidmap/idmapd.conf" ] && cp support/nfsidmap/idmapd.conf $INSTALL/usr/config/
 
-  # we use tmpfs for it
+  if [ -d "$PKG_DIR/config" ]; then
+    cp $PKG_DIR/config/* $INSTALL/usr/config/ 2>/dev/null || true
+  fi
+
+  # Remove diretório run da instalação (EmuELEC usa tmpfs na ram)
   rm -fr "$INSTALL/run"
 
-  # we have symbolic link to /usr/sbin
-  mkdir -p $INSTALL/usr/sbin
-  chmod 755 $INSTALL/sbin/*
-  mv $INSTALL/sbin/* $INSTALL/usr/sbin
-  rmdir $INSTALL/sbin
+  # Consolida executáveis no /usr/sbin (Padrão do EmuELEC)
+  if [ -d "$INSTALL/sbin" ]; then
+    mkdir -p $INSTALL/usr/sbin
+    chmod 755 $INSTALL/sbin/*
+    mv $INSTALL/sbin/* $INSTALL/usr/sbin/
+    rmdir $INSTALL/sbin
+  fi
 }
 
 post_install() {
+  # Mantido: Habilita o serviço do systemd na imagem final
   enable_service nfs-server.service
 }
