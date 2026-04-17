@@ -10,7 +10,7 @@ PKG_SITE="https://ffmpeg.org"
 PKG_URL="http://ffmpeg.org/releases/ffmpeg-${PKG_VERSION}.tar.xz"
 
 # ELITE: Adicionado SDL2 de volta (necessário para o ffplay/EmuELEC) e mantido libxml2 da base nova
-PKG_DEPENDS_TARGET="toolchain zlib bzip2 SDL2 openssl speex libxml2 x264 lame"
+PKG_DEPENDS_TARGET="toolchain zlib bzip2 SDL2 openssl speex libxml2 x264 lame libtheora x265"
 PKG_LONGDESC="FFmpeg is a complete, cross-platform solution to record, convert and stream audio and video."
 PKG_PATCH_DIRS="postproc libreelec"
 
@@ -69,7 +69,7 @@ PKG_FFMPEG_HWACCEL="--enable-hwaccels"
 if [ "${V4L2_SUPPORT}" = "yes" ]; then
   PKG_DEPENDS_TARGET+=" libdrm"
   PKG_NEED_UNPACK+=" $(get_pkg_directory libdrm)"
-  PKG_FFMPEG_V4L2="--disable-v4l2_m2m --enable-libdrm --enable-libudev --enable-v4l2-request"
+  PKG_FFMPEG_V4L2="--enable-v4l2_m2m --enable-libdrm --enable-libudev --enable-v4l2-request"
 
   if [ "${PROJECT}" = "Allwinner" -o "${PROJECT}" = "Rockchip" -o "${DEVICE}" = "iMX8" -o "${DEVICE}" = "RPi4" -o "${DEVICE}" = "RPi5" -o "${PROJECT}" = "Amlogic" ]; then
     PKG_DEPENDS_TARGET+=" systemd"
@@ -180,6 +180,7 @@ export CFLAGS="${CFLAGS} -DV4L2_BUF_FLAG_M2M_HOLD_CAPTURE_BUF=0x00000200 -D_GNU_
   --enable-version3 \
   --enable-logging \
   --disable-doc \
+  --enable-postproc \
   ${PKG_FFMPEG_DEBUG} \
   --enable-pic \
   --pkg-config="${TOOLCHAIN}/bin/pkg-config" \
@@ -204,19 +205,23 @@ export CFLAGS="${CFLAGS} -DV4L2_BUF_FLAG_M2M_HOLD_CAPTURE_BUF=0x00000200 -D_GNU_
   --disable-symver \
   ${PKG_FFMPEG_HWACCEL} \
   \
-  --disable-encoders \
   --enable-encoder=ac3 \
   --enable-encoder=aac \
   --enable-encoder=wmav2 \
+  --enable-encoder=libmp3lame \
+  --enable-encoder=libtheora \
   --enable-encoder=mjpeg \
   --enable-encoder=png \
   --enable-encoder=mpeg4 \
   --enable-libx264 \
   --enable-encoder=libx264 \
+  --enable-libx265 \
+  --enable-encoder=libx265 \
   \
-  --disable-muxers \
   --enable-muxer=spdif \
   --enable-muxer=adts \
+  --enable-muxer=matroska \
+  --enable-muxer=mp4 \
   --enable-muxer=asf \
   --enable-muxer=ipod \
   --enable-muxer=mpegts \
@@ -228,9 +233,6 @@ export CFLAGS="${CFLAGS} -DV4L2_BUF_FLAG_M2M_HOLD_CAPTURE_BUF=0x00000200 -D_GNU_
   --enable-protocol=http \
   --enable-filters \
   \
-  --disable-devices \
-  --disable-indevs \
-  --disable-outdevs \
   --disable-avisynth \
   --disable-alsa \
   --disable-lzma \
@@ -244,7 +246,7 @@ export CFLAGS="${CFLAGS} -DV4L2_BUF_FLAG_M2M_HOLD_CAPTURE_BUF=0x00000200 -D_GNU_
   --disable-libvorbis \
   --disable-libvpx \
   --disable-libxvid \
-  --disable-libtheora \
+  --enable-libtheora \
   --disable-libopencore-amrnb \
   --disable-libopencore-amrwb \
   --disable-libvo-amrwbenc \
@@ -264,20 +266,6 @@ export CFLAGS="${CFLAGS} -DV4L2_BUF_FLAG_M2M_HOLD_CAPTURE_BUF=0x00000200 -D_GNU_
 }
 
 post_makeinstall_target() {
-  # Limpeza de exemplos (já existia)
+  # Limpeza de exemplos
   rm -rf ${INSTALL}/usr/share/ffmpeg/examples
-
-  # ELITE: --- MARRETA PARA INSTALAR LIBPOSTPROC --- (Essencial para o PPSSPP)
-  echo "Instalando libpostproc manualmente..."
-  mkdir -p ${INSTALL}/usr/lib/pkgconfig
-  mkdir -p ${INSTALL}/usr/include/libpostproc
-
-  # Copia as bibliotecas (.so e .so.57)
-  cp -P ${PKG_BUILD}/libpostproc/libpostproc.so* ${INSTALL}/usr/lib/
-
-  # Copia o header (necessário para compilar o PPSSPP)
-  cp ${PKG_BUILD}/libpostproc/postprocess.h ${INSTALL}/usr/include/libpostproc/
-
-  # Copia o arquivo .pc (essencial para o CMake/pkg-config achar a lib)
-  cp ${PKG_BUILD}/libpostproc/libpostproc.pc ${INSTALL}/usr/lib/pkgconfig/
 }
