@@ -4,20 +4,26 @@
 PKG_NAME="image"
 PKG_LICENSE="GPL"
 PKG_SITE="https://libreelec.tv"
-PKG_DEPENDS_TARGET="toolchain squashfs-tools:host dosfstools:host fakeroot:host kmod:host mtools:host populatefs:host libc gcc linux linux-drivers linux-firmware ${BOOTLOADER} busybox util-linux corefonts network misc-packages debug exfatprogs"
+
+# Incluídos: pigz:host (novo), hdparm, parted, usbutils, procps-ng, e2fsprogs e exfatprogs
+PKG_DEPENDS_TARGET="toolchain squashfs-tools:host pigz:host dosfstools:host fakeroot:host kmod:host mtools:host populatefs:host libc gcc linux linux-drivers linux-firmware ${BOOTLOADER} busybox util-linux corefonts network misc-packages debug hdparm parted e2fsprogs exfatprogs usbutils procps-ng"
+
 PKG_SECTION="virtual"
 PKG_LONGDESC="Root package used to build and create complete image"
 
-# Bash is default shell
+# Bash como shell padrão (Sempre incluído da base antiga)
 PKG_DEPENDS_TARGET+=" bash"
 
-# Graphic support
+# Editor de texto Nano (Novo recurso opcional)
+[ "${NANO_EDITOR}" = "yes" ] && PKG_DEPENDS_TARGET+=" nano"
+
+# Suporte Gráfico
 [ ! "${DISPLAYSERVER}" = "no" ] && PKG_DEPENDS_TARGET+=" ${DISPLAYSERVER}"
 
-# Multimedia support
+# Suporte a Media Center
 [ ! "${MEDIACENTER}" = "no" ] && PKG_DEPENDS_TARGET+=" mediacenter"
 
-# Sound support
+# Suporte a Áudio (ALSA, PulseAudio ou Pipewire)
 [ "${ALSA_SUPPORT}" = "yes" ] && PKG_DEPENDS_TARGET+=" alsa"
 
 [ "${PULSEAUDIO_SUPPORT}" = "yes" ] && PKG_DEPENDS_TARGET+=" pulseaudio"
@@ -28,31 +34,31 @@ if [ "${PULSEAUDIO_SUPPORT}" = "yes" -a "${PIPEWIRE_SUPPORT}" = "yes" ]; then
   die "PULSEAUDIO_SUPPORT and PIPEWIRE_SUPPORT cannot be enabled together"
 fi
 
-# Automounter support
+# Suporte a Montagem Automática (udevil)
 [ "${UDEVIL}" = "yes" ] && PKG_DEPENDS_TARGET+=" udevil"
 
-# EXFAT support
+# Suporte a EXFAT (Driver e ferramentas extras)
 [ "$EXFAT" = "yes" ] && PKG_DEPENDS_TARGET+=" exfat"
 
-# HFS filesystem tools
+# Ferramentas de sistema de arquivo HFS (Mac)
 [ "${HFSTOOLS}" = "yes" ] && PKG_DEPENDS_TARGET+=" diskdev_cmds"
 
-# NTFS 3G support
+# Suporte a NTFS (ntfs-3g)
 [ "${NTFS3G}" = "yes" ] && PKG_DEPENDS_TARGET+=" ntfs-3g_ntfsprogs"
 
-# Remote support
+# Suporte a Controles Remotos
 [ "${REMOTE_SUPPORT}" = "yes" ] && PKG_DEPENDS_TARGET+=" remote"
 
-# Virtual image creation support
+# Criação de imagem virtual (Generic x86)
 [ "${PROJECT}" = "Generic" ] && PKG_DEPENDS_TARGET+=" virtual"
 
-# Installer support
+# Suporte ao Instalador de Sistema
 [ "${INSTALLER_SUPPORT}" = "yes" ] && PKG_DEPENDS_TARGET+=" installer"
 
-# Devtools... (not for Release)
+# Ferramentas de Teste e Desenvolvimento
 [ "${TESTING}" = "yes" ] && PKG_DEPENDS_TARGET+=" testing"
 
-# OEM packages
+# Suporte a pacotes OEM
 [ "${OEM_SUPPORT}" = "yes" ] && PKG_DEPENDS_TARGET+=" oem"
 
 true

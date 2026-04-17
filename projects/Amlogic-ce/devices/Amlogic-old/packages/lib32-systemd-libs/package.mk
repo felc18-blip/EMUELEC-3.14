@@ -65,14 +65,14 @@ PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Dbinfmt=false \
                        -Dcoredump=false \
                        -Dresolve=false \
-                       -Dlogind=false \
-                       -Dhostnamed=false \
+                       -Dlogind=true \
+                       -Dhostnamed=true \
                        -Dlocaled=false \
                        -Dmachined=false \
                        -Dportabled=false \
                        -Dnetworkd=false \
                        -Dtimedated=false \
-                       -Dtimesyncd=false \
+                       -Dtimesyncd=true \
                        -Dfirstboot=false \
                        -Drandomseed=false \
                        -Dbacklight=false \
