@@ -31,22 +31,4 @@ post_makeinstall_target() {
   cp ${PKG_NAME}-config ${TOOLCHAIN}/bin
   sed -e "s:\(['= ]\)/usr:\\1${PKG_ORIG_SYSROOT_PREFIX}/usr:g" -i ${TOOLCHAIN}/bin/${PKG_NAME}-config
   chmod +x ${TOOLCHAIN}/bin/${PKG_NAME}-config
-
-  # --- INÍCIO DA LIMPEZA PESADA (Sanitização de RPATH nas bibliotecas) ---
-  echo "--- Sanitizando bibliotecas do PCRE (Limpando rastros do PC) ---"
-  
-  # Varre a pasta de instalação para limpar as bibliotecas .so (como a libpcrecpp.so)
-  find ${INSTALL} -type f -exec sh -c '
-    if readelf -h "$1" 2>/dev/null | grep -qE "EXEC|DYN"; then
-      # Remove RPATH/RUNPATH que aponta para /home/felipe
-      patchelf --remove-rpath "$1" 2>/dev/null
-      
-      # Substitui caminhos absolutos pelo nome puro da lib
-      for lib_path in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
-        lib_name=$(basename "$lib_path")
-        echo "  > Corrigindo dependência em $(basename $1): $lib_name"
-        patchelf --replace-needed "$lib_path" "$lib_name" "$1" 2>/dev/null
-      done
-    fi
-  ' _ {} \;
 }

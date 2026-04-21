@@ -60,7 +60,7 @@ if [ -e /storage/.please_resize_me ] ; then
     DISK_SIZE=$(( $DISK_SECTORS * 512 )) # Calculate the disk actual size, in byte
     if [ $DISK_SIZE -gt 8589934592 ]; then # Modificado para deixar ~2GiB para storage
       ROMS_CREATE='yes'
-      STORAGE_END='4GiB'
+      STORAGE_END='4.5GiB'
     elif [ $DISK_SIZE -gt 3221225472 ]; then  # Optionaly omit the EEROMS partition for 4GB cards/drives
       ROMS_CREATE=''
       ROMS_OMIT_MANUAL=''
