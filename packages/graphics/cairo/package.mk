@@ -12,7 +12,7 @@ PKG_TOOLCHAIN="meson"
 
 configure_package() {
   if [ "${DISPLAYSERVER}" = "x11" ]; then
-    PKG_DEPENDS_TARGET+=" libXrender libX11 mesa"
+    PKG_DEPENDS_TARGET+=" libXrender libX11"
   fi
 
   if [ "${OPENGL_SUPPORT}" = "yes" ]; then
