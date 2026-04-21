@@ -1,38 +1,51 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
+# Copyright (C) 2009-2016 Stephan Raue
 
 PKG_NAME="x11"
 PKG_VERSION=""
 PKG_LICENSE="OSS"
 PKG_SITE="http://www.X.org"
 PKG_URL=""
-PKG_DEPENDS_TARGET="toolchain xorg-server"
 PKG_SECTION="virtual"
 PKG_LONGDESC="X11 is the Windowing system"
 
-# Additional packages we need for using xorg-server:
+PKG_DEPENDS_TARGET="toolchain xorg-server"
+
 # Fonts
-  PKG_DEPENDS_TARGET+=" encodings font-xfree86-type1 font-bitstream-type1 font-misc-misc"
+PKG_DEPENDS_TARGET+=" encodings font-xfree86-type1 font-bitstream-type1 font-misc-misc"
 
 # Server
-  PKG_DEPENDS_TARGET+=" xkeyboard-config xkbcomp"
+PKG_DEPENDS_TARGET+=" xkeyboard-config xkbcomp"
 
 # Tools
-  PKG_DEPENDS_TARGET+=" xrandr setxkbmap"
+PKG_DEPENDS_TARGET+=" xrandr setxkbmap"
 
-if [ -n "${WINDOWMANAGER}" -a "${WINDOWMANAGER}" != "no" ]; then
+# Window manager (seguro contra vazio/none)
+if [ -n "${WINDOWMANAGER}" ] && [ "${WINDOWMANAGER}" != "no" ] && [ "${WINDOWMANAGER}" != "none" ]; then
   PKG_DEPENDS_TARGET+=" ${WINDOWMANAGER}"
 fi
 
+# Detecta drivers automaticamente
 get_graphicdrivers
 
-# Drivers
-if [ -n "${LIBINPUT}" ]; then
+# Input drivers
+if [ -n "${LIBINPUT}" ] && [ "${LIBINPUT}" != "none" ]; then
   PKG_DEPENDS_TARGET+=" xf86-input-libinput"
 else
   PKG_DEPENDS_TARGET+=" xf86-input-evdev xf86-input-synaptics"
 fi
 
-for drv in ${XORG_DRIVERS}; do
-  PKG_DEPENDS_TARGET+=" xf86-video-${drv}"
-done
+# Video drivers (seguro)
+if [ -n "${XORG_DRIVERS}" ]; then
+  for drv in ${XORG_DRIVERS}; do
+    [ -z "${drv}" ] && continue
+    [ "${drv}" = "none" ] && continue
+
+    if [ -d "${PKG_DIR}/../driver/xf86-video-${drv}" ]; then
+      PKG_DEPENDS_TARGET+=" xf86-video-${drv}"
+    fi
+  done
+fi
+
+# Limpeza final (remove "none" e espaços duplicados)
+PKG_DEPENDS_TARGET="$(echo ${PKG_DEPENDS_TARGET} | tr -s ' ' | sed 's/\bnone\b//g')"

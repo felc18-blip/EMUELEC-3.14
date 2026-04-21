@@ -11,14 +11,17 @@ PKG_URL="https://xorg.freedesktop.org/archive/individual/lib/${PKG_NAME}-${PKG_V
 PKG_DEPENDS_TARGET="toolchain util-macros libX11 libSM"
 PKG_LONGDESC="libXt provides the X Toolkit Intrinsics library, an abstract widget library upon which other toolkits are based."
 
-PKG_CONFIGURE_OPTS_TARGET="--enable-static \
-                           --disable-shared \
+# Adicione esta linha para garantir o suporte a código independente de posição
+PKG_BUILD_FLAGS="+pic"
+
+PKG_CONFIGURE_OPTS_TARGET="--disable-static \
+                           --enable-shared \
                            --with-gnu-ld \
                            --enable-malloc0returnsnull"
 
 pre_make_target() {
   make -C util CC=${HOST_CC} \
-               CFLAGS="${HOST_CFLAGS} " \
-               LDFLAGS="${HOST_LDFLAGS}" \
-               makestrs
+                CFLAGS="${HOST_CFLAGS} " \
+                LDFLAGS="${HOST_LDFLAGS}" \
+                makestrs
 }
