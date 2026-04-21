@@ -54,7 +54,11 @@ if [ ! -f "$PM_DIR/PortMaster.sh" ]; then
 fi
 
 # 🔥 CRIA LAUNCHER NO PORTS_SCRIPTS
-ln -sf "$PM_DIR/PortMaster.sh" "$PORTS_SCRIPTS_DIR/PortMaster.sh"
+# 🔥 CRIA LAUNCHER COMPATÍVEL COM FAT
+if ! ln -sf "$PM_DIR/PortMaster.sh" "$PORTS_SCRIPTS_DIR/PortMaster.sh" 2>/dev/null; then
+    cp -f "$PM_DIR/PortMaster.sh" "$PORTS_SCRIPTS_DIR/PortMaster.sh"
+fi
+
 chmod +x "$PORTS_SCRIPTS_DIR/PortMaster.sh"
 
 # 6. Limpeza de arquivos desnecessários
@@ -70,15 +74,35 @@ chmod +x "$PM_DIR/mapper.txt"
 
 cp -f "$CONFIG_DIR/gamecontrollerdb.txt" "$PM_DIR/gamecontrollerdb.txt"
 
-# 8. Oculta pasta PortMaster no gamelist
-if [ -f "$PORTS_DIR/gamelist.xml" ]; then
-    xmlstarlet ed --inplace -d "/gameList/folder[path='./PortMaster']" "$PORTS_DIR/gamelist.xml" 2>/dev/null
+XML_FILE="/storage/roms/ports_scripts/gamelist.xml"
+
+# Verifica se já existe entrada do PortMaster
+if xmlstarlet sel -t -v "count(/gameList/game[name='PortMaster'])" "$XML_FILE" 2>/dev/null | grep -qv '^0$'; then
+    echo "PortMaster já existe na gamelist"
+else
+    echo "Adicionando PortMaster na gamelist"
+
+    # cria arquivo se não existir
+    if [ ! -f "$XML_FILE" ]; then
+        echo '<?xml version="1.0" encoding="UTF-8"?>' > "$XML_FILE"
+        echo '<gameList/>' >> "$XML_FILE"
+    else
+        # garante estrutura válida
+        if ! xmlstarlet sel -t -c "/gameList" "$XML_FILE" >/dev/null 2>&1; then
+            echo '<?xml version="1.0" encoding="UTF-8"?>' > "$XML_FILE"
+            echo '<gameList/>' >> "$XML_FILE"
+        fi
+    fi
+
+    # adiciona entrada do PortMaster
     xmlstarlet ed --inplace \
-        --subnode "/gameList" --type elem -n folder -v "" \
-        --subnode "/gameList/folder[last()]" --type elem -n path -v "./PortMaster" \
-        --subnode "/gameList/folder[last()]" --type elem -n name -v "PortMaster" \
-        --subnode "/gameList/folder[last()]" --type elem -n hidden -v "true" \
-        "$PORTS_DIR/gamelist.xml" 2>/dev/null
+        -s "/gameList" -t elem -n "gameTMP" -v "" \
+        -s "/gameList/gameTMP" -t elem -n "path" -v "./PortMaster.sh" \
+        -s "/gameList/gameTMP" -t elem -n "name" -v "PortMaster" \
+        -s "/gameList/gameTMP" -t elem -n "image" -v "/usr/bin/scripts/setup/setup_images/LaunchPortMaster.png" \
+        -s "/gameList/gameTMP" -t elem -n "rating" -v "10" \
+        -r "//gameTMP" -v "game" \
+        "$XML_FILE"
 fi
 
 # 9. Compatibilidade

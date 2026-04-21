@@ -2,11 +2,11 @@
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="file"
-PKG_VERSION="5.47"
-PKG_SHA256="45672fec165cb4cc1358a2d76b5d57d22876dcb97ab169427ac385cbe1d5597a"
+PKG_VERSION="5.48-dev"
+PKG_SHA256="dd12a49d54fd7e74609ba6afb479a564b9d4d742eb7be6508140e2a92026e879"
 PKG_LICENSE="BSD"
-PKG_SITE="https://www.darwinsys.com/file/"
-PKG_URL="http://ftp.astron.com/pub/file/file-${PKG_VERSION}.tar.gz"
+PKG_SITE="https://github.com/file/file"
+PKG_URL="https://github.com/file/file/archive/refs/heads/master.tar.gz"
 PKG_DEPENDS_HOST="toolchain:host"
 PKG_DEPENDS_TARGET="toolchain file:host zlib"
 PKG_LONGDESC="The file utility is used to determine the types of various files."

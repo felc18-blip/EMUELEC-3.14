@@ -2,21 +2,21 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="dotnet-runtime"
-PKG_VERSION="1.0"
-PKG_REV="11"
+PKG_REV="3"
 PKG_ARCH="any"
 PKG_LICENSE="MIT"
+PKG_SITE="https://dotnet.microsoft.com/"
 PKG_DEPENDS_TARGET="toolchain icu aspnet6-runtime aspnet8-runtime aspnet9-runtime"
 PKG_SECTION="tools"
-PKG_SHORTDESC="ASP.NET Core Runtimes (v6, v8 LTS & v9 Latest)"
-PKG_LONGDESC="Pacote completo .NET para NextOS Elite. Inclui as versões 6.0, 8.0 e 9.0 com correção de globalização para Kernel 3.14."
+PKG_SHORTDESC="ASP.NET Core Runtime"
+PKG_LONGDESC="ASP.NET Core Runtime ($(get_pkg_version aspnet8-runtime)) and ($(get_pkg_version aspnet9-runtime)) enables you to run existing console/web/server applications."
 PKG_TOOLCHAIN="manual"
 
 PKG_IS_ADDON="yes"
-PKG_ADDON_NAME="ASP.Net Core Runtimes (6/8/9)"
+PKG_ADDON_NAME="ASP.Net Core Runtimes"
 PKG_ADDON_PROJECTS="any !RPi1"
 PKG_ADDON_TYPE="xbmc.python.script"
-PKG_MAINTAINER="Felipe (NextOS Elite)"
+PKG_MAINTAINER="Anton Voyl (awiouy)"
 
 addon() {
   local BIN_DIR="${ADDON_BUILD}/${PKG_ADDON_ID}/bin"
