@@ -22,11 +22,11 @@ if [[ "${BTENABLED}" == "1" ]]; then
     systemctl stop bluetooth-agent
 fi
 
-# clear terminal window
-        clear > /dev/tty < /dev/null 2>&1
-        clear > /dev/tty0 < /dev/null 2>&1
-        clear > /dev/tty1 < /dev/null 2>&1
-        clear > /dev/console < /dev/null 2>&1
+# clear terminal window (FIXED: Redirect errors to /dev/null to prevent /dev/tty No such device or address errors)
+        clear > /dev/tty 2>/dev/null || true
+        clear > /dev/tty0 2>/dev/null || true
+        clear > /dev/tty1 2>/dev/null || true
+        clear > /dev/console 2>/dev/null || true
 
 arguments="$@"
 
@@ -126,7 +126,7 @@ if [[ ! -z "${MIDI_OUTPUT}" ]]; then
 fi
 
 # freej2me needs the JDK to be downloaded on the first run
-if [ ${EMU} == "freej2me_libretro" ]; then
+if [[ "${EMU}" == *"freej2me"* ]]; then
 freej2me.sh
 
 JAVA_HOME='/storage/roms/bios/jdk'
@@ -233,6 +233,12 @@ case ${PLATFORM} in
                     RUNTHIS="/usr/bin/start_drastic.sh \"${ROMNAME}\""
                 fi
                 ;;
+        "j2me")
+                if [ "${EMU}" = "freej2mesa" ]; then
+                    set_kill_keys "sdl_interface"
+                    RUNTHIS='sdl_interface "${ROMNAME}"'
+                fi
+                ;;
         "n64")
                 if [ "${EMU}" = "daedalusx64" ]; then
                     set_kill_keys "daedalusx64"
@@ -278,13 +284,13 @@ case ${PLATFORM} in
 				set_kill_keys "ti99sim-sdl"
 				RUNTHIS='${TBASH} ti99sdlstart.sh "${ROMNAME}"'
                 fi
-                ;;	
+                ;;
 		"samcoupe")
                 if [ "${EMU}" = "simcoupe" ]; then
 				set_kill_keys "simcoupe"
 				RUNTHIS='${TBASH} simcoupestart.sh "${ROMNAME}"'
                 fi
-                ;;	
+                ;;
         "daphne")
                 if [ "${EMU}" = "HYPSEUS" ]; then
             set_kill_keys "hypseus"
@@ -322,6 +328,12 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} start_ppsspp.sh "${ROMNAME}"'
                 fi
                 ;;
+		    "ngage")
+		            if [ "$EMU" = "eka2l1" ]; then
+            set_kill_keys "eka2l1"
+            RUNTHIS='${TBASH} ekastart.sh "${ROMNAME}"'
+               fi
+               ;;
         "neocd")
                 if [ "${EMU}" = "fbneo" ]; then
             RUNTHIS='${RABIN} ${VERBOSE} -L /tmp/cores/fbneo_libretro.so --subsystem neocd --config ${RACONF} "${ROMNAME}"'
@@ -414,7 +426,7 @@ case ${PLATFORM} in
             set_kill_keys "oricutron"
             RUNTHIS='${TBASH} oricutronstart.sh "${ROMNAME}"'
         fi
-		;;	
+		;;
         "dragon32"|"dragon64")
 			if [ "${EMU}" = "xroar" ]; then
 			set_kill_keys "xroar.aarch64"
@@ -423,7 +435,7 @@ case ${PLATFORM} in
 		;;
         "ports")
             if [[ "${ROMNAME}" == *".sh" ]]; then
-                set_kill_keys "gptokeyb" 
+                set_kill_keys "gptokeyb"
                 RUNTHIS='${TBASH} "${ROMNAME}"'
             fi
             ;;
@@ -678,7 +690,7 @@ fi
 
 # These emus do not like to be killed by gptokeyb
 case "${EMU}" in
-    "dolphin" | "Chocolate-Doom" | "yabasanshiroSA" | "yabasanshiroSA1_5" | *"scummvm_libretro"* | *"ikemen"* | *"jzintv"*)
+    "freej2mesa" | "dolphin" | "Chocolate-Doom" | "yabasanshiroSA" | "yabasanshiroSA1_5" | *"scummvm_libretro"* | *"ikemen"* | *"jzintv"*)
         ret_error="0"
         ;;
 esac

@@ -109,7 +109,15 @@ function setauddev() {
     AUDIO_DEVICE="${1}"
     [ -z "${AUDIO_DEVICE}" ] && AUDIO_DEVICE="$(get_ee_setting ee_audio_device)"
     [[ "${AUDIO_DEVICE}" = "auto" || -z "${AUDIO_DEVICE}" ]] && AUDIO_DEVICE="0,0"
-    sed -i "s|pcm \"hw:.*|pcm \"hw:${AUDIO_DEVICE}\"|" /storage/.config/asound.conf
+
+    # Atualiza o dispositivo ALSA no arquivo correto, blindando contra erros de arquivo inexistente
+    if [ -f "/storage/.config/asound.conf" ]; then
+        sed -i "s|pcm \"hw:.*|pcm \"hw:${AUDIO_DEVICE}\"|" /storage/.config/asound.conf
+    elif [ -f "/storage/.config/asound.conf-amlogic" ]; then
+        sed -i "s|pcm \"hw:.*|pcm \"hw:${AUDIO_DEVICE}\"|" /storage/.config/asound.conf-amlogic
+    elif [ -f "/storage/.config/asound.conf-amlogic-ng" ]; then
+        sed -i "s|pcm \"hw:.*|pcm \"hw:${AUDIO_DEVICE}\"|" /storage/.config/asound.conf-amlogic-ng
+    fi
 }
 
 function audio() {
