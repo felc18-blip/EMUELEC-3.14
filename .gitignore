@@ -69,3 +69,13 @@ packages/sx05re/experimental/
 packages/sx05re/emuelec-emulationstation/api_keys.txt
 */patche/
 */patch2/
+
+# Local dev work
+/SDL3-src/
+/log.txt
+/nv.toml
+/gen_nv.sh
+/lista_final_atualizacoes.txt
+/pacotes_para_atualizar.txt
+/relatorio_completo.txt
+packages/sx05re/ChatGPT*.png

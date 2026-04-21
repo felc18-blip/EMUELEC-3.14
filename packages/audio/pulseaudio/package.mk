@@ -79,13 +79,21 @@ pre_configure_target() {
 }
 
 post_makeinstall_target() {
+  # Limpeza PRIMEIRO (antes de instalar nosso serviço customizado)
   safe_remove ${INSTALL}/usr/include
   safe_remove ${INSTALL}/usr/lib/cmake
   safe_remove ${INSTALL}/usr/lib/pkgconfig
-  safe_remove ${INSTALL}/usr/lib/systemd
   safe_remove ${INSTALL}/usr/share/vala
   safe_remove ${INSTALL}/usr/share/zsh
   safe_remove ${INSTALL}/usr/share/bash-completion
+
+  # Instala o arquivo de serviço customizado (Restart=always para SDL3 games)
+  mkdir -p ${INSTALL}/usr/lib/systemd/system
+  cp ${PKG_DIR}/system.d/pulseaudio.service ${INSTALL}/usr/lib/systemd/system/
+
+  # Auto-start via symlink em multi-user.target.wants
+  mkdir -p ${INSTALL}/usr/lib/systemd/system/multi-user.target.wants
+  ln -sf ../pulseaudio.service ${INSTALL}/usr/lib/systemd/system/multi-user.target.wants/pulseaudio.service
 
   cp ${PKG_DIR}/config/system.pa ${INSTALL}/etc/pulse/
 
