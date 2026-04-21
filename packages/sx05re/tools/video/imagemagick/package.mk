@@ -21,26 +21,3 @@ makeinstall_target() {
   make install DESTDIR=${INSTALL} ${PKG_MAKEINSTALL_OPTS_TARGET}
   rm ${INSTALL}/usr/bin/*config
 }
-
-# --- FUNÇÃO DE LIMPEZA ADICIONADA ---
-post_makeinstall_target() {
-  echo "--- Sanitizando binários do ImageMagick (Limpando rastros do PC) ---"
-  
-  # Varre usr/bin onde ficam o magick, convert, identify, etc.
-  find ${INSTALL}/usr/bin -type f -exec sh -c '
-    # Remove RPATH/RUNPATH
-    patchelf --remove-rpath "$1" 2>/dev/null
-    
-    # Substitui caminhos absolutos (/home/felipe/...) pelo nome puro da lib
-    for lib_path in $(readelf -d "$1" 2>/dev/null | grep "NEEDED" | grep "/home/felipe" | sed -r "s/.*\[(.*)\].*/\1/"); do
-      lib_name=$(basename "$lib_path")
-      echo "  > Corrigindo dependência em $(basename $1): $lib_name"
-      patchelf --replace-needed "$lib_path" "$lib_name" "$1" 2>/dev/null
-    done
-  ' _ {} \;
-
-  # Como o ImageMagick usa MUITAS bibliotecas compartilhadas (.so),
-  # vamos limpar o RPATH delas também para garantir estabilidade.
-  echo "--- Limpando RPATH das bibliotecas do ImageMagick ---"
-  find ${INSTALL}/usr/lib -type f -name "*.so*" -exec patchelf --remove-rpath {} \; 2>/dev/null
-}
