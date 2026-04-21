@@ -30,23 +30,53 @@ if [ "${ARCH}" == "arm" ]; then
 fi
 
 post_unpack() {
-  # PASSO 1: Criamos a pasta onde o CMake espera encontrar as dependências
   local DEPS_DIR="${PKG_BUILD}/.aarch64-libreelec-linux-gnu/_deps"
   mkdir -p "${DEPS_DIR}"
 
-  # PASSO 2: Baixamos o CPR manualmente usando o Git do seu PC (que tem HTTPS)
-  # Isso evita o erro "Protocol https not supported" do CMake
-  if [ ! -d "${DEPS_DIR}/cpr-src" ]; then
-    echo "Felipe, baixando CPR manualmente para contornar o CMake..."
-    git clone --depth 1 https://github.com/libcpr/cpr.git "${DEPS_DIR}/cpr-src"
-  fi
+  # Configura o git para não pedir senha
+  export GIT_TERMINAL_PROMPT=0
+
+  # Downloads manuais necessários
+  [ ! -d "${DEPS_DIR}/cpr-src" ] && git clone --depth 1 https://github.com/libcpr/cpr.git "${DEPS_DIR}/cpr-src"
+  [ ! -f "${PKG_BUILD}/core/deps/libchdr/CMakeLists.txt" ] && git clone --depth 1 https://github.com/rtissera/libchdr.git "${PKG_BUILD}/core/deps/libchdr"
+
+  # --- LIMPEZA DO BREAKPAD ---
+  echo "Felipe, removendo o Breakpad da linkagem final..."
+
+  # 1. Desativa no CMake
+  sed -i 's/set(USE_BREAKPAD ON)/set(USE_BREAKPAD OFF)/g' "${PKG_BUILD}/CMakeLists.txt"
+  sed -i 's/add_subdirectory(core\/deps\/breakpad)/# desativado/g' "${PKG_BUILD}/CMakeLists.txt"
+
+  # 2. REMOVE A LIB DA LINKAGEM (Evita o erro -lbreakpad_client)
+  sed -i 's/breakpad_client//g' "${PKG_BUILD}/CMakeLists.txt"
+
+  # 3. Neutraliza o código no main.cpp
+  sed -i '40i #undef USE_BREAKPAD' "${PKG_BUILD}/core/linux-dist/main.cpp"
 }
 
 pre_configure_target() {
-  # PASSO 3: Aplicamos a vacina do CMake em TUDO, inclusive no que acabamos de baixar
+  # 1. Vacina de versão do CMake
   find ${PKG_BUILD} -name "CMakeLists.txt" -exec sed -i 's/cmake_minimum_required(VERSION [0-2]\.[0-9][^)]*)/cmake_minimum_required(VERSION 3.5)/gI' {} +
 
-  export CXXFLAGS="${CXXFLAGS} -Wno-error=array-bounds -Wswitch -Wsign-compare -I$(get_install_dir asio)/usr/include"
+  # 2. LIMPEZA FÍSICA DO BREAKPAD NO CÓDIGO (A Marretada)
+  # Deleta a linha 45 do main.cpp onde está o include que trava tudo
+  if [ -f "${PKG_BUILD}/core/linux-dist/main.cpp" ]; then
+    echo "Felipe, removendo fisicamente a linha do Breakpad..."
+    sed -i 's/#include "breakpad\/client\/linux\/handler\/exception_handler.h"/\/\/ removido/g' "${PKG_BUILD}/core/linux-dist/main.cpp"
+    # Adicionamos uma trava de segurança no topo do arquivo
+    sed -i '1i #undef USE_BREAKPAD' "${PKG_BUILD}/core/linux-dist/main.cpp"
+  fi
+
+  # 3. Limpeza das definições do CMake para o Ninja não se confundir
+  find ${PKG_BUILD} -name "CMakeLists.txt" -exec sed -i 's/USE_BREAKPAD//g' {} +
+  sed -i 's/set(USE_BREAKPAD ON)/set(USE_BREAKPAD OFF)/g' "${PKG_BUILD}/CMakeLists.txt"
+
+  # 4. Flags de compilação para o GCC 15
+  export CXXFLAGS="${CXXFLAGS} -Wno-error=array-bounds -Wno-error=deprecated-declarations -Wno-error=unused-result -Wno-sign-compare -DUSE_BREAKPAD=0 -DCP_NO_BREAKPAD"
+  export CXXFLAGS="${CXXFLAGS} -I$(get_install_dir asio)/usr/include"
+
+  # Linkagem limpa
+  export LDFLAGS="${LDFLAGS} -lcurl -lssl -lcrypto"
 }
 
 makeinstall_target() {

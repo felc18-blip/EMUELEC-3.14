@@ -17,17 +17,22 @@ make_target() {
 }
 
 makeinstall_target() {
-
   # Launcher
   mkdir -p ${INSTALL}/usr/bin
   cp -rf ${PKG_DIR}/advancedrastic.sh \
-         ${INSTALL}/usr/bin/advancedrastic.sh
+          ${INSTALL}/usr/bin/advancedrastic.sh
   chmod +x ${INSTALL}/usr/bin/advancedrastic.sh
 
   # Instala separado do drastic normal
   mkdir -p ${INSTALL}/usr/config/drastic-advanced
   cp -rf ${PKG_DIR}/advanced_drastic/* \
-         ${INSTALL}/usr/config/drastic-advanced/
+          ${INSTALL}/usr/config/drastic-advanced/
+
+  OLD_PATH="/home/felipe/BLACK-RETRO-GAME-OS"
+  NEW_PATH="/usr/config/drastic-advanced/.."
+
+  find ${INSTALL}/usr/config/drastic-advanced/libs -name "*.so*" -print0 | xargs -0 \
+    sed -i "s|${OLD_PATH}|${NEW_PATH}|g" 2>/dev/null || true
 
   chmod +x ${INSTALL}/usr/config/drastic-advanced/drastic
 }

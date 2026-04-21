@@ -20,20 +20,23 @@
 
 PKG_NAME="fbalpha2012"
 PKG_VERSION="15af60bf24e3dc2267a38e3c8532450ebec86317"
+PKG_ARCH="any"
 PKG_LICENSE="Non-commercial"
 PKG_SITE="https://github.com/libretro/fbalpha2012"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain"
-PKG_LONGDESC="Port of Final Burn Alpha 2012 to Libretro"
+PKG_PRIORITY="optional"
+PKG_SECTION="libretro"
+PKG_SHORTDESC="Port of Final Burn Alpha 2012 to Libretro"
 PKG_TOOLCHAIN="make"
-
-pre_configure_target() {
-export CFLAGS="${CFLAGS} -Wno-maybe-uninitialized -Wno-unused-function -Wno-error=incompatible-pointer-types"
-}
 
 make_target() {
   cd svn-current/trunk
-  make -f makefile.libretro
+  if [ "${ARCH}" == "arm" ]; then
+    make -f makefile.libretro platform=armv CC=${CC} CXX=${CXX}
+  else
+    make -f makefile.libretro CC=${CC} CXX=${CXX}
+  fi
 }
 
 makeinstall_target() {

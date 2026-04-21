@@ -40,6 +40,11 @@ then
   PKG_CMAKE_OPTS_TARGET+=" -DENABLE_VULKAN=ON"
 fi
 
+post_unpack() {
+  cd ${PKG_BUILD}
+  git submodule update --init --recursive
+}
+
 pre_configure_target() {
   # Mantenha as opções aqui, elas serão anexadas às definidas acima
   PKG_CMAKE_OPTS_TARGET+=" -DENABLE_EGL=ON \
