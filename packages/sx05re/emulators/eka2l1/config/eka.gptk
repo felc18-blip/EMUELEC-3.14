@@ -1,0 +1,37 @@
+# EKA2L1 gptokeyb configuration.
+
+# I N S T R U C T I O N S :
+#
+# The correct filepath for this file is: /storage/.config/eka2l1/gptk/eka.gptk
+#
+#-----------------------------------------------------------------------------------------------------------------------
+#
+# EKA2L1 gptokeyb configuration.
+#
+# Keyboard bindings in eka2l1:
+#   Arrow Keys  -> D-pad
+#   Enter       -> OK / Select
+#   F1 / F2     -> Left / Right Softkey
+#   F3 / F4     -> Green (Call) / Red (End)
+#   Backspace   -> Backspace
+#   Escape      -> End key
+
+back  = escape
+start = backspace
+
+a = enter
+b = f4
+y = f3
+
+l1 = f1
+r1 = f2
+
+up = up
+down = down
+left = left
+right = right
+
+left_analog_up = up
+left_analog_down = down
+left_analog_left = left
+left_analog_right = right
