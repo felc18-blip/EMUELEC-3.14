@@ -5206,6 +5206,34 @@
         }
       ]
     },
+	  {
+      "name": "ngage",
+      "fullname": "Nokia N-Gage",
+      "manufacturer": "Nokia",
+      "release": "2003",
+      "hardware": "portable",
+      "path": "/storage/roms/ngage",
+      "platform": "ngage",
+      "theme": "ngage",
+      "command": "default",
+      "extensions": [
+        ".ngage",
+		".symbian",
+		".zip",
+        ".sis"
+      ],
+      "emulators": [
+        {
+          "name": "eka2l1",
+          "cores": [
+            {
+              "name": "eka2l1",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
     {
       "name": "uzebox",
       "fullname": "uzebox",
@@ -5501,6 +5529,14 @@
             {
               "name": "freej2me",
               "default": true
+            }
+          ]
+        },
+        {
+          "name": "freej2mesa",
+          "cores": [
+            {
+              "name": "freej2mesa"
             }
           ]
         }
