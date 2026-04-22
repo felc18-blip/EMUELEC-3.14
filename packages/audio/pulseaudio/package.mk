@@ -8,7 +8,7 @@ PKG_SHA256="053794d6671a3e397d849e478a80b82a63cb9d8ca296bd35b73317bb5ceb87b5"
 PKG_LICENSE="GPL"
 PKG_SITE="http://pulseaudio.org/"
 PKG_URL="http://www.freedesktop.org/software/pulseaudio/releases/${PKG_NAME}-${PKG_VERSION}.tar.xz"
-PKG_DEPENDS_TARGET="toolchain alsa-lib dbus glib libcap libsndfile libtool openssl soxr speexdsp systemd"
+PKG_DEPENDS_TARGET="toolchain alsa-lib dbus libcap libsndfile libtool openssl soxr speexdsp systemd glib:host glib"
 PKG_LONGDESC="PulseAudio is a sound system for POSIX OSes, meaning that it is a proxy for your sound applications."
 
 if [ "${BLUETOOTH_SUPPORT}" = "yes" ]; then
@@ -76,24 +76,20 @@ PKG_MESON_OPTS_TARGET="-Ddaemon=true \
 pre_configure_target() {
   sed -e 's|; remixing-use-all-sink-channels = yes|; remixing-use-all-sink-channels = no|' \
       -i ${PKG_BUILD}/src/daemon/daemon.conf.in
+
+# for some reason I have to add this when rebuilding or the compilation will fail, this is not a proper fix but a workaround
+      rm -rf ${SYSROOT_PREFIX}/usr/share/bash-completion/completions/pulseaudio
+      rm -rf ${SYSROOT_PREFIX}/usr/share/bash-completion/completions/pa*
 }
 
 post_makeinstall_target() {
-  # Limpeza PRIMEIRO (antes de instalar nosso serviço customizado)
   safe_remove ${INSTALL}/usr/include
   safe_remove ${INSTALL}/usr/lib/cmake
   safe_remove ${INSTALL}/usr/lib/pkgconfig
+  safe_remove ${INSTALL}/usr/lib/systemd
   safe_remove ${INSTALL}/usr/share/vala
   safe_remove ${INSTALL}/usr/share/zsh
   safe_remove ${INSTALL}/usr/share/bash-completion
-
-  # Instala o arquivo de serviço customizado (Restart=always para SDL3 games)
-  mkdir -p ${INSTALL}/usr/lib/systemd/system
-  cp ${PKG_DIR}/system.d/pulseaudio.service ${INSTALL}/usr/lib/systemd/system/
-
-  # Auto-start via symlink em multi-user.target.wants
-  mkdir -p ${INSTALL}/usr/lib/systemd/system/multi-user.target.wants
-  ln -sf ../pulseaudio.service ${INSTALL}/usr/lib/systemd/system/multi-user.target.wants/pulseaudio.service
 
   cp ${PKG_DIR}/config/system.pa ${INSTALL}/etc/pulse/
 

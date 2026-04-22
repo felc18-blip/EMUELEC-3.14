@@ -6,8 +6,7 @@ After=syslog.target local-fs.target
 Type=dbus
 BusName=org.pulseaudio.Server
 ExecStart=/usr/bin/pulseaudio --system --disallow-exit --exit-idle-time=-1 --disable-shm --enable-memfd --realtime
-Restart=always
-RestartSec=1
+Restart=on-failure
 Environment=PULSE_STATE_PATH=/storage/.config/pulse
 Environment=PULSE_CONFIG_PATH=/storage/.config/pulse
 
