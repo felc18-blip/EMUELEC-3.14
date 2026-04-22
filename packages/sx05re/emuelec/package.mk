@@ -12,7 +12,7 @@ PKG_TOOLCHAIN="manual"
 
 PKG_EXPERIMENTAL="nestopiaCV flycast2021-lr skyemu-lr mesen tic-80 panda3ds-lr dolphin dosbox-core quicknes mesen-s easyrpg smsplus-gx wasm4 snes9x2005_plus snes9x2005 race ecwolf fileman portmaster quasi88 xmil np2kai hypseus-singe ikemen-go viceSA doublecherrygb play yabasanshiro mupen64plus-sa flycast flycast-dojo same_cdi"
 PKG_EMUS="${LIBRETRO_CORES} beetle-saturn pico-8 drastic-advanced vircon32 mu mojozork gametank-lr gametank32-lr emuscv duckstation-lr crocods bsneshd b2 drastic-sa mame2003-xtreme-lr mame2015 mame2003-midway-lr opera bsnes-mercury-performance-lr bsnes-mercury-accuracy-lr mupen64plus-nx-lr bsnes-mercury-balanced-lr mupen64plus-lr morpheuscast-xtreme32-lr pcsx_rearmed-lr fbalpha2019-lr ludicrousn64-xtreme32-lr ludicrousn64-xtreme-lr beetle-psx desmume-2015 ppsspp ppssppsa PPSSPPSDL PPSSPPSA desmume melonds advancemame amiberry amiberry-lite hatarisa openbor dosbox-staging mupen64plus-nx mupen64plus-nx-alt scummvmsa stellasa solarus dosbox-pure pcsx_rearmed potator freej2me flycastsa fmsx-libretro jzintv xroar x16 simcoupe ti99sim oricutron"
-PKG_COMPRESS="gzip minizip idtech lynx yamlcpp textviewer rapidxml libcroco pugixml pyFDT cifs-utils libzip xash3d SDL3"
+PKG_COMPRESS="gzip minizip idtech lynx yamlcpp textviewer rapidxml libcroco pugixml pyFDT cifs-utils libzip xash3d SDL3 love"
 PKG_DEPENDS_TARGET+=" emuelec-tools ${PKG_EMUS} ${PKG_EXPERIMENTAL} ${PKG_COMPRESS}"
 
 # These packages are only meant for S922x, S905x2 and A311D devices as they run poorly on S905" 
