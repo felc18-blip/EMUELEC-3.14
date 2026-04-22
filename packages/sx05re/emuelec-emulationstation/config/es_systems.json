@@ -1008,7 +1008,7 @@
         ".wl6",
         ".sdm",
         ".sod",
-		".sh",
+        ".sh",
         ".zip",
         ".7z"
       ],
@@ -1167,11 +1167,15 @@
           "cores": [
             {
               "name": "AMIBERRY-LITE",
-              "incompatible": [".m3u"]
+              "incompatible": [
+                ".m3u"
+              ]
             },
             {
-              "name": "AMIBERRY",              
-              "incompatible": [".m3u"]
+              "name": "AMIBERRY",
+              "incompatible": [
+                ".m3u"
+              ]
             }
           ]
         },
@@ -1216,11 +1220,15 @@
           "cores": [
             {
               "name": "AMIBERRY-LITE",
-              "incompatible": [".m3u"]
+              "incompatible": [
+                ".m3u"
+              ]
             },
             {
-              "name": "AMIBERRY",              
-              "incompatible": [".m3u"]
+              "name": "AMIBERRY",
+              "incompatible": [
+                ".m3u"
+              ]
             }
           ]
         },
@@ -1694,131 +1702,131 @@
       ]
     },
     {
-        "name": "chip8",
-        "fullname": "CHIP-8 / Super-CHIP / XO-CHIP",
-        "manufacturer": "COSMAC VIP",
-        "release": "1977",
-        "hardware": "computer",
-        "path": "/storage/roms/chip8",
-        "platform": "chip8",
-        "theme": "chip8",
-        "command": "default",
-        "extensions": [
-            ".ch8",
-            ".c8",
-            ".sc8",
-            ".xo8",
-            ".8o",
-            ".7z",
-            ".zip"
-        ],
-        "emulators": [
+      "name": "chip8",
+      "fullname": "CHIP-8 / Super-CHIP / XO-CHIP",
+      "manufacturer": "COSMAC VIP",
+      "release": "1977",
+      "hardware": "computer",
+      "path": "/storage/roms/chip8",
+      "platform": "chip8",
+      "theme": "chip8",
+      "command": "default",
+      "extensions": [
+        ".ch8",
+        ".c8",
+        ".sc8",
+        ".xo8",
+        ".8o",
+        ".7z",
+        ".zip"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
             {
-                "name": "libretro",
-                "cores": [
-                    {
-                        "name": "jaxe",
-                        "default": true
-                    }
-                ]
+              "name": "jaxe",
+              "default": true
             }
-        ]
+          ]
+        }
+      ]
     },
     {
-        "name": "macintosh",
-        "fullname": "Apple Macintosh (68k)",
-        "manufacturer": "Apple",
-        "release": "1984",
-        "hardware": "computer",
-        "path": "/storage/roms/macintosh",
-        "platform": "macintosh",
-        "theme": "macintosh",
-        "command": "default",
-        "extensions": [
-            ".dsk",
-            ".img",
-            ".hfv",
-            ".dmg",
-            ".m3u",
-            ".zip",
-            ".7z"
-        ],
-        "emulators": [
+      "name": "macintosh",
+      "fullname": "Apple Macintosh (68k)",
+      "manufacturer": "Apple",
+      "release": "1984",
+      "hardware": "computer",
+      "path": "/storage/roms/macintosh",
+      "platform": "macintosh",
+      "theme": "macintosh",
+      "command": "default",
+      "extensions": [
+        ".dsk",
+        ".img",
+        ".hfv",
+        ".dmg",
+        ".m3u",
+        ".zip",
+        ".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
             {
-                "name": "libretro",
-                "cores": [
-                    {
-                        "name": "minivmac",
-                        "default": true
-                    }
-                ]
+              "name": "minivmac",
+              "default": true
             }
-        ]
+          ]
+        }
+      ]
     },
     {
-        "name": "zmachine",
-        "fullname": "Z-Machine (Interactive Fiction)",
-        "manufacturer": "Infocom",
-        "release": "1979",
-        "hardware": "computer",
-        "path": "/storage/roms/zmachine",
-        "platform": "zmachine",
-        "theme": "zmachine",
-        "command": "default",
-        "extensions": [
-            ".z1",
-            ".z2",
-            ".z3",
-            ".z4",
-            ".z5",
-            ".z6",
-            ".z7",
-            ".z8",
-            ".zblorb",
-            ".blb",
-            ".zip",
-            ".7z"
-        ],
-        "emulators": [
+      "name": "zmachine",
+      "fullname": "Z-Machine (Interactive Fiction)",
+      "manufacturer": "Infocom",
+      "release": "1979",
+      "hardware": "computer",
+      "path": "/storage/roms/zmachine",
+      "platform": "zmachine",
+      "theme": "zmachine",
+      "command": "default",
+      "extensions": [
+        ".z1",
+        ".z2",
+        ".z3",
+        ".z4",
+        ".z5",
+        ".z6",
+        ".z7",
+        ".z8",
+        ".zblorb",
+        ".blb",
+        ".zip",
+        ".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
             {
-                "name": "libretro",
-                "cores": [
-                    {
-                        "name": "mojozork",
-                        "default": true
-                    }
-                ]
+              "name": "mojozork",
+              "default": true
             }
-        ]
+          ]
+        }
+      ]
     },
     {
-        "name": "palm",
-        "fullname": "Palm OS (m515)",
-        "manufacturer": "Palm",
-        "release": "2002",
-        "hardware": "handheld",
-        "path": "/storage/roms/palm",
-        "platform": "palm",
-        "theme": "palm",
-        "command": "default",
-        "extensions": [
-            ".prc",
-            ".pdb",
-            ".img",
-            ".zip",
-            ".7z"
-        ],
-        "emulators": [
+      "name": "palm",
+      "fullname": "Palm OS (m515)",
+      "manufacturer": "Palm",
+      "release": "2002",
+      "hardware": "handheld",
+      "path": "/storage/roms/palm",
+      "platform": "palm",
+      "theme": "palm",
+      "command": "default",
+      "extensions": [
+        ".prc",
+        ".pdb",
+        ".img",
+        ".zip",
+        ".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
             {
-                "name": "libretro",
-                "cores": [
-                    {
-                        "name": "mu",
-                        "default": true
-                    }
-                ]
+              "name": "mu",
+              "default": true
             }
-        ]
+          ]
+        }
+      ]
     },
     {
       "name": "odyssey2",
@@ -4712,7 +4720,7 @@
         }
       ]
     },
-{
+    {
       "name": "saturn",
       "fullname": "Sega Saturn",
       "manufacturer": "Sega",
@@ -4929,7 +4937,7 @@
         }
       ]
     },
-{
+    {
       "name": "psx",
       "fullname": "Sony Playstation",
       "manufacturer": "Sony",
@@ -4985,139 +4993,139 @@
       ]
     },
     {
-        "name": "ps2",
-        "fullname": "Sony PlayStation 2",
-        "manufacturer": "Sony",
-        "release": "2000",
-        "hardware": "console",
-        "path": "/storage/roms/ps2",
-        "platform": "ps2",
-        "theme": "ps2",
-        "command": "default",
-        "extensions": [
-            ".iso",
-            ".chd",
-            ".cso",
-            ".bin",
-            ".gz",
-            ".zip",
-            ".7z"
-        ],
-        "emulators": [
+      "name": "ps2",
+      "fullname": "Sony PlayStation 2",
+      "manufacturer": "Sony",
+      "release": "2000",
+      "hardware": "console",
+      "path": "/storage/roms/ps2",
+      "platform": "ps2",
+      "theme": "ps2",
+      "command": "default",
+      "extensions": [
+        ".iso",
+        ".chd",
+        ".cso",
+        ".bin",
+        ".gz",
+        ".zip",
+        ".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
             {
-                "name": "libretro",
-                "cores": [
-                    {
-                        "name": "play",
-                        "default": true
-                    }
-                ]
+              "name": "play",
+              "default": true
             }
-        ]
+          ]
+        }
+      ]
     },
     {
-        "name": "vircon32",
-        "fullname": "Vircon32 Virtual Console",
-        "manufacturer": "Vircon32 Project",
-        "release": "2020",
-        "hardware": "console",
-        "path": "/storage/roms/vircon32",
-        "platform": "vircon32",
-        "theme": "vircon32",
-        "command": "default",
-        "extensions": [
-            ".v32",
-            ".zip",
-            ".7z"
-        ],
-        "emulators": [
+      "name": "vircon32",
+      "fullname": "Vircon32 Virtual Console",
+      "manufacturer": "Vircon32 Project",
+      "release": "2020",
+      "hardware": "console",
+      "path": "/storage/roms/vircon32",
+      "platform": "vircon32",
+      "theme": "vircon32",
+      "command": "default",
+      "extensions": [
+        ".v32",
+        ".zip",
+        ".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
             {
-                "name": "libretro",
-                "cores": [
-                    {
-                        "name": "vircon32",
-                        "default": true
-                    }
-                ]
+              "name": "vircon32",
+              "default": true
             }
-        ]
+          ]
+        }
+      ]
     },
     {
-        "name": "quake2",
-        "fullname": "Quake II",
-        "manufacturer": "id Software",
-        "release": "1997",
-        "hardware": "computer",
-        "path": "/storage/roms/quake2",
-        "platform": "quake2",
-        "theme": "quake2",
-        "command": "default",
-        "extensions": [
-            ".pak"
-        ],
-        "emulators": [
+      "name": "quake2",
+      "fullname": "Quake II",
+      "manufacturer": "id Software",
+      "release": "1997",
+      "hardware": "computer",
+      "path": "/storage/roms/quake2",
+      "platform": "quake2",
+      "theme": "quake2",
+      "command": "default",
+      "extensions": [
+        ".pak"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
             {
-                "name": "libretro",
-                "cores": [
-                    {
-                        "name": "vitaquake2",
-                        "default": true
-                    }
-                ]
+              "name": "vitaquake2",
+              "default": true
             }
-        ]
+          ]
+        }
+      ]
     },
     {
-        "name": "quake3",
-        "fullname": "Quake III Arena",
-        "manufacturer": "id Software",
-        "release": "1999",
-        "hardware": "computer",
-        "path": "/storage/roms/quake3",
-        "platform": "quake3",
-        "theme": "quake3",
-        "command": "default",
-        "extensions": [
-            ".pk3"
-        ],
-        "emulators": [
+      "name": "quake3",
+      "fullname": "Quake III Arena",
+      "manufacturer": "id Software",
+      "release": "1999",
+      "hardware": "computer",
+      "path": "/storage/roms/quake3",
+      "platform": "quake3",
+      "theme": "quake3",
+      "command": "default",
+      "extensions": [
+        ".pk3"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
             {
-                "name": "libretro",
-                "cores": [
-                    {
-                        "name": "vitaquake3",
-                        "default": true
-                    }
-                ]
+              "name": "vitaquake3",
+              "default": true
             }
-        ]
+          ]
+        }
+      ]
     },
     {
-        "name": "wasm4",
-        "fullname": "WASM-4 Fantasy Console",
-        "manufacturer": "Homebrew",
-        "release": "2021",
-        "hardware": "console",
-        "path": "/storage/roms/wasm4",
-        "platform": "wasm4",
-        "theme": "wasm4",
-        "command": "default",
-        "extensions": [
-            ".wasm",
-            ".zip",
-            ".7z"
-        ],
-        "emulators": [
+      "name": "wasm4",
+      "fullname": "WASM-4 Fantasy Console",
+      "manufacturer": "Homebrew",
+      "release": "2021",
+      "hardware": "console",
+      "path": "/storage/roms/wasm4",
+      "platform": "wasm4",
+      "theme": "wasm4",
+      "command": "default",
+      "extensions": [
+        ".wasm",
+        ".zip",
+        ".7z"
+      ],
+      "emulators": [
+        {
+          "name": "libretro",
+          "cores": [
             {
-                "name": "libretro",
-                "cores": [
-                    {
-                        "name": "wasm4",
-                        "default": true
-                    }
-                ]
+              "name": "wasm4",
+              "default": true
             }
-        ]
+          ]
+        }
+      ]
     },
     {
       "name": "psp",
@@ -5206,7 +5214,7 @@
         }
       ]
     },
-	  {
+    {
       "name": "ngage",
       "fullname": "Nokia N-Gage",
       "manufacturer": "Nokia",
@@ -5218,8 +5226,8 @@
       "command": "default",
       "extensions": [
         ".ngage",
-		".symbian",
-		".zip",
+        ".symbian",
+        ".zip",
         ".sis"
       ],
       "emulators": [
@@ -5305,9 +5313,6 @@
             {
               "name": "Pico-8",
               "default": true
-            },
-            {
-              "name": "Pico-8-SA"
             }
           ]
         },

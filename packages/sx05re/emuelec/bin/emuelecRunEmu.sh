@@ -22,11 +22,11 @@ if [[ "${BTENABLED}" == "1" ]]; then
     systemctl stop bluetooth-agent
 fi
 
-# clear terminal window (FIXED: Redirect errors to /dev/null to prevent /dev/tty No such device or address errors)
-        clear > /dev/tty 2>/dev/null || true
-        clear > /dev/tty0 2>/dev/null || true
-        clear > /dev/tty1 2>/dev/null || true
-        clear > /dev/console 2>/dev/null || true
+# clear terminal window
+        clear > /dev/tty < /dev/null 2>&1
+        clear > /dev/tty0 < /dev/null 2>&1
+        clear > /dev/tty1 < /dev/null 2>&1
+        clear > /dev/console < /dev/null 2>&1
 
 arguments="$@"
 
@@ -126,7 +126,7 @@ if [[ ! -z "${MIDI_OUTPUT}" ]]; then
 fi
 
 # freej2me needs the JDK to be downloaded on the first run
-if [[ "${EMU}" == *"freej2me"* ]]; then
+if [ ${EMU} == "freej2me_libretro" ]; then
 freej2me.sh
 
 JAVA_HOME='/storage/roms/bios/jdk'
@@ -348,9 +348,6 @@ case ${PLATFORM} in
                 ;;
         "pico8")
                 if [ "${EMU}" = "Pico-8" ]; then
-             set_kill_keys "pico8_dyn"
-             RUNTHIS='${TBASH} pico8.sh "${ROMNAME}"'
-                elif [ "${EMU}" = "Pico-8-SA" ]; then
              set_kill_keys "pico8_64"
              RUNTHIS='${TBASH} start_pico8.sh "${ROMNAME}"'
                 fi
@@ -465,6 +462,8 @@ case ${PLATFORM} in
         ;;
         esac
 elif [ ${LIBRETRO} == "yes" ]; then
+# NextOS Elite: set audio to alsa only for libretro/retroarch
+set_audio alsa
 # We are running a Libretro emulator set all the settings that we chose on ES
 
 case ${PLATFORM} in
@@ -690,7 +689,7 @@ fi
 
 # These emus do not like to be killed by gptokeyb
 case "${EMU}" in
-    "freej2mesa" | "dolphin" | "Chocolate-Doom" | "yabasanshiroSA" | "yabasanshiroSA1_5" | *"scummvm_libretro"* | *"ikemen"* | *"jzintv"*)
+    "dolphin" | "Chocolate-Doom" | "yabasanshiroSA" | "yabasanshiroSA1_5" | *"scummvm_libretro"* | *"ikemen"* | *"jzintv"*)
         ret_error="0"
         ;;
 esac
