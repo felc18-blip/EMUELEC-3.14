@@ -1,0 +1,33 @@
+--- a/libretro-common/audio/resampler/drivers/nearest_resampler.c
++++ b/libretro-common/audio/resampler/drivers/nearest_resampler.c
+@@ -62,7 +62,7 @@ static void resampler_nearest_free(void *re_)
+ }
+ 
+ static void *resampler_nearest_init(const struct resampler_config *config,
+-      double bandwidth_mod, resampler_simd_mask_t mask)
++      double bandwidth_mod, enum resampler_quality quality, resampler_simd_mask_t mask)
+ {
+    (void)config;
+    (void)mask;
+--- a/libretro-common/audio/resampler/drivers/null_resampler.c
++++ b/libretro-common/audio/resampler/drivers/null_resampler.c
+@@ -41,7 +41,7 @@ static void resampler_null_free(void *re_)
+ }
+ 
+ static void *resampler_null_init(const struct resampler_config *config,
+-      double bandwidth_mod, resampler_simd_mask_t mask)
++      double bandwidth_mod, enum resampler_quality quality, resampler_simd_mask_t mask)
+ {
+    (void)config;
+    (void)bandwidth_mod;
+--- a/libretro-common/audio/resampler/drivers/sinc_resampler.c
++++ b/libretro-common/audio/resampler/drivers/sinc_resampler.c
+@@ -420,7 +420,7 @@
+ }
+ 
+ static void *resampler_sinc_new(const struct resampler_config *config,
+-      double bandwidth_mod, resampler_simd_mask_t mask)
++      double bandwidth_mod, enum resampler_quality quality, resampler_simd_mask_t mask)
+ {
+    double cutoff;
+    size_t phase_elems, elems;

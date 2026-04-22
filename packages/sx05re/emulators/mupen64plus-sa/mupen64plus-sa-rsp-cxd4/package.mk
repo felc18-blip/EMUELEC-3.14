@@ -4,10 +4,12 @@
 # Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
 
 PKG_NAME="mupen64plus-sa-rsp-cxd4"
-PKG_VERSION="f6ff3719cb68d3e1c1497fc87a661921671db719"
+PKG_VERSION="feea82fa1b60246ae6390022a4cf77cdf4218445"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/mupen64plus/mupen64plus-rsp-cxd4"
 PKG_URL="${PKG_SITE}.git"
+PKG_GIT_CLONE_BRANCH="master"
+GET_HANDLER_SUPPORT="git"
 PKG_DEPENDS_TARGET="toolchain libpng SDL2 SDL2_net zlib freetype nasm:host mupen64plus-sa-core"
 PKG_LONGDESC="mupen64plus-rsp-cxd4"
 PKG_LONGDESC="Mupen64Plus Standalone RSP CXD4"

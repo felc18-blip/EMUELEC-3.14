@@ -1,0 +1,22 @@
+--- a/mupen64plus-core/src/r4300/x86_64/assemble.h
++++ b/mupen64plus-core/src/r4300/x86_64/assemble.h
+@@ -1154,7 +1154,7 @@ static osal_inline void fsin(void)
+    *(*inst)=*(*inst)+2;
+ }
+ 
+-static osal_inline void fsqrt(void)
++static osal_inline void m64p_fsqrt(void)
+ {
+    put8(0xD9);
+    put8(0xFA);
+--- a/mupen64plus-core/src/r4300/x86/assemble.h
++++ b/mupen64plus-core/src/r4300/x86/assemble.h
+@@ -807,7 +807,7 @@ static osal_inline void fsin(void)
+    *(*inst)=*(*inst)+2;
+ }
+ 
+-static osal_inline void fsqrt(void)
++static osal_inline void m64p_fsqrt(void)
+ {
+    put8(0xD9);
+    put8(0xFA);

@@ -4,10 +4,12 @@
 # Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
 
 PKG_NAME="mupen64plus-sa-video-glide64mk2"
-PKG_VERSION="992b5942078fe77987e8c40bcd396f44be19be2b"
+PKG_VERSION="d7253a71f57561077016d8ed7028c09e6d360302"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/mupen64plus/mupen64plus-video-glide64mk2"
-PKG_URL="https://github.com/mupen64plus/mupen64plus-video-glide64mk2/archive/${PKG_VERSION}.tar.gz"
+PKG_URL="${PKG_SITE}.git"
+PKG_GIT_CLONE_BRANCH="master"
+GET_HANDLER_SUPPORT="git"
 PKG_DEPENDS_TARGET="toolchain boost libpng SDL2 SDL2_net zlib freetype nasm:host mupen64plus-sa-core"
 PKG_LONGDESC="mupen64plus-video-glide64mk2"
 PKG_LONGDESC="Mupen64Plus Standalone Glide64 Video Driver"

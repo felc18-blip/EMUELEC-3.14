@@ -42,33 +42,30 @@ pre_configure_target() {
   sed -i "s|BOARD :=.*|BOARD = N2|g" Makefile
   sed -i "s|odroid64|emuelec64|g" Makefile
 
-  # 🔥 FORÇA GLES (CRÍTICO)
-  PKG_MAKE_OPTS_TARGET+=" HAVE_OPENGL=0 HAVE_OPENGLES=1 FORCE_GLES=1"
-
-  case ${DEVICE} in
+   case ${DEVICE} in
     Amlogic-ng|Amlogic-no|Amlogic-ogu)
-      if [ "${ARCH}" == "arm" ]; then
-        PKG_MAKE_OPTS_TARGET+=" platform=odroid BOARD=c2"
+    if [ ${ARCH} == "arm" ]; then
+		PKG_MAKE_OPTS_TARGET="platform=odroid BOARD=c2"
       else
-        PKG_MAKE_OPTS_TARGET+=" platform=emuelec64 BOARD=N2"
+		PKG_MAKE_OPTS_TARGET="platform=emuelec64 BOARD=N2"
       fi
     ;;
     Amlogic-old)
-      if [ "${ARCH}" == "arm" ]; then
-        PKG_MAKE_OPTS_TARGET+=" platform=odroid BOARD=c2"
+    if [ ${ARCH} == "arm" ]; then
+		PKG_MAKE_OPTS_TARGET="platform=odroid BOARD=c2"
       else
-        PKG_MAKE_OPTS_TARGET+=" platform=odroid64 BOARD=c2 HAVE_NEON=0"
+		PKG_MAKE_OPTS_TARGET="platform=odroid64 BOARD=c2 HAVE_NEON=0"
       fi
     ;;
   esac
 
-  if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ] || [ "${DEVICE}" == "RK356x" ]; then 
-    if [[ "${ARCH}" == "arm" ]]; then
-      PKG_MAKE_OPTS_TARGET+=" platform=unix GLES=1 FORCE_GLES=1 HAVE_NEON=1 WITH_DYNAREC=arm"
-    else 
-      PKG_MAKE_OPTS_TARGET+=" platform=unix GLES=1 FORCE_GLES=1 HAVE_NEON=0 WITH_DYNAREC=aarch64"
-    fi
-  fi
+ if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ] || [ "${DEVICE}" == "RK356x" ]; then
+	if [[ "${ARCH}" == "arm" ]]; then
+		PKG_MAKE_OPTS_TARGET=" platform=unix GLES=1 FORCE_GLES=1 HAVE_NEON=1 WITH_DYNAREC=arm"
+	else
+		PKG_MAKE_OPTS_TARGET=" platform=unix GLES=1 FORCE_GLES=1 HAVE_NEON=0 WITH_DYNAREC=aarch64"
+	fi
+ fi
 
 }
 

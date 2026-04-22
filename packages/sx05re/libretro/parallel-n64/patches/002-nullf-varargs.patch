@@ -1,0 +1,11 @@
+--- a/mupen64plus-core/src/r4300/new_dynarec/new_dynarec.c
++++ b/mupen64plus-core/src/r4300/new_dynarec/new_dynarec.c
+@@ -360,7 +360,7 @@
+ #ifdef __cplusplus
+ static void nullf(...) {}
+ #else
+-static void nullf() {}
++static void nullf(...) {}
+ #endif
+ 
+ #if defined( ASSEM_DEBUG )
