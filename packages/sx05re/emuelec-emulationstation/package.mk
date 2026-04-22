@@ -2,7 +2,7 @@
 # Copyright (C) 2019-present Shanti Gilbert
 
 PKG_NAME="emuelec-emulationstation"
-PKG_VERSION="b1328bc65"
+PKG_VERSION="f89f3a9b9"
 PKG_GIT_CLONE_BRANCH="EmuELEC"
 PKG_REV="1"
 PKG_ARCH="any"
@@ -11,7 +11,7 @@ PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/felc18-blip/emuelec-emulationstation-nextos"
 PKG_URL="${PKG_SITE}.git"
 
-PKG_DEPENDS_TARGET="toolchain SDL2 freetype freeimage curl vlc rapidjson ${OPENGLES} SDL2_mixer pugixml fping p7zip espeak es-theme-art-book-next"
+PKG_DEPENDS_TARGET="toolchain SDL2 alsa-plugins alsa-plugins freetype freeimage curl vlc rapidjson ${OPENGLES} SDL2_mixer pugixml fping p7zip espeak es-theme-art-book-next"
 
 PKG_SECTION="emuelec"
 PKG_SHORTDESC="Emulationstation emulator frontend"
@@ -35,7 +35,7 @@ pre_configure_target() {
 
   git submodule update --init --recursive
 
-PKG_CMAKE_OPTS_TARGET="-DENABLE_EMUELEC=1 -D_ENABLEEMUELEC=1 -DDISABLE_KODI=1 -DENABLE_FILEMANAGER=0 -DGLES2=1 -DENABLE_TTS=0 -DENABLE_UPDATES=1 -DCEC=0 -DENABLE_PULSE=1 -DUSE_SYSTEM_PUGIXML=1"
+PKG_CMAKE_OPTS_TARGET="-DENABLE_EMUELEC=1 -D_ENABLEEMUELEC=1 -DDISABLE_KODI=1 -DENABLE_FILEMANAGER=0 -DGLES2=1 -DENABLE_TTS=0 -DENABLE_UPDATES=1 -DCEC=0 -DENABLE_PULSE=0 -DUSE_SYSTEM_PUGIXML=1"
 
   if [ -f ${PKG_DIR}/api_keys.txt ]; then
     while IFS="" read -r p || [ -n "${p}" ]; do

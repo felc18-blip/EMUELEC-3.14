@@ -1,7 +1,17 @@
-## not needed
-#pcm.!default {
-#type plug
-#slave {
-#pcm "hw:0,0"
-#}
-#}
+# NextOS Elite: asound.conf para Amlogic-old (S905)
+# Redireciona ALSA → PulseAudio usando alsa-plugins (libasound_module_pcm_pulse.so)
+# Permite apps que usam ALSA (como SDL_mixer) funcionarem via PA sem conflito
+
+pcm.!default {
+    type pulse
+    fallback "sysdefault"
+    hint {
+        show on
+        description "Default output device via PulseAudio"
+    }
+}
+
+ctl.!default {
+    type pulse
+    fallback "sysdefault"
+}
