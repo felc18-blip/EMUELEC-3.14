@@ -10,7 +10,7 @@ PKG_DEPENDS_TARGET="toolchain linux meson:host glibc glib systemd dbus alsa-lib 
 PKG_LONGDESC="DOS/x86 emulator focusing on ease of use "
 PKG_BUILD_FLAGS="+lto"
 
-## For some reason my build PC needs this to download fluidsynth 
+## For some reason my build PC needs this to download fluidsynth
 # sudo apt install ca-certificates
 # sudo update-ca-certificates --fresh
 

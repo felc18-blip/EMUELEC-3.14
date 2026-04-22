@@ -17,13 +17,11 @@ if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ]; then
 PKG_PATCH_DIRS="OdroidGoAdvance"
 fi
 
-
 if [[ "${ARCH}" == "arm" ]]; then
 	PKG_PATCH_DIRS="${ARCH}"
 else
 	PKG_PATCH_DIRS="emuelec-aarch64"
 fi
-
 
 pre_configure_target() {
   PKG_MAKE_OPTS_TARGET="BUILD_LINUX_${ARCH}=1 \
@@ -33,9 +31,22 @@ pre_configure_target() {
 }
 
 pre_make_target() {
-cd ${PKG_BUILD}/engine
-chmod +x ./version.sh
-./version.sh
+  cd ${PKG_BUILD}/engine
+  chmod +x ./version.sh
+  ./version.sh
+
+  # GCC 15 eh muito mais estrito: transforma varios warnings antigos em erros.
+  # Desativa -Werror global e relaxa warnings especificos que o codigo do
+  # OpenBOR (que nao eh atualizado ha anos) dispara.
+  sed -i 's/-Werror\b//g' ${PKG_BUILD}/engine/Makefile
+
+  # Adiciona flags de compatibilidade com GCC moderno
+  export CFLAGS="${CFLAGS} -Wno-error=discarded-qualifiers \
+                           -Wno-error=incompatible-pointer-types \
+                           -Wno-error=int-conversion \
+                           -Wno-error=implicit-function-declaration \
+                           -Wno-discarded-qualifiers \
+                           -Wno-incompatible-pointer-types"
 }
 
 makeinstall_target() {
@@ -43,10 +54,8 @@ makeinstall_target() {
     cp `find . -name "OpenBOR.elf" | xargs echo` ${INSTALL}/usr/bin/OpenBOR
     cp ${PKG_DIR}/scripts/*.sh ${INSTALL}/usr/bin
     chmod +x ${INSTALL}/usr/bin/*
-
     mkdir -p ${INSTALL}/usr/config/emuelec/configs/openbor
 		cp ${PKG_DIR}/config/master.cfg ${INSTALL}/usr/config/emuelec/configs/openbor/master.cfg
-
 		mkdir -p ${INSTALL}/usr/config/emuelec/configs/gptokeyb
 		cp -rf ${PKG_DIR}/config/gptokeyb/* ${INSTALL}/usr/config/emuelec/configs/gptokeyb
-   } 
+}

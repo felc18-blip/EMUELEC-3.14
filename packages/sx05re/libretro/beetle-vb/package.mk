@@ -31,5 +31,5 @@ PKG_TOOLCHAIN="make"
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro
-  cp mednafen_vb_libretro.so ${INSTALL}/usr/lib/libretro/beetle_vb_libretro.so
+  cp mednafen_vb_libretro.so ${INSTALL}/usr/lib/libretro/
 }

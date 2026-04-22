@@ -11,7 +11,17 @@ PKG_TOOLCHAIN="make"
 pre_make_target() {
   cp -f ${PKG_DIR}/Makefile ${PKG_BUILD}
   cp -f ${PKG_DIR}/list-guid.cpp ${PKG_BUILD}
-  CFLAGS+=" -I$(get_build_dir SDL2)/include -D_REENTRANT"
+
+  SDL2_CFLAGS="$(${TOOLCHAIN}/bin/pkg-config --cflags sdl2)"
+  SDL2_LIBS="$(${TOOLCHAIN}/bin/pkg-config --libs sdl2)"
+
+  CFLAGS+=" ${SDL2_CFLAGS}"
+  CXXFLAGS+=" ${SDL2_CFLAGS}"
+  LDFLAGS+=" ${SDL2_LIBS}"
+
+  sed -i "s|-I\$(get_build_dir SDL2)/include|${SDL2_CFLAGS}|g" ${PKG_BUILD}/Makefile 2>/dev/null || true
+
+  sed -i "s|#include <SDL.h>|#include <SDL2/SDL.h>|g" ${PKG_BUILD}/list-guid.cpp
 }
 
 makeinstall_target() {
