@@ -32,7 +32,7 @@ fi
 
 # Run OpenBOR in the config folder
     cd "${CONFIGDIR}"
-	SDL_AUDIODRIVER=alsa ${OB}
+	SDL_AUDIODRIVER=pulse ${OB}
 
 # Clear PAKS folder to avoid getting the launcher on nex run
 rm -rf ${PAKS}/*
