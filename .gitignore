@@ -79,3 +79,9 @@ packages/sx05re/emuelec-emulationstation/api_keys.txt
 /pacotes_para_atualizar.txt
 /relatorio_completo.txt
 packages/sx05re/ChatGPT*.png
+
+# Backup files
+*.bak
+*.originalbak
+**/package.bk
+**/*.classic.bak/
