@@ -1,88 +1,69 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright (C) 2018-present 5schatten (https://github.com/5schatten)
-# Copyright (C) 2019-present Shanti Gilbert (https://github.com/shantigilbert)
-# Copyright (C) 2022-present 7Ji (https://github.com/7Ji)
+#
+# "SDL2" package - agora usa sdl2-compat ao inves de SDL2 classic.
+# sdl2-compat e uma lib wrapper binary-compatible com SDL2 que delega
+# chamadas para o SDL3 por baixo. Como temos SDL3 com driver Mali FBDEV,
+# todos os apps SDL2 passam a usar o SDL3 Mali transparentemente.
+#
+# Nome do package continua "SDL2" para nao quebrar as dependencias dos
+# 30+ packages que listam SDL2 em PKG_DEPENDS_TARGET.
 
 PKG_NAME="SDL2"
-PKG_VERSION="2.32.10"
-#PKG_SHA256="332cb37d0be20cb9541739c61f79bae5a477427d79ae85e352089afdaf6666e4"
-PKG_LICENSE="GPL"
-PKG_SITE="https://www.libsdl.org/"
-PKG_URL="https://www.libsdl.org/release/SDL2-${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain alsa-lib systemd dbus ${OPENGLES} pulseaudio"
-PKG_LONGDESC="Simple DirectMedia Layer is a cross-platform development library designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware."
-PKG_DEPENDS_HOST="toolchain:host distutilscross:host"
-PKG_CMAKE_OPTS_HOST="-DSDL_MALI=OFF -DSDL_KMSDRM=OFF -DSDL_X11=OFF"
+PKG_VERSION="2.32.66"
+PKG_LICENSE="Zlib"
+PKG_SITE="https://github.com/libsdl-org/sdl2-compat"
+PKG_URL="https://github.com/libsdl-org/sdl2-compat/releases/download/release-${PKG_VERSION}/sdl2-compat-${PKG_VERSION}.tar.gz"
+PKG_ARCH="any"
 
-PKG_CMAKE_OPTS_TARGET="-DSDL_STATIC=OFF \
-                       -DSDL_LIBC=ON \
-                       -DSDL_GCC_ATOMICS=ON \
-                       -DSDL_ALTIVEC=OFF \
-                       -DSDL_OSS=OFF \
-                       -DSDL_ALSA=ON \
-                       -DSDL_ALSA_SHARED=ON \
-                       -DSDL_JACK=OFF \
-                       -DSDL_JACK_SHARED=OFF \
-                       -DSDL_ESD=OFF \
-                       -DSDL_ESD_SHARED=OFF \
-                       -DSDL_ARTS=OFF \
-                       -DSDL_ARTS_SHARED=OFF \
-                       -DSDL_NAS=OFF \
-                       -DSDL_NAS_SHARED=OFF \
-                       -DSDL_LIBSAMPLERATE=OFF \
-                       -DSDL_LIBSAMPLERATE_SHARED=OFF \
-                       -DSDL_SNDIO=OFF \
-                       -DSDL_DISKAUDIO=OFF \
-                       -DSDL_DUMMYAUDIO=OFF \
-                       -DSDL_DUMMYVIDEO=OFF \
-                       -DSDL_WAYLAND=OFF \
-                       -DSDL_WAYLAND_QT_TOUCH=ON \
-                       -DSDL_WAYLAND_SHARED=OFF \
-                       -DSDL_COCOA=OFF \
-                       -DSDL_DIRECTFB=OFF \
-                       -DSDL_VIVANTE=OFF \
-                       -DSDL_DIRECTFB_SHARED=OFF \
-                       -DSDL_FUSIONSOUND=OFF \
-                       -DSDL_FUSIONSOUND_SHARED=OFF \
-                       -DSDL_PTHREADS=ON \
-                       -DSDL_PTHREADS_SEM=ON \
-                       -DSDL_DIRECTX=OFF \
-                       -DSDL_CLOCK_GETTIME=OFF \
-                       -DSDL_RPATH=OFF \
-                       -DSDL_RENDER_D3D=OFF \
-                       -DSDL_X11=OFF \
-                       -DSDL_OPENGLES=ON \
-                       -DSDL_VULKAN=OFF \
-                       -DSDL_PULSEAUDIO=ON \
-                       -DSDL_HIDAPI_JOYSTICK=OFF"
+# Dependências transitivas vêm via SDL3 (alsa-lib, pulseaudio, mali, etc.)
+PKG_DEPENDS_HOST="toolchain:host SDL3:host SDL3"
+PKG_DEPENDS_TARGET="toolchain SDL3"
 
-case "${DEVICE}" in
-  'Amlogic-ng'|'Amlogic-no'|'Amlogic-old')  # We should've used PROJECT=Amlogic-ce logically, but using these two device names here saves a comparasion (only device needs to be compared)
-    PKG_PATCH_DIRS="Amlogic"
-    PKG_CMAKE_OPTS_TARGET+=" -DSDL_MALI=ON -DSDL_KMSDRM=OFF"
-  ;;
-  'OdroidGoAdvance'|'GameForce'|'RK356x'|'OdroidM1')
-    PKG_PATCH_DIRS="Rockchip"
-    PKG_CMAKE_OPTS_TARGET+=" -DSDL_KMSDRM=ON"
-    PKG_DEPENDS_TARGET+=" libdrm mali-bifrost"
-    if [ "${DEVICE}" = "OdroidGoAdvance" ]; then
-      PKG_PATCH_DIRS+=" OdroidGoAdvance"
-      PKG_DEPENDS_TARGET+=" librga"
-      # This is evil, but we save multiple comparasions
-      pre_make_host() {
-        sed -i "s| -lrga||g" ${PKG_BUILD}/CMakeLists.txt
-      }
-      pre_make_target() {
-        if ! `grep -rnw "${PKG_BUILD}/CMakeLists.txt" -e '-lrga'`; then
-          sed -i "s|--no-undefined|--no-undefined -lrga|" ${PKG_BUILD}/CMakeLists.txt
-        fi
-      }
-    fi
-  ;;
-esac
+PKG_LONGDESC="sdl2-compat: SDL2 API implemented on top of SDL3 (binary compatible wrapper)"
+PKG_TOOLCHAIN="cmake"
+
+# Opcoes comuns que desabilitam TUDO exceto a lib principal
+_SDL2COMPAT_COMMON="-DSDL2COMPAT_TESTS=OFF \
+                    -DSDL2COMPAT_INSTALL=ON \
+                    -DSDL2COMPAT_INSTALL_CPACK=OFF \
+                    -DSDL2COMPAT_STATIC=OFF \
+                    -DBUILD_SHARED_LIBS=ON \
+                    -DSDL2COMPAT_X11=OFF \
+                    -DSDL2COMPAT_WAYLAND=OFF \
+                    -DSDL2COMPAT_WERROR=OFF \
+                    -DCMAKE_BUILD_TYPE=Release"
+
+PKG_CMAKE_OPTS_HOST="${_SDL2COMPAT_COMMON}"
+PKG_CMAKE_OPTS_TARGET="${_SDL2COMPAT_COMMON}"
 
 
 post_makeinstall_target() {
-  sed -e "s:\(['=LI]\)/usr:\\1${SYSROOT_PREFIX}/usr:g" -i ${SYSROOT_PREFIX}/usr/bin/sdl2-config
+  # Fix paths do sdl2-config pra apontar pro sysroot no build time
+  if [ -f "${SYSROOT_PREFIX}/usr/bin/sdl2-config" ]; then
+    sed -e "s:\(['=LI]\)/usr:\\1${SYSROOT_PREFIX}/usr:g" -i ${SYSROOT_PREFIX}/usr/bin/sdl2-config
+  fi
+
+  # Instala sdl2.pc no sysroot do target.
+  # O sdl2-compat gera "sdl2-compat.pc" (nome errado) e o build
+  # system nao copia pro sysroot. Criamos um sdl2.pc correto aqui.
+  mkdir -p "${SYSROOT_PREFIX}/usr/lib/pkgconfig"
+  cat > "${SYSROOT_PREFIX}/usr/lib/pkgconfig/sdl2.pc" <<EOF
+prefix=/usr
+exec_prefix=\${prefix}
+libdir=\${prefix}/lib
+includedir=\${prefix}/include
+
+Name: sdl2
+Description: Simple DirectMedia Layer (sdl2-compat on top of SDL3)
+Version: 2.30.0
+Libs: -L\${libdir} -lSDL2
+Libs.private: -lm -ldl -lpthread
+Cflags: -I\${includedir} -I\${includedir}/SDL2 -D_GNU_SOURCE=1 -D_REENTRANT
+EOF
+
+  # Copia tambem pro INSTALL pra runtime
+  mkdir -p "${INSTALL}/usr/lib/pkgconfig"
+  cp "${SYSROOT_PREFIX}/usr/lib/pkgconfig/sdl2.pc" "${INSTALL}/usr/lib/pkgconfig/sdl2.pc"
+
   safe_remove ${INSTALL}/usr/bin
 }
