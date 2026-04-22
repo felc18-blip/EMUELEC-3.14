@@ -1,7 +1,6 @@
 ################################################################################
 #      This file is part of OpenELEC - http://www.openelec.tv
 #      Copyright (C) 2009-2012 Stephan Raue (stephan@openelec.tv)
-#      Copyright (C) 2020      351ELEC team (https://github.com/fewtarius/351ELEC)
 #
 #  This Program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -20,14 +19,22 @@
 ################################################################################
 
 PKG_NAME="beetle-vb"
-PKG_VERSION="734205c5ead87a89cd1d53fe086f8f8fe660cf1d"
+PKG_VERSION="8f837ebc077afdd6652efb2827fd8308a07113ca"
+PKG_SHA256="d2733026bde2b8049b8258f68d49954687ab43e2639d6a879c79cca68e91dea6"
+PKG_REV="1"
+PKG_ARCH="any"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/libretro/beetle-vb-libretro"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain"
+PKG_PRIORITY="optional"
+PKG_SECTION="libretro"
+PKG_SHORTDESC="libretro implementation of Mednafen VB. (VirtualBoy)"
 PKG_LONGDESC="libretro implementation of Mednafen VB. (VirtualBoy)"
 
+PKG_IS_ADDON="no"
 PKG_TOOLCHAIN="make"
+PKG_AUTORECONF="no"
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/lib/libretro
