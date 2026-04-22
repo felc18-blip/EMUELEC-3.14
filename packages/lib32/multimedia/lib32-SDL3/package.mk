@@ -1,19 +1,19 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-PKG_NAME="SDL3"
-PKG_VERSION="ee9e9ad5c"
+#
+# lib32-SDL3: SDL3 com driver Mali FBDEV em 32-bit (armhf).
+# Reusa tarball e patches/source do SDL3 aarch64.
+# Necessario para lib32-SDL2 (sdl2-compat 32-bit) funcionar.
+
+PKG_NAME="lib32-SDL3"
+PKG_VERSION="$(get_pkg_version SDL3)"
+PKG_NEED_UNPACK="$(get_pkg_directory SDL3)"
+PKG_ARCH="aarch64"
 PKG_LICENSE="Zlib"
 PKG_SITE="https://libsdl.org/"
-PKG_URL="https://github.com/felc18-blip/SDL3-mali-fbdev/archive/${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain pulseaudio alsa-lib systemd dbus ${OPENGLES}"
-PKG_LONGDESC="SDL3 with Mali FBDEV driver for NextOS"
-PKG_DEPENDS_HOST="toolchain:host distutilscross:host"
-
-PKG_CMAKE_OPTS_HOST="-DSDL_MALI=OFF \
-                     -DSDL_KMSDRM=OFF \
-                     -DSDL_X11=OFF \
-                     -DSDL_TESTS=OFF \
-                     -DSDL_EXAMPLES=OFF \
-                     -DSDL_UNIX_CONSOLE_BUILD=ON"
+PKG_URL=""
+PKG_DEPENDS_TARGET="lib32-toolchain lib32-libpulse lib32-alsa-lib lib32-systemd-libs lib32-dbus lib32-${OPENGLES}"
+PKG_LONGDESC="SDL3 with Mali FBDEV driver (lib32)"
+PKG_BUILD_FLAGS="lib32"
 
 PKG_CMAKE_OPTS_TARGET="-DSDL_STATIC=OFF \
                        -DSDL_SHARED=ON \
@@ -52,27 +52,44 @@ case "${DEVICE}" in
     PKG_CMAKE_OPTS_TARGET+=" -DSDL_MALI=ON -DSDL_KMSDRM=OFF"
   ;;
   'OdroidGoAdvance'|'GameForce'|'RK356x'|'OdroidM1')
-    PKG_PATCH_DIRS="Rockchip"
     PKG_CMAKE_OPTS_TARGET+=" -DSDL_MALI=OFF -DSDL_KMSDRM=ON"
-    PKG_DEPENDS_TARGET+=" libdrm mali-bifrost"
-    if [ "${DEVICE}" = "OdroidGoAdvance" ]; then
-      PKG_PATCH_DIRS+=" OdroidGoAdvance"
-      PKG_DEPENDS_TARGET+=" librga"
-    fi
+    PKG_DEPENDS_TARGET+=" lib32-libdrm lib32-mali-bifrost"
   ;;
   *)
     PKG_CMAKE_OPTS_TARGET+=" -DSDL_MALI=OFF -DSDL_KMSDRM=OFF"
   ;;
 esac
 
+unpack() {
+  ${SCRIPTS}/get SDL3
+  mkdir -p ${PKG_BUILD}
+  tar --strip-components=1 -xf ${SOURCES}/SDL3/SDL3-${PKG_VERSION}.tar.gz -C ${PKG_BUILD}
+}
+
 pre_configure_target() {
   case "${DEVICE}" in
     'Amlogic-ng'|'Amlogic-no'|'Amlogic-old')
       export CFLAGS="${CFLAGS} -DSDL_VIDEO_DRIVER_MALI=1"
       MALIFILE="${PKG_BUILD}/src/video/mali-fbdev/SDL_malivideo.c"
-      if [ -f "${MALIFILE}" ]; then
-        echo ">>> Aplicando patch Mali debug + sanitize GL"
-        python3 /tmp/mali_debug.py "${MALIFILE}"
+      if [ -f "${MALIFILE}" ] && ! grep -q "MALI_SANITIZE_GL" "${MALIFILE}"; then
+        echo ">>> Aplicando sanitize GL para Mali-450 (lib32)"
+        python3 - <<PYSCRIPT
+malifile = "${MALIFILE}"
+with open(malifile, "r") as f:
+    content = f.read()
+sanitize = """    /* MALI_SANITIZE_GL: forca valores compativeis com Mali-450 MP (ES 2.0 only) */
+    if (_this->gl_config.red_size < 5) _this->gl_config.red_size = 5;
+    if (_this->gl_config.green_size < 6) _this->gl_config.green_size = 6;
+    if (_this->gl_config.blue_size < 5) _this->gl_config.blue_size = 5;
+    if (_this->gl_config.major_version > 2) { _this->gl_config.major_version = 2; _this->gl_config.minor_version = 0; }
+    if (window->flags & SDL_WINDOW_OPENGL) {"""
+old_line = "    if (window->flags & SDL_WINDOW_OPENGL) {"
+if "MALI_SANITIZE_GL" not in content:
+    content = content.replace(old_line, sanitize, 1)
+with open(malifile, "w") as f:
+    f.write(content)
+print("sanitize ok")
+PYSCRIPT
       fi
     ;;
   esac
@@ -81,35 +98,21 @@ pre_configure_target() {
 pre_make_target() {
   case "${DEVICE}" in
     'Amlogic-ng'|'Amlogic-no'|'Amlogic-old')
-      # Injetar o define no SDL_build_config.h gerado pelo cmake
       BUILD_CONFIG=$(find ${PKG_BUILD} -name "SDL_build_config.h" | head -1)
       if [ -n "${BUILD_CONFIG}" ]; then
-        echo ">>> Injetando SDL_VIDEO_DRIVER_MALI em ${BUILD_CONFIG}"
+        echo ">>> Injetando SDL_VIDEO_DRIVER_MALI em ${BUILD_CONFIG} (lib32)"
         grep -q "SDL_VIDEO_DRIVER_MALI" "${BUILD_CONFIG}" || \
           echo "#define SDL_VIDEO_DRIVER_MALI 1" >> "${BUILD_CONFIG}"
-        # Forçar recompilação do SDL_video.c
         touch ${PKG_BUILD}/src/video/SDL_video.c
       fi
-      # Fix IsVirtualJoystick
       sed -i 's/IsVirtualJoystick(inpid.vendor, inpid.product, inpid.version, name)/0/g' \
         ${PKG_BUILD}/src/joystick/linux/SDL_sysjoystick.c || true
-    ;;
-    'OdroidGoAdvance')
-      if ! grep -rnw "${PKG_BUILD}/CMakeLists.txt" -e '-lrga'; then
-        sed -i "s|--no-undefined|--no-undefined -lrga|" ${PKG_BUILD}/CMakeLists.txt
-      fi
-    ;;
-  esac
-}
-
-pre_make_host() {
-  case "${DEVICE}" in
-    'OdroidGoAdvance')
-      sed -i "s| -lrga||g" ${PKG_BUILD}/CMakeLists.txt
     ;;
   esac
 }
 
 post_makeinstall_target() {
+  safe_remove ${INSTALL}/usr/include
   safe_remove ${INSTALL}/usr/share
+  mv ${INSTALL}/usr/lib ${INSTALL}/usr/lib32
 }
