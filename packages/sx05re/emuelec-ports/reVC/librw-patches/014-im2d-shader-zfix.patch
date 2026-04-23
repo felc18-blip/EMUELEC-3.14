@@ -1,0 +1,12 @@
+--- a/src/gl/shaders/im2d_gl.inc
++++ b/src/gl/shaders/im2d_gl.inc
+@@ -13,7 +13,8 @@
+ "	gl_Position = in_pos;\n"
+ "	gl_Position.xy = gl_Position.xy * u_xform.xy + u_xform.zw;\n"
+ "	v_fog = DoFog(gl_Position.w);\n"
+-"	gl_Position.xyz *= gl_Position.w;\n"
++"	gl_Position.xy *= gl_Position.w;\n"
++"	gl_Position.z = 0.0;\n"
+ "	v_color = in_color;\n"
+ "	v_tex0 = in_tex0;\n"
+ "}\n"

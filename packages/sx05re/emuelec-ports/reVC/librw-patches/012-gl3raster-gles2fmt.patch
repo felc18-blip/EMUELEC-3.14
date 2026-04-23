@@ -1,0 +1,82 @@
+--- a/src/gl/gl3raster.cpp
++++ b/src/gl/gl3raster.cpp
+@@ -68,7 +68,7 @@
+ 	Gl3Raster *natras = GETGL3RASTEREXT(raster);
+ 	switch(raster->format & 0xF00){
+ 	case Raster::C8888:
+-		natras->internalFormat = GL_RGBA8;
++		natras->internalFormat = GL_RGBA;
+ 		natras->format = GL_RGBA;
+ 		natras->type = GL_UNSIGNED_BYTE;
+ 		natras->hasAlpha = 1;
+@@ -76,7 +76,7 @@
+ 		raster->depth = 32;
+ 		break;
+ 	case Raster::C888:
+-		natras->internalFormat = GL_RGB8;
++		natras->internalFormat = GL_RGB;
+ 		natras->format = GL_RGB;
+ 		natras->type = GL_UNSIGNED_BYTE;
+ 		natras->hasAlpha = 0;
+@@ -84,7 +84,7 @@
+ 		raster->depth = 24;
+ 		break;
+ 	case Raster::C1555:
+-		natras->internalFormat = GL_RGB5_A1;
++		natras->internalFormat = GL_RGBA;
+ 		natras->format = GL_RGBA;
+ 		natras->type = GL_UNSIGNED_SHORT_5_5_5_1;
+ 		natras->hasAlpha = 1;
+@@ -98,7 +98,7 @@
+ 
+ 	if(gl3Caps.gles){
+ 		// glReadPixels only supports GL_RGBA
+-		natras->internalFormat = GL_RGBA8;
++		natras->internalFormat = GL_RGBA;
+ 		natras->format = GL_RGBA;
+ 		natras->type = GL_UNSIGNED_BYTE;
+ 		natras->bpp = 4;
+@@ -148,7 +148,7 @@
+ 	Gl3Raster *natras = GETGL3RASTEREXT(raster);
+ 	switch(raster->format & 0xF00){
+ 	case Raster::C8888:
+-		natras->internalFormat = GL_RGBA8;
++		natras->internalFormat = GL_RGBA;
+ 		natras->format = GL_RGBA;
+ 		natras->type = GL_UNSIGNED_BYTE;
+ 		natras->hasAlpha = 1;
+@@ -156,14 +156,14 @@
+ 		break;
+ 	case Raster::C888:
+ 	default:
+-		natras->internalFormat = GL_RGB8;
++		natras->internalFormat = GL_RGB;
+ 		natras->format = GL_RGB;
+ 		natras->type = GL_UNSIGNED_BYTE;
+ 		natras->hasAlpha = 0;
+ 		natras->bpp = 3;
+ 		break;
+ 	case Raster::C1555:
+-		natras->internalFormat = GL_RGB5_A1;
++		natras->internalFormat = GL_RGBA;
+ 		natras->format = GL_RGBA;
+ 		natras->type = GL_UNSIGNED_SHORT_5_5_5_1;
+ 		natras->hasAlpha = 1;
+@@ -174,7 +174,7 @@
+ 	// i don't remember why this was once here...
+ 	if(gl3Caps.gles){
+ 		// glReadPixels only supports GL_RGBA
+-//		natras->internalFormat = GL_RGBA8;
++//		natras->internalFormat = GL_RGBA;
+ //		natras->format = GL_RGBA;
+ //		natras->type = GL_UNSIGNED_BYTE;
+ //		natras->bpp = 4;
+@@ -215,7 +215,7 @@
+ 
+ 	// used for locking right now
+ 	raster->format = Raster::C888;
+-	natras->internalFormat = GL_RGB8;
++	natras->internalFormat = GL_RGB;
+ 	natras->format = GL_RGB;
+ 	natras->type = GL_UNSIGNED_BYTE;
+ 	natras->hasAlpha = 0;

@@ -1,0 +1,164 @@
+--- a/src/gl/gl3device.cpp
++++ b/src/gl/gl3device.cpp
+@@ -50,7 +50,7 @@
+ 	float32 view[16];
+ };
+ 
+-#define MAX_LIGHTS 8
++#define MAX_LIGHTS 4
+ 
+ struct UniformObject
+ {
+@@ -535,7 +535,7 @@
+ 				}
+ 				natras->filterMode = filter;
+ 			}
+-			if(natras->maxAnisotropy != maxAniso){
++			if(natras->maxAnisotropy != maxAniso && gl3Caps.maxAnisotropy > 1.0f){
+ 				setActiveTexture(stage);
+ 				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (float)maxAniso);
+ 				natras->maxAnisotropy = maxAniso;
+@@ -1286,6 +1286,12 @@
+ static void
+ beginUpdate(Camera *cam)
+ {
++	static int beginFrame = 0;
++	beginFrame++;
++	if(beginFrame == 1 || beginFrame == 60) {
++		GLenum errB = glGetError();
++		printf("[NEXTOS-BEGIN %d] glGetError at start=0x%x\n", beginFrame, errB); fflush(stdout);
++	}
+ 	float view[16], proj[16];
+ 	// View Matrix
+ 	Matrix inv;
+@@ -1365,6 +1371,12 @@
+ static void
+ endUpdate(Camera *cam)
+ {
++	static int endFrame = 0;
++	endFrame++;
++	if(endFrame == 1 || endFrame == 60) {
++		GLenum errE = glGetError();
++		printf("[NEXTOS-ENDUPDATE %d] glGetError=0x%x\n", endFrame, errE); fflush(stdout);
++	}
+ }
+ 
+ static void
+@@ -1404,6 +1416,26 @@
+ static void
+ showRaster(Raster *raster, uint32 flags)
+ {
++	static int frameCounter = 0;
++	frameCounter++;
++	if(frameCounter == 1 || frameCounter == 60 || frameCounter == 300) {
++		GLint currentFBO = 0;
++		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFBO);
++		GLint vp[4] = {0,0,0,0};
++		glGetIntegerv(GL_VIEWPORT, vp);
++		printf("[NEXTOS-FRAME %d] FBO=%d viewport=%d,%d %dx%d raster=%p flags=0x%x\n",
++			frameCounter, currentFBO, vp[0], vp[1], vp[2], vp[3], raster, flags);
++		fflush(stdout);
++	}
++	if(frameCounter == 1 || frameCounter == 60) {
++		GLenum errB = glGetError();
++		printf("[NEXTOS-FRAME %d] glGetError before swap=0x%x\n", frameCounter, errB); fflush(stdout);
++		glBindFramebuffer(GL_FRAMEBUFFER, 0);
++		printf("[NEXTOS-FRAME %d] Forced FBO=0 before SwapBuffers\n", frameCounter);
++		fflush(stdout);
++	}
++
++
+ //	glViewport(raster->offsetX, raster->offsetY,
+ //		raster->width, raster->height);
+ 
+@@ -1536,7 +1568,6 @@
+ 	{ SDL_GL_CONTEXT_PROFILE_CORE, 3, 3 },
+ 	{ SDL_GL_CONTEXT_PROFILE_CORE, 2, 1 },
+ #endif
+-	{ SDL_GL_CONTEXT_PROFILE_ES, 3, 2 },
+ 	{ SDL_GL_CONTEXT_PROFILE_ES, 2, 0 },
+ 	{ 0, 0, 0 },
+ };
+@@ -1550,6 +1581,13 @@
+ 
+ 	mode = &glGlobals.modes[glGlobals.currentMode];
+ 
++	// Force RGBA8888 + 24-bit depth (Mali 450 needs this)
++	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
++	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
++	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
++	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
++	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
++	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+ 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, glGlobals.numSamples);
+ 
+ 	int i;
+@@ -1559,11 +1597,11 @@
+ 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, profiles[i].minor);
+ 
+ 		if(mode->flags & VIDEOMODEEXCLUSIVE) {
+-			win = SDL_CreateWindow(glGlobals.winTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, mode->mode.w, mode->mode.h, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN);
++			win = SDL_CreateWindow(glGlobals.winTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, mode->mode.w, mode->mode.h, SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN);
+ 			if (win)
+ 				SDL_SetWindowDisplayMode(win, &mode->mode);
+ 		} else {
+-			win = SDL_CreateWindow(glGlobals.winTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, glGlobals.winWidth, glGlobals.winHeight, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
++			win = SDL_CreateWindow(glGlobals.winTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, glGlobals.winWidth, glGlobals.winHeight, SDL_WINDOW_OPENGL);
+ 			if (win)
+ 				SDL_SetWindowDisplayMode(win, NULL);
+ 		}
+@@ -1587,6 +1625,7 @@
+ 	}
+ 
+ 	printf("OpenGL version: %s\n", glGetString(GL_VERSION));
++	printf("[NEXTOS] GLES=%d glversion=%d\n", gl3Caps.gles, gl3Caps.glversion); fflush(stdout);
+ 
+ 	glGlobals.window = win;
+ 	glGlobals.glcontext = ctx;
+@@ -1753,6 +1792,7 @@
+ 	}
+ 
+ 	printf("OpenGL version: %s\n", glGetString(GL_VERSION));
++	printf("[NEXTOS] GLES=%d glversion=%d\n", gl3Caps.gles, gl3Caps.glversion); fflush(stdout);
+ 
+ 	glGlobals.window = win;
+ 	*glGlobals.pWindow = win;
+@@ -1790,10 +1830,25 @@
+ //		printf("%d %s\n", i, ext);
+ 	}
+ */
++	printf("[NEXTOS] initOpenGL entered\n"); fflush(stdout);
+ 	gl3Caps.dxtSupported = !!GLAD_GL_EXT_texture_compression_s3tc;
+ 	gl3Caps.astcSupported = !!GLAD_GL_KHR_texture_compression_astc_ldr;
+-
++	printf("[NEXTOS] checked extensions, calling glGetFloatv\n"); fflush(stdout);
++	gl3Caps.maxAnisotropy = 1.0f;  // default safe value
++	// GL_EXT_texture_filter_anisotropic may not exist (Mali 400/450)
+ 	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gl3Caps.maxAnisotropy);
++	if(glGetError() != GL_NO_ERROR) gl3Caps.maxAnisotropy = 1.0f; // clear error, set safe
++	printf("[NEXTOS] glGetFloatv OK, maxAniso=%f\n", gl3Caps.maxAnisotropy); fflush(stdout);
++
++	// Test: call GLES 2.0 functions that should be native
++	GLint maxTex = 0;
++	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTex);
++	printf("[NEXTOS] GL_MAX_TEXTURE_SIZE=%d\n", maxTex); fflush(stdout);
++	const char* vendor = (const char*)glGetString(GL_VENDOR);
++	const char* renderer = (const char*)glGetString(GL_RENDERER);
++	printf("[NEXTOS] vendor='%s' renderer='%s'\n", vendor?vendor:"NULL", renderer?renderer:"NULL"); fflush(stdout);
++	GLenum err = glGetError();
++	printf("[NEXTOS] glGetError after init=0x%x\n", err); fflush(stdout);
+ 
+ 	if(gl3Caps.gles){
+ 		if(gl3Caps.glversion >= 30)
+@@ -1882,7 +1937,11 @@
+ 	const char *fs[] = { shaderDecl, header_frag_src, simple_frag_src, nil };
+ 	const char *fs_noAT[] = { shaderDecl, "#define NO_ALPHATEST\n", header_frag_src, simple_frag_src, nil };
+ 
++	glGetError(); // limpa erro de anisotropy
++	printf("[NEXTOS] about to create defaultShader\n"); fflush(stdout);
+ 	defaultShader = Shader::create(vs, fs);
++	GLenum errA = glGetError();
++	printf("[NEXTOS] defaultShader=%p, glGetError=0x%x\n", defaultShader, errA); fflush(stdout);
+ 	assert(defaultShader);
+ 	defaultShader_noAT = Shader::create(vs, fs_noAT);
+ 	assert(defaultShader_noAT);
