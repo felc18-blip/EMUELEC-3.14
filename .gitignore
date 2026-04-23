@@ -85,3 +85,6 @@ packages/sx05re/ChatGPT*.png
 *.originalbak
 **/package.bk
 **/*.classic.bak/
+
+# pico-8 proprietary binaries (não redistribuível)
+packages/sx05re/emulators/pico-8/sources/pico-8/
