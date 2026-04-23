@@ -352,11 +352,27 @@ if __name__ == "__main__":
     bt.discoverable = True
     bt.pairable = True
 
+    def _cleanup():
+        """Garante que child process do scan e bluetoothctl filhotes sejam
+        mortos ao sair — do contrário ficavam órfãos, cada execução deixando
+        mais um scan zombie."""
+        global BT_THREAD
+        if BT_THREAD is not None and BT_THREAD.is_alive():
+            BT_THREAD.terminate()
+            BT_THREAD.join(timeout=2)
+        # mata qualquer bluetoothctl residual
+        bt.scan_stop()
+
+    import atexit, signal
+    atexit.register(_cleanup)
+    signal.signal(signal.SIGTERM, lambda s, f: sys.exit(0))
+    signal.signal(signal.SIGINT, lambda s, f: sys.exit(0))
+
     start_time = time.perf_counter()
     while True:
         diff_time = time.perf_counter() - start_time
         if SCAN_TIME != -1 and diff_time > SCAN_TIME:
-                exit()
+                sys.exit(0)
 
         IS_IN_GAME = is_in_game()
 
@@ -366,6 +382,7 @@ if __name__ == "__main__":
         ):
             print("resuming scan")
             BT_THREAD = Process(target=bt.scan_async, args=(SCAN_TIME,))
+            BT_THREAD.daemon = True  # morre com main
             BT_THREAD.start()
         elif (
             bt.scanning and IS_IN_GAME and (len(connected_devs) > 0)
