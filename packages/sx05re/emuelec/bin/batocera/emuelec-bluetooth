@@ -63,6 +63,17 @@ class ShellIO:
     def execute_async(cmd: list[str]):
         Popen(cmd, stdout=PIPE, bufsize=1, universal_newlines=True, encoding="latin-1")
 
+    @staticmethod
+    def btctl(subcommand: str, debug=DEBUG) -> list[str]:
+        """Bluez 5.86 retorna vazio em `bluetoothctl <cmd>` executado direto
+        não-interativamente. Enviar o comando via stdin (modo interativo
+        simulado) funciona. Usamos isso pra TODAS as consultas — info, show,
+        devices, list etc — pra garantir compatibilidade."""
+        return ShellIO.execute(
+            ["sh", "-c", "printf '%s\\nquit\\n' '" + subcommand.replace("'", "'\\''") + "' | bluetoothctl"],
+            debug=debug,
+        )
+
 
 class BluetoothCTL:
     async_bluetooth_process: "Popen | None"
@@ -71,7 +82,7 @@ class BluetoothCTL:
         self.async_bluetooth_process = None
 
     def _parse_device_info(self, mac: str):
-        info = ShellIO.execute(["bluetoothctl", "info", mac], debug=False)
+        info = ShellIO.btctl("info " + mac, debug=False)
         dev = BluetoothDevice(
             mac=mac,
             name="",
@@ -118,31 +129,31 @@ class BluetoothCTL:
 
     @property
     def power(self) -> bool:
-        return "yes" in ShellIO.execute_lookup(["bluetoothctl", "show"], "Pairable", debug=False)
+        return "yes" in next((o for o in ShellIO.btctl("show") if "Pairable" in o), "")
 
     @property
     def discoverable(self) -> bool:
-        return "yes" in ShellIO.execute_lookup(["bluetoothctl", "show"], "Discoverable", debug=False)
+        return "yes" in next((o for o in ShellIO.btctl("show") if "Discoverable" in o), "")
 
     @property
     def pairable(self) -> bool:
-        return "yes" in ShellIO.execute_lookup(["bluetoothctl", "show"], "Pairable", debug=False)
+        return "yes" in next((o for o in ShellIO.btctl("show") if "Pairable" in o), "")
 
     @power.setter
     def power(self, value):
-        ShellIO.execute(["bluetoothctl", "power", "on" if value else "off"])
+        ShellIO.btctl("power " + ("on" if value else "off"))
 
     @discoverable.setter
     def discoverable(self, value):
-        ShellIO.execute(["bluetoothctl", "discoverable", "on" if value else "off"])
+        ShellIO.btctl("discoverable " + ("on" if value else "off"))
 
     @pairable.setter
     def pairable(self, value):
-        ShellIO.execute(["bluetoothctl", "pairable", "on" if value else "off"])
+        ShellIO.btctl("pairable " + ("on" if value else "off"))
 
     @pairable.setter
     def agent(self, value):
-        ShellIO.execute(["bluetoothctl", "agent", "on" if value else "off"])
+        ShellIO.btctl("agent " + ("on" if value else "off"))
 
     def scan(self, timeout=10):
         ShellIO.execute(["bluetoothctl", "--timeout", str(timeout), "scan", "on"])
@@ -192,7 +203,7 @@ class BluetoothCTL:
 
     @property
     def scanning(self) -> bool:
-        return "yes" in ShellIO.execute_lookup(["bluetoothctl", "show"], "Discovering", debug=False)
+        return "yes" in next((o for o in ShellIO.btctl("show") if "Discovering" in o), "")
 
     @property
     def controllers(self) -> list[str]:
@@ -210,38 +221,30 @@ class BluetoothCTL:
 
     @property
     def devices(self) -> list[BluetoothDevice]:
-        devs = ShellIO.execute(["bluetoothctl", "devices"], debug=False)
-        return [self._parse_device_info(dev.split()[1]) for dev in devs]
+        devs = ShellIO.btctl("devices", debug=False)
+        return [self._parse_device_info(dev.split()[1]) for dev in devs if dev.startswith("Device")]
+
+    def _btctl_action(self, subcommand: str, success_match: str) -> bool:
+        """Executa uma ação no bluetoothctl e devolve True se saiu o match."""
+        return any(success_match in line for line in ShellIO.btctl(subcommand))
 
     def trust(self, dev: BluetoothDevice) -> bool:
-        return "succeeded" in ShellIO.execute_lookup(
-            ["bluetoothctl", "trust", dev.mac], "trust succeeded"
-        )
+        return self._btctl_action("trust " + dev.mac, "trust succeeded")
 
     def untrust(self, dev: BluetoothDevice) -> bool:
-        return "succeeded" in ShellIO.execute_lookup(
-            ["bluetoothctl", "untrust", dev.mac], "untrust succeeded"
-        )
+        return self._btctl_action("untrust " + dev.mac, "untrust succeeded")
 
     def pair(self, dev: BluetoothDevice) -> bool:
-        return "successful" in ShellIO.execute_lookup(
-            ["bluetoothctl", "pair", dev.mac], "Pairing successful"
-        )
+        return self._btctl_action("pair " + dev.mac, "Pairing successful")
 
     def disconnect(self, dev: BluetoothDevice) -> bool:
-        return "successful" in ShellIO.execute_lookup(
-            ["bluetoothctl", "disconnect", dev.mac], "Disconnection successful"
-        )
+        return self._btctl_action("disconnect " + dev.mac, "Disconnection successful")
 
     def connect(self, dev: BluetoothDevice) -> bool:
-        return "successful" in ShellIO.execute_lookup(
-            ["bluetoothctl", "connect", dev.mac], "Connection successful"
-        )
+        return self._btctl_action("connect " + dev.mac, "Connection successful")
 
     def forget(self, dev: BluetoothDevice) -> bool:
-        return "removed" in ShellIO.execute_lookup(
-            ["bluetoothctl", "remove", dev.mac], "Device has been removed"
-        )
+        return self._btctl_action("remove " + dev.mac, "Device has been removed")
 
 
 # returns true if a game is running via the emuelecRunEmu script
