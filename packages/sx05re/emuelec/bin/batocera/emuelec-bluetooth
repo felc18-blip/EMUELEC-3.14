@@ -196,8 +196,17 @@ class BluetoothCTL:
 
     @property
     def controllers(self) -> list[str]:
-        controllers = ShellIO.execute(["bluetoothctl", "list"], debug=False)
-        return [ctrl.split()[1] for ctrl in controllers]
+        # Bluez 5.86 em Amlogic-old retorna vazio para `bluetoothctl list`
+        # executado diretamente; mesma versão responde quando o comando é
+        # enviado via stdin interativo. Usamos a variante stdin para
+        # compatibilidade com ambos os comportamentos.
+        raw = ShellIO.execute(["sh", "-c", "echo list | bluetoothctl"], debug=False)
+        result: list[str] = []
+        for line in raw:
+            parts = line.strip().split()
+            if len(parts) >= 2 and parts[0] == "Controller":
+                result.append(parts[1])
+        return result
 
     @property
     def devices(self) -> list[BluetoothDevice]:
