@@ -130,6 +130,15 @@
 		<image>./setup_images/sh.png</image>
 	</game>
 	<game>
+		<path>./black_retro_scraper.sh</path>
+		<name>Black Retro Scraper</name>
+		<desc>Scraper completo com Skyscraper + ScreenScraper, interface dialog em PT-BR. Permite selecionar sistema, navegar ROMs, scrape individual ou da pasta, rebuild forçado, detectar jogos sem imagens, e tradução das descrições via OpenAI. Configure usuário e senha do ScreenScraper no próprio script.</desc>
+		<developer>RetroElite</developer>
+		<publisher>NextOS Elite</publisher>
+		<genre>script</genre>
+		<image>./setup_images/sh.png</image>
+	</game>
+	<game>
 		<path>./send_logs.sh</path>
 		<name>Send logs</name>
 		<desc>Use this to get a URL that you can share when asking for help</desc>
