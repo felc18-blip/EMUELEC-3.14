@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 PKG_NAME="SDL3"
-PKG_VERSION="ee9e9ad5c"
+PKG_VERSION="c2cfb6802b22af0a001e98df4afcb90d1a918700"
 PKG_LICENSE="Zlib"
 PKG_SITE="https://libsdl.org/"
 PKG_URL="https://github.com/felc18-blip/SDL3-mali-fbdev/archive/${PKG_VERSION}.tar.gz"
@@ -69,11 +69,8 @@ pre_configure_target() {
   case "${DEVICE}" in
     'Amlogic-ng'|'Amlogic-no'|'Amlogic-old')
       export CFLAGS="${CFLAGS} -DSDL_VIDEO_DRIVER_MALI=1"
-      MALIFILE="${PKG_BUILD}/src/video/mali-fbdev/SDL_malivideo.c"
-      if [ -f "${MALIFILE}" ]; then
-        echo ">>> Aplicando patch Mali debug + sanitize GL"
-        python3 /tmp/mali_debug.py "${MALIFILE}"
-      fi
+      # As melhorias do driver mali-fbdev agora vivem direto no fork
+      # (branch mali-342-improvements). Nada a patchar em runtime.
     ;;
   esac
 }
