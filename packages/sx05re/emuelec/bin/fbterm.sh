@@ -27,6 +27,24 @@ elif [[ "${1}" == *"file_manager.sh"* ]]; then
         else
             fbterm "${1}" -s 24 < /dev/tty1
         fi
+elif [[ "${1}" == *"black_retro_scraper.sh"* ]]; then
+        # Scripts dialog TUI (menu interativo com dialog) precisam rodar dentro
+        # do fbterm pra renderizar no framebuffer. gptokeyb habilita controle.
+        if [ "${EE_DEVICE}" == "OdroidGoAdvance" ] || [ "${EE_DEVICE}" == "GameForce" ]; then
+            bash "${1}"
+        else
+            # Garante que não tem gptokeyb antigo rodando
+            pkill -9 -f "gptokeyb -c /emuelec/configs/gptokeyb/351Files" 2>/dev/null
+            sleep 0.3
+            # Inicia gptokeyb em background
+            if [[ -x /usr/bin/gptokeyb ]] && [[ -f /emuelec/configs/gptokeyb/351Files.gptk ]]; then
+                /usr/bin/gptokeyb -c "/emuelec/configs/gptokeyb/351Files.gptk" &
+                GPTOKEYB_PID=$!
+            fi
+            fbterm "${1}" -s 24 -n LiberationMono-Bold < /dev/tty1
+            # Cleanup
+            [[ -n "${GPTOKEYB_PID:-}" ]] && kill "${GPTOKEYB_PID}" 2>/dev/null
+        fi
 else
 		case ${1} in
 		"mplayer_video")
