@@ -304,6 +304,14 @@ if [[ -f "${ES_ENV}" ]] && grep -q "^SDL_AUDIODRIVER=alsa" "${ES_ENV}"; then
 	sed -i 's/^SDL_AUDIODRIVER=alsa$/SDL_AUDIODRIVER=pulseaudio/' "${ES_ENV}"
 fi
 
+# Garantir que todas as pastas de ROM referenciadas no es_systems.cfg existam.
+# ES logga "System X path does not exist" pra qualquer <path> ausente. O script
+# é idempotente (mkdir -p). Cobre dinamicamente sistemas novos sem precisar
+# editar tmpfiles.d manualmente.
+if [[ -x /usr/bin/scripts/setup/create_rom_dirs.sh ]] && [[ -f /storage/.config/emulationstation/es_systems.cfg ]]; then
+	/usr/bin/scripts/setup/create_rom_dirs.sh >/dev/null 2>&1 &
+fi
+
 FRAMEBUFFER_VERSION="/emuelec/configs/FRAMEBUFFER_VERSION"
 if [[ ! -f "$FRAMEBUFFER_VERSION" ]]; then
 	grep -Ev "^.*\framebuffer.*=.*$" /emuelec/configs/emuelec.conf > /tmp/emuelec.conf.bak && mv /tmp/emuelec.conf.bak /emuelec/configs/emuelec.conf
