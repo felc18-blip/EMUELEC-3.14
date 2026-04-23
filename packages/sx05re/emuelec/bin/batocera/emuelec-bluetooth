@@ -305,7 +305,7 @@ def on_device_removed(dev: BluetoothDevice):
     pass
 
 
-SCAN_TIME = 60
+SCAN_TIME = 30
 
 # ELAPSED_TIME = 0
 UPDATE_INTERVAL = 1
