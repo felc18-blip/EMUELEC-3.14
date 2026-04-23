@@ -295,6 +295,15 @@ if [[ ! -f "$REMAP_VERSION" ]]; then
 	echo "2" > "${REMAP_VERSION}"
 fi
 
+# Migração SDL3 da ES: /storage/.config/.../es_env.sh é preservado em upgrades
+# e pode ficar com SDL_AUDIODRIVER=alsa (da imagem antiga). Em SDL3 isso falha
+# com "Device or resource busy" porque o PulseAudio já detém o device, e em
+# Amlogic-old ALSA direto trava o sistema. Força pulseaudio.
+ES_ENV="/storage/.config/emulationstation/scripts/es_env.sh"
+if [[ -f "${ES_ENV}" ]] && grep -q "^SDL_AUDIODRIVER=alsa" "${ES_ENV}"; then
+	sed -i 's/^SDL_AUDIODRIVER=alsa$/SDL_AUDIODRIVER=pulseaudio/' "${ES_ENV}"
+fi
+
 FRAMEBUFFER_VERSION="/emuelec/configs/FRAMEBUFFER_VERSION"
 if [[ ! -f "$FRAMEBUFFER_VERSION" ]]; then
 	grep -Ev "^.*\framebuffer.*=.*$" /emuelec/configs/emuelec.conf > /tmp/emuelec.conf.bak && mv /tmp/emuelec.conf.bak /emuelec/configs/emuelec.conf
