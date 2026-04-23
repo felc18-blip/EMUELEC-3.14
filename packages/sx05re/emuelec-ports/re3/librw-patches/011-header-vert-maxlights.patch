@@ -1,0 +1,11 @@
+--- a/src/gl/shaders/header.vert
++++ b/src/gl/shaders/header.vert
+@@ -49,7 +49,7 @@
+ uniform mat4 u_view;
+ #endif
+ 
+-#define MAX_LIGHTS 8
++#define MAX_LIGHTS 4
+ 
+ #ifdef USE_UBOS
+ layout(std140) uniform Object

@@ -1,0 +1,10 @@
+--- a/premake5.lua
++++ b/premake5.lua
+@@ -186,7 +186,6 @@
+ 		defines { "RW_SDL2" }
+ 		defines { "LIBRW_GL3" }
+ 		defines { "LIBRW_SDL2" }
+-		includedirs { "/usr/include/SDL2" }
+ 		if(not _OPTIONS["with-librw"]) then
+ 			libdirs { path.join(Librw, "lib/%{getsys(cfg.system)}-%{getarch(cfg.architecture)}-gl3/%{cfg.buildcfg}") }
+ 		end

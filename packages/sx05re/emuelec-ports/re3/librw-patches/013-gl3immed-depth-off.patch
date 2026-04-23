@@ -1,0 +1,25 @@
+--- a/src/gl/gl3immed.cpp
++++ b/src/gl/gl3immed.cpp
+@@ -147,7 +147,10 @@
+ 	im2DSetXform();
+ 
+ 	flushCache();
++	GLboolean wasDepth = glIsEnabled(GL_DEPTH_TEST);
++	if(wasDepth) glDisable(GL_DEPTH_TEST);
+ 	glDrawArrays(primTypeMap[primType], 0, numVertices);
++	if(wasDepth) glEnable(GL_DEPTH_TEST);
+ #ifndef RW_GL_USE_VAOS
+ 	disableAttribPointers(im2dattribDesc, 3);
+ #endif
+@@ -181,8 +184,11 @@
+ 	im2DSetXform();
+ 
+ 	flushCache();
++	GLboolean wasDepth = glIsEnabled(GL_DEPTH_TEST);
++	if(wasDepth) glDisable(GL_DEPTH_TEST);
+ 	glDrawElements(primTypeMap[primType], numIndices,
+ 	               GL_UNSIGNED_SHORT, nil);
++	if(wasDepth) glEnable(GL_DEPTH_TEST);
+ #ifndef RW_GL_USE_VAOS
+ 	disableAttribPointers(im2dattribDesc, 3);
+ #endif

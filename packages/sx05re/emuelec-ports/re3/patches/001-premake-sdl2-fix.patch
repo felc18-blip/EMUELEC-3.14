@@ -1,0 +1,37 @@
+--- a/premake5.lua
++++ b/premake5.lua
+@@ -287,7 +287,11 @@
+ 	files { addSrcFiles("src/rw") }
+ 	files { addSrcFiles("src/save") }
+ 	files { addSrcFiles("src/skel") }
+-	files { addSrcFiles("src/skel/glfw") }
++	filter "platforms:*librw_gl3_glfw*"
++		files { addSrcFiles("src/skel/glfw") }
++	filter "platforms:*librw_gl3_sdl2*"
++		files { addSrcFiles("src/skel/sdl2") }
++	filter {}
+ 	files { addSrcFiles("src/text") }
+ 	files { addSrcFiles("src/vehicles") }
+ 	files { addSrcFiles("src/weapons") }
+@@ -316,7 +320,11 @@
+ 	includedirs { "src/rw" }
+ 	includedirs { "src/save/" }
+ 	includedirs { "src/skel/" }
+-	includedirs { "src/skel/glfw" }
++	filter "platforms:*librw_gl3_glfw*"
++		includedirs { "src/skel/glfw" }
++	filter "platforms:*librw_gl3_sdl2*"
++		includedirs { "src/skel/sdl2" }
++	filter {}
+ 	includedirs { "src/text" }
+ 	includedirs { "src/vehicles" }
+ 	includedirs { "src/weapons" }
+@@ -473,7 +481,7 @@
+ 		links { "GL", "glfw" }
+ 
+ 	filter "platforms:linux*gl3_sdl2*"
+-		links { "GL", "SDL2", "glfw" }
++		links { "EGL", "GLESv2", "SDL2" }
+ 
+ 	filter "platforms:bsd*gl3_glfw*"
+ 		links { "GL", "glfw", "sysinfo" }
