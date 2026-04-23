@@ -109,7 +109,10 @@ function setauddev() {
     AUDIO_DEVICE="${1}"
     [ -z "${AUDIO_DEVICE}" ] && AUDIO_DEVICE="$(get_ee_setting ee_audio_device)"
     [[ "${AUDIO_DEVICE}" = "auto" || -z "${AUDIO_DEVICE}" ]] && AUDIO_DEVICE="0,0"
-    sed -i "s|pcm \"hw:.*|pcm \"hw:${AUDIO_DEVICE}\"|" /storage/.config/asound.conf
+    # asound.conf é legado (sistemas antigos). Em NextOS moderno o áudio
+    # roteia via pulseaudio (/usr/share/alsa/alsa.conf.d/99-pulse.conf),
+    # então só aplica o sed se o arquivo realmente existir.
+    [ -f /storage/.config/asound.conf ] && sed -i "s|pcm \"hw:.*|pcm \"hw:${AUDIO_DEVICE}\"|" /storage/.config/asound.conf
 }
 
 function audio() {

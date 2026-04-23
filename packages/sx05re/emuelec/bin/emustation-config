@@ -157,7 +157,11 @@ else
 		STORED_VOLUME=$(get_ee_setting audio.volume)
 		[[ ! -z "$STORED_VOLUME" ]] && VOLUME=$STORED_VOLUME
 
-    amixer set Master "$VOLUME%"
+    # Master control pode não existir em Amlogic-old (áudio via pulse);
+    # só aplica se o amixer simple control "Master" estiver presente.
+    if amixer scontrols 2>/dev/null | grep -q "'Master'"; then
+        amixer set Master "$VOLUME%" >/dev/null 2>&1 || true
+    fi
 fi
 
 # We need to always use the newest es_systems.cfg if there was a recent update, we also need to update the ports gamelist.xml and es_features.cfg
