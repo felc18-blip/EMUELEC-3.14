@@ -16,9 +16,14 @@ from dataclasses import dataclass
 import time
 import sys
 import os
+import re
 from multiprocessing import Process
 
 DEBUG = False
+
+# Bluez 5.86 printa output em modo interativo com ANSI colorido, independente
+# de TTY. Precisamos strippar pra parsing funcionar.
+ANSI_RE = re.compile(r'\x1b\[[0-9;]*m')
 
 
 @dataclass
@@ -159,42 +164,53 @@ class BluetoothCTL:
         ShellIO.execute(["bluetoothctl", "--timeout", str(timeout), "scan", "on"])
 
     def scan_async(self, timeout=10):
-        # using stdbuf to flush buffer and get output immediately (bluetoothctl issue)
-        cmd = (
-            "stdbuf -oL bluetoothctl --timeout " + str(timeout) + " scan on"
-            if timeout > 0
-            else "stdbuf -oL bluetoothctl -- scan on"
-        )
-        process = Popen(cmd.split(), stdout=PIPE, universal_newlines=True)
+        # Bluez 5.86 só emite linhas [NEW]/[CHG]/[DEL] Device em modo
+        # interativo (stdin aberto), não em `bluetoothctl --timeout N scan on`
+        # direto (que retorna stdout vazio). Solução: feed "scan on" via stdin
+        # dum subprocess que mantém stdin aberto por `timeout` segundos
+        # (via sleep), e aí manda scan off + quit. O output vem com cores
+        # ANSI que são strippadas no parsing.
+        sleep_secs = timeout if timeout > 0 else 99999
+        shell_cmd = (
+            "(echo scan on; sleep {}; echo scan off; echo quit) | "
+            "stdbuf -oL bluetoothctl"
+        ).format(sleep_secs)
+        process = Popen(["sh", "-c", shell_cmd], stdout=PIPE, universal_newlines=True)
         while True:
             line = process.stdout.readline()
             if line == "" and process.poll() is not None:
                 break
             if line:
-                line = line.strip().rstrip()
+                # strip ANSI color escapes + prompt garbage
+                line = ANSI_RE.sub("", line).strip().rstrip()
                 if DEBUG:
                     print("< ", line)
+                # Formato esperado após strip: "[NEW] Device MAC NAME..."
+                # ou "[CHG] Device MAC RSSI: 0xffff... (-nn)"
+                # ou "[DEL] Device MAC NAME"
+                # split()[0] vira "[NEW]", [1] "Device", [2] MAC (17 chars)
+                tokens = line.split()
                 if (
-                    len(line.split()) >= 3
-                    and len(line.split()[2]) == 17
+                    len(tokens) >= 3
+                    and len(tokens[2]) == 17
                     and (
-                        "NEW" in line.split()[0]
-                        or "CHG" in line.split()[0]
-                        or "DEL" in line.split()[0]
+                        "NEW" in tokens[0]
+                        or "CHG" in tokens[0]
+                        or "DEL" in tokens[0]
                     )
                 ):
                     if DEBUG:
-                        print(bt.devices)
-                    devs = [x for x in bt.devices if x.mac == line.split()[2]]
+                        print(self.devices)
+                    devs = [x for x in self.devices if x.mac == tokens[2]]
                     if len(devs) > 0:
-                        if "DEL" in line.split()[0]:
+                        if "DEL" in tokens[0]:
                             on_device_removed(devs[0])
-                        elif "NEW" in line.split()[0] or (
-                            "CHG" in line.split()[0] and "RSSI:" in line
+                        elif "NEW" in tokens[0] or (
+                            "CHG" in tokens[0] and "RSSI:" in line
                         ):
                             if DEBUG:
                                 print(devs)
-                            if not on_device_discovered(devs[0]):
+                            if not on_device_discovered(devs[0], self):
                                 print("stopping thread")
                                 break
 
@@ -259,7 +275,7 @@ def is_bluetooth_running():
             return False if str(os.getpid()) in o else True
     return False
 
-def on_device_discovered(dev: BluetoothDevice) -> bool:
+def on_device_discovered(dev: BluetoothDevice, bt: "BluetoothCTL") -> bool:
     if DEBUG:
         print(dev)
     if dev.blocked:
