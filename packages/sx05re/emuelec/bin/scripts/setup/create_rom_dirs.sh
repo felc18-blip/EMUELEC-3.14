@@ -9,6 +9,6 @@ PATHS=$(grep -oP '(?<=<path>).*?(?=</path>)' "${ES_SYSTEMS}" | grep '/storage/ro
 while IFS= read -r path; do
     #echo "${path}"
     mkdir -p "${path}"
-    chmod +x 0777 "${path}"
+    chmod 0777 "${path}"
 done <<< "${PATHS}"
 
