@@ -2,16 +2,18 @@
 # Copyright (C) 2019-present Shanti Gilbert
 
 PKG_NAME="emuelec-emulationstation"
-PKG_VERSION="f89f3a9b9"
-PKG_GIT_CLONE_BRANCH="EmuELEC"
-PKG_REV="1"
+PKG_VERSION="e4a86cc9e"
+PKG_GIT_CLONE_BRANCH="sdl3-clean"
+PKG_REV="2"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
 
+# Fork migrado para SDL3 nativo (AudioManager/Sound/InputManager/Renderer).
+# Branch sdl3-clean contém a migração em cima do fork emuelec-emulationstation-nextos.
 PKG_SITE="https://github.com/felc18-blip/emuelec-emulationstation-nextos"
 PKG_URL="${PKG_SITE}.git"
 
-PKG_DEPENDS_TARGET="toolchain SDL2 alsa-plugins alsa-plugins freetype freeimage curl vlc rapidjson ${OPENGLES} SDL2_mixer pugixml fping p7zip espeak es-theme-art-book-next"
+PKG_DEPENDS_TARGET="toolchain SDL3 SDL3_mixer alsa-plugins alsa-plugins freetype freeimage curl vlc rapidjson ${OPENGLES} pugixml fping p7zip espeak es-theme-art-book-next"
 
 PKG_SECTION="emuelec"
 PKG_SHORTDESC="Emulationstation emulator frontend"
