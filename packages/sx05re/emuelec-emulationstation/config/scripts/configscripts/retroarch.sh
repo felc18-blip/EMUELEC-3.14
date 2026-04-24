@@ -292,40 +292,111 @@ function map_retroarch_joystick() {
             ;;
     esac
 
+    # NextOS SDL3 mode: drop the secondary hotkey bindings that wireless
+    # controllers with weak key-matrices can trigger by accident via ghost
+    # keys (ex.: apertar Up fantasma junto com X dispara menu_toggle+volume).
+    # Keep only: the primary role (input_<role>) plus the essential hotkeys
+    # (save/load/exit/fast_forward). The rest (menu_toggle, reset, volume_*,
+    # state_slot_*, rewind, fps_toggle) só são usáveis via combo com hotkey,
+    # e o NextOS já fornece L3+R3 pro menu via input_menu_toggle_gamepad_combo.
+    iniGet "input_driver"
+    if [[ "${ini_value}" == "sdl3" ]]; then
+        local filtered=()
+        local k
+        for k in "${keys[@]}"; do
+            case "$k" in
+                input_volume_up|input_volume_down|\
+                input_state_slot_decrease|input_state_slot_increase|\
+                input_menu_toggle|input_reset|\
+                input_fps_toggle|input_rewind)
+                    # skip ghost-prone secondary hotkey
+                    ;;
+                *)
+                    filtered+=("$k")
+                    ;;
+            esac
+        done
+        keys=("${filtered[@]}")
+    fi
+
     local key
     local value
     local type
     for key in "${keys[@]}"; do
-        case "${input_type}" in
-            hat)
-                type="btn"
-                value="h${input_id}${input_name}"
-                ;;
-            axis)
-                type="axis"
-                if [[ "${input_value}" == "1" ]]; then
-                    value="+${input_id}"
-                else
-                    value="-${input_id}"
-                fi
-                ;;
-            *)
-                type="btn"
-                value="${input_id}"
+        # NextOS SDL3 mode: if RetroArch is configured to use driver=sdl3, emit
+        # SDL_Gamepad-standard IDs (A=0, B=1, X=2, Y=3, Back=4, Start=6, L3=7,
+        # R3=8, L1=9, R1=10, dpad=11-14, triggers via axis +4/+5). This matches
+        # what the RetroArch menu itself generates when you "Save Autoconfig
+        # Profile" there, and works for any controller recognized as SDL_Gamepad
+        # (i.e. in SDL_GameControllerDB). For generic/unknown controllers the
+        # user still needs to remap via RetroArch menu — but that's a separate,
+        # rarer path.
+        iniGet "input_driver"
+        if [[ "${ini_value}" == "sdl3" ]]; then
+            case "${input_name}" in
+                a)              type="btn";  value="0"  ;;
+                b)              type="btn";  value="1"  ;;
+                x)              type="btn";  value="2"  ;;
+                y)              type="btn";  value="3"  ;;
+                select)         type="btn";  value="4"  ;;
+                start)          type="btn";  value="6"  ;;
+                leftthumb)      type="btn";  value="7"  ;;
+                rightthumb)     type="btn";  value="8"  ;;
+                leftbottom|leftshoulder)   type="btn";  value="9"  ;;
+                rightbottom|rightshoulder) type="btn";  value="10" ;;
+                up)             type="btn";  value="11" ;;
+                down)           type="btn";  value="12" ;;
+                left)           type="btn";  value="13" ;;
+                right)          type="btn";  value="14" ;;
+                lefttop|lefttrigger)   type="axis"; value="+4" ;;
+                righttop|righttrigger) type="axis"; value="+5" ;;
+                leftanalogleft)   type="axis"; value="-0" ;;
+                leftanalogright)  type="axis"; value="+0" ;;
+                leftanalogup)     type="axis"; value="-1" ;;
+                leftanalogdown)   type="axis"; value="+1" ;;
+                rightanalogleft)  type="axis"; value="-2" ;;
+                rightanalogright) type="axis"; value="+2" ;;
+                rightanalogup)    type="axis"; value="-3" ;;
+                rightanalogdown)  type="axis"; value="+3" ;;
+                hotkeyenable)     type="btn";  value="4" ;;
+                *) unset value type ;;
+            esac
+        fi
 
-                # workaround for mismatched controller mappings
-                iniGet "input_driver"
-                if [[ "${ini_value}" == "udev" ]]; then
-                    case "${RA_DEVICE_NAME}" in
-                        "8Bitdo FC30"*|"8Bitdo NES30"*|"8Bitdo SFC30"*|"8Bitdo SNES30"*|"8Bitdo Zero"*)
-                            if [[ "$_atebitdo_hack" -eq 1 ]]; then
-                                value="$((input_id+11))"
-                            fi
-                            ;;
-                    esac
-                fi
-                ;;
-        esac
+        # Fallback to raw ES-captured IDs (udev-style / joystick raw) when
+        # driver is not sdl3 OR SDL_Gamepad branch above did not match a role.
+        if [[ -z "${value}" ]]; then
+            case "${input_type}" in
+                hat)
+                    type="btn"
+                    value="h${input_id}${input_name}"
+                    ;;
+                axis)
+                    type="axis"
+                    if [[ "${input_value}" == "1" ]]; then
+                        value="+${input_id}"
+                    else
+                        value="-${input_id}"
+                    fi
+                    ;;
+                *)
+                    type="btn"
+                    value="${input_id}"
+
+                    # workaround for mismatched controller mappings
+                    iniGet "input_driver"
+                    if [[ "${ini_value}" == "udev" ]]; then
+                        case "${RA_DEVICE_NAME}" in
+                            "8Bitdo FC30"*|"8Bitdo NES30"*|"8Bitdo SFC30"*|"8Bitdo SNES30"*|"8Bitdo Zero"*)
+                                if [[ "$_atebitdo_hack" -eq 1 ]]; then
+                                    value="$((input_id+11))"
+                                fi
+                                ;;
+                        esac
+                    fi
+                    ;;
+            esac
+        fi
         if [[ "${input_name}" == "select" && "$_retroarch_select_hotkey" -eq 1 ]]; then
             _retroarch_select_type="${type}"
         fi
