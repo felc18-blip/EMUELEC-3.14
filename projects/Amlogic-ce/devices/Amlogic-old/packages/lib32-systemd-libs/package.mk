@@ -16,14 +16,10 @@ PKG_PATCH_DIRS+=" ${SD_DIRECTORY}/patches"
 PKG_LONGDESC="A system and session manager for Linux, compatible with SysV and LSB init scripts."
 PKG_BUILD_FLAGS="lib32"
 
-if [ "${DEVICE}" = "Amlogic-old" ]; then
-  PKG_PATCH_DIRS+=" ${SD_DIRECTORY}/patches/amlogic"
-fi
-
 PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Drootprefix=/usr \
                        -Dsplit-usr=false \
-					   -Dvmspawn=disabled \
+                       -Dvmspawn=disabled \
                        -Dsplit-bin=true \
                        -Ddefault-hierarchy=unified \
                        -Dtty-gid=5 \
@@ -123,27 +119,12 @@ unpack() {
 }
 
 pre_configure_target() {
-  # 1. Patch para Kernels antigos (TIOCGPTPEER foi adicionado no 4.13)
-  sed -i '/#include <sys\/ioctl.h>/a #ifndef TIOCGPTPEER\n#define TIOCGPTPEER _IOR('\''T'\'', 0x41, int)\n#endif' ${PKG_BUILD}/src/basic/terminal-util.c
+  # Kernel 3.14 compat — os patches 0600 (TIOCGPTPEER) e 0601 (nsfs.h)
+  # vem automaticamente via PKG_PATCH_DIRS+=" ${SD_DIRECTORY}/patches"
+  # (apontado pra systemd principal). Mesmo tratamento, mesma fonte.
 
-  # 2. Criar o linux/nsfs.h falso (Indispensável para o systemd 257 no Kernel 3.14)
-  mkdir -p ${PKG_BUILD}/src/basic/linux
-  cat <<EOF > ${PKG_BUILD}/src/basic/linux/nsfs.h
-#ifndef _LINUX_NSFS_H
-#define _LINUX_NSFS_H
-#include <linux/ioctl.h>
-#define NSIO    0xb7
-#define NS_GET_USERNS   _IO(NSIO, 0x1)
-#define NS_GET_PARENT   _IO(NSIO, 0x2)
-#define NS_GET_NSTYPE   _IO(NSIO, 0x3)
-#define NS_GET_OWNER_UID _IO(NSIO, 0x4)
-#endif
-EOF
-
-  # 3. Adicionar o caminho do nosso header falso nas flags de 32 bits
-  export TARGET_CFLAGS="${TARGET_CFLAGS} -I${PKG_BUILD}/src/basic"
-
-  # Flags originais do NextOS Elite
+  # Flags de codegen: workaround p/ um bug de reordenação que quebra
+  # unwind em ARM + ignora format-truncation (warning de gcc 15).
   export TARGET_CFLAGS="${TARGET_CFLAGS} -fno-schedule-insns -fno-schedule-insns2 -Wno-format-truncation"
   export LC_ALL=en_US.UTF-8
 }
