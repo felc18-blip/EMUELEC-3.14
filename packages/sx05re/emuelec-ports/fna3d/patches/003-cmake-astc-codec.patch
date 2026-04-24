@@ -1,0 +1,37 @@
+--- a/CMakeLists.txt	2024-02-01 12:59:40.000000000 -0300
++++ b/CMakeLists.txt	2026-04-23 23:29:05.509765094 -0300
+@@ -1,7 +1,8 @@
+ # CMake Project for FNA3D
+ # Written by @NeroBurner
+ cmake_minimum_required(VERSION 2.8.12)
+-project(FNA3D C)
++project(FNA3D C CXX)
++set(CMAKE_CXX_STANDARD 11)
+ 
+ # Options
+ option(BUILD_SHARED_LIBS "Build shared library" ON)
+@@ -103,6 +104,8 @@
+ 	src/FNA3D_Memory.c
+ 	src/FNA3D_PipelineCache.c
+ 	src/FNA3D_Tracing.c
++	# NextOS: ASTC CPU decode shim (C++, wraps Google astc-codec)
++	src/FNA3D_AstcDecode.cc
+ )
+ add_library(mojoshader STATIC
+ 	MojoShader/mojoshader.c
+@@ -124,6 +127,15 @@
+ 	)
+ endif()
+ 
++# NextOS: Google astc-codec for CPU ASTC decode (Mali-400/450 has no ASTC HW)
++set(OPTION_ASTC_TESTS OFF CACHE BOOL "" FORCE)
++set(OPTION_BUILD_FUZZER OFF CACHE BOOL "" FORCE)
++add_subdirectory(astc-codec EXCLUDE_FROM_ALL)
++target_link_libraries(FNA3D PRIVATE astc-codec)
++target_include_directories(FNA3D PRIVATE
++	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/astc-codec/include>
++)
++
+ # Build flags
+ if(NOT MSVC)
+ 	set_property(TARGET FNA3D PROPERTY COMPILE_FLAGS "-std=gnu99 -Wall -Wno-strict-aliasing -pedantic")

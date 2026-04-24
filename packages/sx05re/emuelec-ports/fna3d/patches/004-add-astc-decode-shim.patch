@@ -1,0 +1,49 @@
+--- /dev/null	2026-04-23 16:30:17.338323628 -0300
++++ b/src/FNA3D_AstcDecode.cc	2026-04-23 23:28:42.178907633 -0300
+@@ -0,0 +1,46 @@
++/* NextOS-Elite-Edition: CPU ASTC decode shim for Mali-400/450.
++ * Wraps Google astc-codec so the C-only FNA3D driver can call it.
++ */
++
++#include <astc-codec/astc-codec.h>
++#include <stddef.h>
++#include <stdint.h>
++
++extern "C" int NextOS_AstcDecompressToRGBA(
++	const uint8_t *astc_data,
++	size_t astc_data_size,
++	int width,
++	int height,
++	int blockX,
++	int blockY,
++	uint8_t *out_rgba,
++	size_t out_rgba_size
++) {
++	using astc_codec::FootprintType;
++	FootprintType fp;
++
++	/* Pick footprint by block dims. PortMaster FNA3D enum:
++	 *   25 → 4x4, 26 → 6x6, 27 → 8x8 (assumed) */
++	if (blockX == 4 && blockY == 4) {
++		fp = FootprintType::k4x4;
++	} else if (blockX == 6 && blockY == 6) {
++		fp = FootprintType::k6x6;
++	} else if (blockX == 8 && blockY == 8) {
++		fp = FootprintType::k8x8;
++	} else if (blockX == 5 && blockY == 5) {
++		fp = FootprintType::k5x5;
++	} else if (blockX == 10 && blockY == 10) {
++		fp = FootprintType::k10x10;
++	} else {
++		/* Unknown footprint — fail so caller can handle (fill with zeros). */
++		return 0;
++	}
++
++	bool ok = astc_codec::ASTCDecompressToRGBA(
++		astc_data, astc_data_size,
++		(size_t) width, (size_t) height, fp,
++		out_rgba, out_rgba_size,
++		(size_t) (4 * width)
++	);
++	return ok ? 1 : 0;
++}

@@ -1,0 +1,267 @@
+--- a/src/FNA3D_Driver_OpenGL.c	2024-02-01 12:59:40.000000000 -0300
++++ b/src/FNA3D_Driver_OpenGL.c	2026-04-23 23:29:31.327712357 -0300
+@@ -36,6 +36,15 @@
+ #include <SDL_syswm.h>
+ #endif /* SDL_VIDEO_DRIVER_UIKIT */
+ 
++/* NextOS: ASTC CPU decode shim (implemented in FNA3D_AstcDecode.cc).
++ * Returns 1 on success, 0 on failure. Caller must provide out_rgba of
++ * at least width*height*4 bytes. */
++extern int NextOS_AstcDecompressToRGBA(
++	const uint8_t *astc_data, size_t astc_data_size,
++	int width, int height, int blockX, int blockY,
++	uint8_t *out_rgba, size_t out_rgba_size
++);
++
+ /* Internal Structures */
+ 
+ typedef struct FNA3D_Command FNA3D_Command; /* See Threading Support section */
+@@ -160,6 +169,8 @@
+ 	SDL_GLContext context;
+ 	uint8_t useES3;
+ 	uint8_t useCoreProfile;
++	/* NextOS: GLES 2.0 path for Mali-400/450 via gl4es */
++	uint8_t useES2;
+ 
+ 	/* FIXME: https://github.com/KhronosGroup/EGL-Registry/pull/113 */
+ 	uint8_t isEGL;
+@@ -343,6 +354,10 @@
+ 	GL_COMPRESSED_TEXTURE_FORMATS,	/* SurfaceFormat.Dxt5SrgbEXT */
+ 	GL_COMPRESSED_TEXTURE_FORMATS,	/* SurfaceFormat.Bc7EXT */
+ 	GL_COMPRESSED_TEXTURE_FORMATS,	/* SurfaceFormat.Bc7SrgbEXT */
++	/* NextOS: PortMaster ASTC formats 25/26/27 — treat as RGBA fallback */
++	GL_RGBA,			/* ASTC_4x4 (25) */
++	GL_RGBA,			/* ASTC_6x6 (26) */
++	GL_RGBA,			/* ASTC_8x8 (27) */
+ };
+ 
+ static int32_t XNAToGL_TextureInternalFormat[] =
+@@ -372,6 +387,10 @@
+ 	GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT,	/* SurfaceFormat.Dxt5SrgbEXT */
+ 	GL_COMPRESSED_RGBA_BPTC_UNORM_EXT,	/* SurfaceFormat.BC7EXT */
+ 	GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_EXT,/* SurfaceFormat.BC7SrgbEXT */
++	/* NextOS: ASTC fallback → plain RGBA8 (Mali-450 has no ASTC; textures corrupt but no OOB) */
++	GL_RGBA8,			/* ASTC_4x4 (25) */
++	GL_RGBA8,			/* ASTC_6x6 (26) */
++	GL_RGBA8,			/* ASTC_8x8 (27) */
+ };
+ 
+ static int32_t XNAToGL_TextureDataType[] =
+@@ -401,6 +420,10 @@
+ 	GL_ZERO,			/* NOPE */
+ 	GL_ZERO,			/* NOPE */
+ 	GL_ZERO,			/* NOPE */
++	/* NextOS: ASTC as RGBA bytes (placeholder, won't render correctly) */
++	GL_UNSIGNED_BYTE,		/* ASTC_4x4 (25) */
++	GL_UNSIGNED_BYTE,		/* ASTC_6x6 (26) */
++	GL_UNSIGNED_BYTE,		/* ASTC_8x8 (27) */
+ };
+ 
+ static int32_t XNAToGL_BlendMode[] =
+@@ -3876,6 +3899,35 @@
+ 
+ 	BindTexture(renderer, glTexture);
+ 
++	/* NextOS: CPU-decode ASTC (PortMaster formats 25/26/27) then upload as RGBA8.
++	 * Mali-450 has no ASTC HW; feeding raw ASTC as RGBA8 SEGVs in driver NEON. */
++	if (glTexture->format >= 25 && glTexture->format <= 27)
++	{
++		int blockX = (glTexture->format == 25) ? 4 :
++			     (glTexture->format == 26) ? 6 : 8;
++		int blockY = blockX;
++		size_t rgbaSize = (size_t) w * (size_t) h * 4u;
++		uint8_t *rgba = (uint8_t*) SDL_malloc(rgbaSize);
++		if (rgba == NULL)
++		{
++			return;
++		}
++		if (NextOS_AstcDecompressToRGBA(
++			(const uint8_t*) data, (size_t) dataLength,
++			w, h, blockX, blockY,
++			rgba, rgbaSize))
++		{
++			renderer->glTexSubImage2D(
++				GL_TEXTURE_2D,
++				level,
++				x, y, w, h,
++				GL_RGBA, GL_UNSIGNED_BYTE, rgba
++			);
++		}
++		SDL_free(rgba);
++		return;
++	}
++
+ 	glFormat = XNAToGL_TextureFormat[glTexture->format];
+ 	if (glFormat == GL_COMPRESSED_TEXTURE_FORMATS)
+ 	{
+@@ -5455,6 +5507,7 @@
+ ) {
+ 	int32_t i;
+ 	const char *baseErrorString = (
++		renderer->useES2 ? "OpenGL ES 2.0 detected (NextOS gl4es path)" :
+ 		renderer->useES3 ?
+ 			"OpenGL ES 3.0 support is required!" :
+ 			"OpenGL 2.1 support is required!"
+@@ -5484,7 +5537,7 @@
+ #pragma GCC diagnostic pop
+ 
+ 	/* Weeding out the GeForce FX cards... */
+-	if (!renderer->supports_BaseGL)
++	if (!renderer->supports_BaseGL && !renderer->useES2)
+ 	{
+ 		FNA3D_LogError(
+ 			"%s\n%s",
+@@ -5493,10 +5546,18 @@
+ 		);
+ 		return;
+ 	}
++	if (renderer->useES2)
++	{
++		FNA3D_LogInfo(
++			"[NEXTOS-FNA3D] ES2 mode: assuming BaseGL ok via gl4es"
++		);
++		renderer->supports_BaseGL = 1;
++	}
+ 
+ 	/* No depth precision whatsoever? Something's busted. */
+ 	if (	!renderer->supports_DoublePrecisionDepth &&
+-		!renderer->supports_OES_single_precision	)
++		!renderer->supports_OES_single_precision &&
++		!renderer->useES2	)
+ 	{
+ 		FNA3D_LogError(
+ 			"%s\n%s",
+@@ -5562,6 +5623,7 @@
+ 	/* AKA: The shitty TexEnvi check */
+ 	if (	!renderer->useES3 &&
+ 		!renderer->useCoreProfile &&
++		!renderer->useES2 &&
+ 		!renderer->supports_NonES3NonCore	)
+ 	{
+ 		FNA3D_LogError(
+@@ -5592,7 +5654,7 @@
+ 	}
+ 
+ 	/* Possibly bogus if a game never uses render targets? */
+-	if (!renderer->supports_ARB_framebuffer_object)
++	if (!renderer->supports_ARB_framebuffer_object && !renderer->useES2)
+ 	{
+ 		FNA3D_LogError(
+ 			"OpenGL framebuffer support is required!\n%s",
+@@ -5600,6 +5662,11 @@
+ 		);
+ 		return;
+ 	}
++	if (renderer->useES2)
++	{
++		/* gl4es emulates ARB_framebuffer_object over GLES2 FBOs */
++		renderer->supports_ARB_framebuffer_object = 1;
++	}
+ 
+ 	/* Check this before KHR_debug inits, to prevent complaints about
+ 	 * unsupported render formats from showing up
+@@ -5723,8 +5790,9 @@
+ 
+ static uint8_t OPENGL_PrepareWindowAttributes(uint32_t *flags)
+ {
+-	uint8_t forceES3, forceCore, forceCompat;
++	uint8_t forceES3, forceCore, forceCompat, forceGL4ES;
+ 	const char *osVersion;
++	const char *glLibraryPath;
+ 	int32_t depthSize, stencilSize;
+ 	const char *depthFormatHint;
+ 
+@@ -5732,6 +5800,9 @@
+ 	forceES3 = SDL_GetHintBoolean("FNA3D_OPENGL_FORCE_ES3", 0);
+ 	forceCore = SDL_GetHintBoolean("FNA3D_OPENGL_FORCE_CORE_PROFILE", 0);
+ 	forceCompat = SDL_GetHintBoolean("FNA3D_OPENGL_FORCE_COMPATIBILITY_PROFILE", 0);
++	/* NextOS: Mali-400/450 GLES2-only path via gl4es */
++	forceGL4ES = SDL_GetHintBoolean("FNA3D_FORCE_GL4ES", 0);
++	glLibraryPath = SDL_GetHint("FNA3D_OPENGL_LIBRARY");
+ 
+ 	/* Some platforms are GLES only */
+ 	osVersion = SDL_GetPlatform();
+@@ -5808,13 +5879,49 @@
+ 			SDL_GL_CONTEXT_PROFILE_COMPATIBILITY
+ 		);
+ 	}
++	else if (forceGL4ES)
++	{
++		/* NextOS: request ES 2.0 context for Mali-400/450.
++		 * gl4es intercepts desktop GL calls via libGL.so.1 path. */
++		SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0);
++		SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
++		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
++		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
++		SDL_GL_SetAttribute(
++			SDL_GL_CONTEXT_PROFILE_MASK,
++			SDL_GL_CONTEXT_PROFILE_ES
++		);
++		SDL_LogInfo(
++			SDL_LOG_CATEGORY_APPLICATION,
++			"[NEXTOS-FNA3D] FORCE_GL4ES=1, requesting ES 2.0 context"
++		);
++	}
+ 
++	/* NextOS: allow custom GL library path (e.g. gl4es) */
++	if (glLibraryPath != NULL)
++	{
++		SDL_LogInfo(
++			SDL_LOG_CATEGORY_APPLICATION,
++			"[NEXTOS-FNA3D] Loading custom GL library: %s",
++			glLibraryPath
++		);
++		if (SDL_GL_LoadLibrary(glLibraryPath) < 0)
++		{
++			SDL_LogError(
++				SDL_LOG_CATEGORY_APPLICATION,
++				"[NEXTOS-FNA3D] SDL_GL_LoadLibrary(%s) failed: %s",
++				glLibraryPath,
++				SDL_GetError()
++			);
++			return 0;
++		}
++	}
+ 	/* If there's no GL library, bail!
+ 	 * Only do this after all the flags above are set, as they may affect
+ 	 * which GL library actually gets loaded (desktop vs ES, for example).
+ 	 * -flibit
+ 	 */
+-	if (SDL_GL_LoadLibrary(NULL) < 0)
++	else if (SDL_GL_LoadLibrary(NULL) < 0)
+ 	{
+ 		return 0;
+ 	}
+@@ -5864,11 +5971,32 @@
+ 	renderer->context = SDL_GL_CreateContext(
+ 		(SDL_Window*) presentationParameters->deviceWindowHandle
+ 	);
++	if (renderer->context == NULL)
++	{
++		SDL_LogError(
++			SDL_LOG_CATEGORY_APPLICATION,
++			"[NEXTOS-FNA3D] SDL_GL_CreateContext failed: %s",
++			SDL_GetError()
++		);
++	}
+ 
+ 	/* Check for a possible ES/Core context */
+ 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &flags);
+ 	renderer->useES3 = (flags & SDL_GL_CONTEXT_PROFILE_ES) != 0;
+ 	renderer->useCoreProfile = (flags & SDL_GL_CONTEXT_PROFILE_CORE) != 0;
++	/* NextOS: detect ES 2.0 specifically (Mali-450 path) */
++	{
++		int32_t majVer = 0, minVer = 0;
++		SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &majVer);
++		SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &minVer);
++		renderer->useES2 = (renderer->useES3 && majVer < 3);
++		SDL_LogInfo(
++			SDL_LOG_CATEGORY_APPLICATION,
++			"[NEXTOS-FNA3D] context profile=0x%x major=%d minor=%d useES3=%d useES2=%d",
++			flags, majVer, minVer,
++			(int) renderer->useES3, (int) renderer->useES2
++		);
++	}
+ 
+ 	/* Check for EGL-based contexts */
+ 	renderer->isEGL = (	renderer->useES3 ||

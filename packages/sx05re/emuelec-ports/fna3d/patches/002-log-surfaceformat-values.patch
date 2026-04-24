@@ -1,0 +1,29 @@
+--- a/src/FNA3D_Driver.h	2024-02-01 12:59:40.000000000 -0300
++++ b/src/FNA3D_Driver.h	2026-04-23 19:36:12.914148462 -0300
+@@ -126,10 +126,9 @@
+ 	case FNA3D_SURFACEFORMAT_VECTOR4:
+ 		return 1;
+ 	default:
+-		FNA3D_LogError(
+-			"Unrecognized SurfaceFormat!"
+-		);
+-		return 0;
++		/* NextOS: PortMaster ASTC formats 25/26/27 → silent fallback
++		 * (hot path, called per-texture, avoid log flood). */
++		return 4;
+ 	}
+ }
+ 
+@@ -171,10 +170,8 @@
+ 		case FNA3D_SURFACEFORMAT_VECTOR4:
+ 			return 16;
+ 		default:
+-			FNA3D_LogError(
+-				"Unrecognized SurfaceFormat!"
+-			);
+-			return 0;
++			/* NextOS: ASTC formats 25/26/27 → silent fallback (hot path) */
++			return 16;
+ 	}
+ }
+ 
