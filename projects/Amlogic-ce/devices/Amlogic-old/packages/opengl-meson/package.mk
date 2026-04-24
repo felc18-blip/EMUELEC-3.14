@@ -117,6 +117,56 @@ makeinstall_target() {
 
   # Hook placeholder
   mkdir -p ${INSTALL}/usr/bin
+
+  # =========================================================
+  # 6. FIX EXECSTACK — libMali vem com PT_GNU_STACK = RWX (0x7),
+  #    o que o kernel bloqueia em dlopen() runtime com
+  #    "cannot enable executable stack as shared object requires".
+  #    LD_PRELOAD ainda funciona, mas dlopen() (usado pelo SDL3
+  #    pra carregar EGL/GLES) falha. Limpamos o bit X do GNU_STACK
+  #    em todos os libMali.*so instalados pra destravar dlopen.
+  # =========================================================
+  python3 - <<'PYSCRIPT'
+import os, struct, glob
+PT_GNU_STACK = 0x6474e551
+for pattern in ["${INSTALL}/usr/lib/libMali*.so", "${INSTALL}/usr/lib32/libMali*.so",
+                "${SYSROOT_PREFIX}/usr/lib/libMali.so", "${SYSROOT_PREFIX}/usr/lib32/libMali.so"]:
+    for path in glob.glob(pattern):
+        if os.path.islink(path):
+            continue
+        with open(path, "rb") as f:
+            data = f.read()
+        # ELF32 vs ELF64 — both Mali variants (eabihf=32, arm64=64) are shipped
+        ei_class = data[4]
+        if ei_class == 1:  # ELF32
+            e_phoff   = struct.unpack("<I", data[28:32])[0]
+            e_phentsize = struct.unpack("<H", data[42:44])[0]
+            e_phnum   = struct.unpack("<H", data[44:46])[0]
+            flags_field_offset_in_phdr = 24
+            fmt_phdr = "<8I"
+        else:  # ELF64
+            e_phoff   = struct.unpack("<Q", data[32:40])[0]
+            e_phentsize = struct.unpack("<H", data[54:56])[0]
+            e_phnum   = struct.unpack("<H", data[56:58])[0]
+            flags_field_offset_in_phdr = 4  # Phdr64: type, flags, offset, vaddr, paddr, ...
+            fmt_phdr = None
+        patched = False
+        for i in range(e_phnum):
+            ph_off = e_phoff + i*e_phentsize
+            ph_type = struct.unpack("<I", data[ph_off:ph_off+4])[0]
+            if ph_type == PT_GNU_STACK:
+                fo = ph_off + flags_field_offset_in_phdr
+                old = struct.unpack("<I", data[fo:fo+4])[0]
+                if old & 1:  # X bit set
+                    new = old & ~1
+                    data = data[:fo] + struct.pack("<I", new) + data[fo+4:]
+                    patched = True
+                    print(f"  fixed EXECSTACK on {path}: 0x{old:x} -> 0x{new:x}")
+                break
+        if patched:
+            with open(path, "wb") as f:
+                f.write(data)
+PYSCRIPT
 }
 
 post_install() {

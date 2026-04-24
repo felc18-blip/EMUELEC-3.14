@@ -2,7 +2,7 @@
 # Copyright (C) 2021-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="bennugd-monolithic"
-PKG_VERSION="5b9b9bce49acb934dd6fbc74f44987a17de082cb"
+PKG_VERSION="93c9fd9f9b0935f8d11e7c6e6a87e61389c7301d"
 PKG_ARCH="arm"
 PKG_SITE="https://github.com/felc18-blip/bennugd-monolithic-sdl3-"
 PKG_URL="${PKG_SITE}.git"
