@@ -38,21 +38,12 @@ makeinstall_target() {
   # estrutura do gptokeyb
   mkdir -p ${INSTALL}/storage/.config/emuelec/configs/gptokeyb
 
-  # wrapper para redirecionar gptokeyb → gptokeyb2
-  cat > ${INSTALL}/usr/bin/gptokeyb << 'EOF'
-#!/bin/sh
-CONTROLFOLDER="/roms/ports/PortMaster"
-
-if [ -f "$CONTROLFOLDER/libinterpose.aarch64.so" ]; then
-  LIB="$CONTROLFOLDER/libinterpose.aarch64.so"
-elif [ -f "$CONTROLFOLDER/libinterpose.armhf.so" ]; then
-  LIB="$CONTROLFOLDER/libinterpose.armhf.so"
-else
-  exec "$CONTROLFOLDER/gptokeyb2" "$@"
-fi
-
-exec env LD_PRELOAD=$LIB "$CONTROLFOLDER/gptokeyb2" "$@"
-EOF
-
-  chmod 0755 ${INSTALL}/usr/bin/gptokeyb
+  # NOTA: o pacote 'gptokeyb' é quem instala o binário real em /usr/bin/gptokeyb
+  # (classic gptokeyb). NÃO instalar wrapper aqui — antes tinha um shell
+  # redirecionando pra gptokeyb2+libinterpose, mas:
+  #   1) gerava conflito com o binário real (quem sobreescreve primeiro vence);
+  #   2) libinterpose.aarch64.so não carrega em ports 32-bit (bennugd, etc),
+  #      então o redirect silenciosamente quebrava esses ports.
+  # Quem precisar de gptokeyb2 chama explicitamente via $GPTOKEYB2 (control.txt
+  # do PortMaster já faz isso) ou /roms/ports/PortMaster/gptokeyb2 direto.
 }

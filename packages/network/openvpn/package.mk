@@ -1,6 +1,6 @@
 PKG_NAME="openvpn"
-PKG_VERSION="2.7.0"
-PKG_SHA256="2f0e10eb272be61e8fb25fe1cfa20875ff30ac857ef1418000c02290bd6dfa45"
+PKG_VERSION="2.7.2"
+PKG_SHA256="9c3e150a595fc9a375221f2fa9f10524a9c064536cf81c96e3ba66c735b86f26"
 PKG_LICENSE="GPL"
 PKG_SITE="https://openvpn.net"
 PKG_URL="https://swupdate.openvpn.org/community/releases/${PKG_NAME}-${PKG_VERSION}.tar.gz"
