@@ -1,0 +1,37 @@
+From: NextOS Elite <noreply@nextos.local>
+Subject: [PATCH] include/elf.h: delegate to system when HOSTCC
+
+u-boot/include/elf.h tem defs ELF legacy mas falta Elf64_Rela (moderno).
+Quando host-tools precisam disso, falha com 'Elf64_Rela undeclared'.
+
+Fix: quando USE_HOSTCC, pula direto pro system <elf.h> via include_next
+ANTES do guard #define _ELF_H (senão system elf.h vê guard já definido
+e skippa tudo — o bug que causava Elf64_Rela unknown).
+
+---
+ include/elf.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/include/elf.h b/include/elf.h
+--- a/include/elf.h
++++ b/include/elf.h
+@@ -9,6 +9,12 @@
+  * formerly known as "elf_abi.h".
+  */
+ 
++#ifdef USE_HOSTCC
++/* Host tools: usa elf.h do sistema (tem Elf64_Rela etc). include_next
++ * ANTES do guard _ELF_H senão system header é skippado. */
++#include_next <elf.h>
++#else /* !USE_HOSTCC */
++
+ #ifndef _ELF_H
+ #define _ELF_H
+ 
+@@ -541,4 +547,6 @@
+ 
+ int valid_elf_image(unsigned long addr);
+ 
++#endif /* !USE_HOSTCC */
++
+ #endif /* _ELF_H */

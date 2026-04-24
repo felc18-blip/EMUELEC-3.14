@@ -1,0 +1,24 @@
+From: NextOS Elite <noreply@nextos.local>
+Subject: [PATCH] tools: force u-boot includes to take priority over system
+
+Headers u-boot viravam -idirafter, perdiam pra /usr/include do host.
+Em hosts modernos com libfdt-dev, /usr/include/libfdt*.h conflitava
+com bundled ('conflicting types fdt64_t', 'redefinition fdt_appendprop_*').
+Remove o patsubst pra manter -I normal (prioridade sobre system).
+
+---
+ tools/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/Makefile b/tools/Makefile
+--- a/tools/Makefile
++++ b/tools/Makefile
+@@ -198,7 +198,7 @@
+ # Define _GNU_SOURCE to obtain the getline prototype from stdio.h
+ #
+ HOST_EXTRACFLAGS += -include $(srctree)/include/libfdt_env.h \
+-		$(patsubst -I%,-idirafter%, $(filter -I%, $(UBOOTINCLUDE))) \
++		$(filter -I%, $(UBOOTINCLUDE)) \
+ 		-I$(srctree)/lib/libfdt \
+ 		-I$(srctree)/tools \
+ 		-DCONFIG_SYS_TEXT_BASE=$(CONFIG_SYS_TEXT_BASE) \

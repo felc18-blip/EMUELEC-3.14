@@ -21,7 +21,14 @@ pre_configure_target() {
 
 pre_make_target() {
   # Corrige o prefixo do toolchain
-  sed -i "s|arm-none-eabi-|arm-eabi-|g" $PKG_BUILD/Makefile $PKG_BUILD/arch/arm/cpu/armv8/gx*/firmware/scp_task/Makefile 2>/dev/null || true
+  sed -i "s|arm-none-eabi-|arm-eabi-|g" $PKG_BUILD/Makefile $PKG_BUILD/arch/arm/cpu/armv8/*/firmware/scp_task/Makefile 2>/dev/null || true
+
+  # Race em make -j: "all : clean $(obj)/..." faz o clean apagar o dir
+  # enquanto os outros targets estao escrevendo arquivos nele. Tira o
+  # clean da dep de all para evitar a corrida.
+  for scp_mk in $PKG_BUILD/arch/arm/cpu/armv8/*/firmware/scp_task/Makefile; do
+    [ -f "$scp_mk" ] && sed -i 's|^all : clean |all : |' "$scp_mk"
+  done
 
   # Tática Ninja: Isola os headers do libfdt
   echo ">>> Creating shadow includes for libfdt isolation..."

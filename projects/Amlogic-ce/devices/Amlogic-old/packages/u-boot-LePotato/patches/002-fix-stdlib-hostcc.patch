@@ -1,0 +1,33 @@
+From: NextOS Elite <noreply@nextos.local>
+Subject: [PATCH] include/stdlib.h: delegate to system when HOSTCC
+
+u-boot/include/stdlib.h é um shim que só inclui <malloc.h>. Mas como
+ele é achado ANTES do system stdlib.h (via -I$(srctree)/include), as
+host-tools que precisam de EXIT_FAILURE/exit/free/etc pegam esse shim
+em vez do system real — erros 'EXIT_FAILURE undeclared'.
+
+Fix: quando USE_HOSTCC, usa #include_next pra delegar pro próximo
+<stdlib.h> no path (o system). Mantém comportamento original pro
+target (cross-compile) — só malloc.h.
+
+---
+ include/stdlib.h | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/include/stdlib.h b/include/stdlib.h
+--- a/include/stdlib.h
++++ b/include/stdlib.h
+@@ -7,6 +7,12 @@
+ #ifndef __STDLIB_H_
+ #define __STDLIB_H_
+ 
+-#include <malloc.h>
++#ifdef USE_HOSTCC
++/* Build das tools: usa stdlib.h do sistema (EXIT_FAILURE, exit, etc). */
++#include_next <stdlib.h>
++#else
++/* Build target: só precisa do malloc shim. */
++#include <malloc.h>
++#endif
+ 
+ #endif /* __STDLIB_H_ */

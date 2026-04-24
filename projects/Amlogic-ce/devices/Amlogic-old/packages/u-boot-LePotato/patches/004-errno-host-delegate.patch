@@ -1,0 +1,33 @@
+From: NextOS Elite <noreply@nextos.local>
+Subject: [PATCH] include/errno.h: delegate to system when HOSTCC
+
+u-boot/include/errno.h declara 'extern int errno;' (não-TLS), mas glibc
+moderno define errno como __thread (TLS). Linker rejeita: 'errno: TLS
+definition in libc.so.6 does not match non-TLS reference'.
+
+Fix: quando USE_HOSTCC, delega pro system errno.h via include_next.
+
+---
+ include/errno.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/include/errno.h b/include/errno.h
+--- a/include/errno.h
++++ b/include/errno.h
+@@ -1,5 +1,10 @@
+ #ifndef _ERRNO_H
+ 
++#ifdef USE_HOSTCC
++/* Host tools: delega pro errno.h do sistema (errno TLS moderno). */
++#include_next <errno.h>
++#else
++
+ #include <asm-generic/errno.h>
+ 
+ extern int errno;
+@@ -9,4 +14,5 @@
+ #ifdef CONFIG_ERRNO_STR
+ const char *errno_str(int errno);
+ #endif
++#endif /* !USE_HOSTCC */
+ #endif /* _ERRNO_H */

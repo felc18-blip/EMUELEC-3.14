@@ -1,0 +1,193 @@
+From: NextOS Elite <noreply@nextos.local>
+Subject: [PATCH] tools: add explicit #include <stdlib.h>
+
+GCC moderno exige <stdlib.h> explícito pra exit/EXIT_FAILURE/EXIT_SUCCESS.
+Antes era incluído transitivamente; agora é erro de build.
+
+--- a/tools/aisimage.c	2026-04-23 15:54:07.172478628 -0300
++++ b/tools/aisimage.c	2026-04-23 15:54:07.173118983 -0300
+@@ -5,6 +5,7 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ 
++#include <stdlib.h>
+ #include "imagetool.h"
+ #include "aisimage.h"
+ #include <image.h>
+--- a/tools/atmelimage.c	2026-04-23 15:54:07.176442812 -0300
++++ b/tools/atmelimage.c	2026-04-23 15:54:07.177017957 -0300
+@@ -5,6 +5,7 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ 
++#include <stdlib.h>
+ #include "imagetool.h"
+ #include "mkimage.h"
+ 
+--- a/tools/bmp_logo.c	2026-04-23 15:54:07.180342811 -0300
++++ b/tools/bmp_logo.c	2026-04-23 15:54:07.180955920 -0300
+@@ -1,3 +1,4 @@
++#include <stdlib.h>
+ #include "compiler.h"
+ 
+ enum {
+--- a/tools/default_image.c	2026-04-23 15:54:07.184115192 -0300
++++ b/tools/default_image.c	2026-04-23 15:54:07.184672264 -0300
+@@ -14,6 +14,7 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ 
++#include <stdlib.h>
+ #include "imagetool.h"
+ #include <image.h>
+ #include <u-boot/crc.h>
+--- a/tools/dumpimage.c	2026-04-23 15:54:07.187758829 -0300
++++ b/tools/dumpimage.c	2026-04-23 15:54:07.188300703 -0300
+@@ -6,6 +6,7 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ 
++#include <stdlib.h>
+ #include "dumpimage.h"
+ #include <image.h>
+ #include <version.h>
+--- a/tools/fit_check_sign.c	2026-04-23 15:54:07.191331572 -0300
++++ b/tools/fit_check_sign.c	2026-04-23 15:54:07.191868654 -0300
+@@ -19,6 +19,7 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ 
++#include <stdlib.h>
+ #include "mkimage.h"
+ #include "fit_common.h"
+ #include <image.h>
+--- a/tools/fit_common.c	2026-04-23 15:54:07.194949588 -0300
++++ b/tools/fit_common.c	2026-04-23 15:54:07.195498782 -0300
+@@ -18,6 +18,7 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ 
++#include <stdlib.h>
+ #include "imagetool.h"
+ #include "mkimage.h"
+ #include "fit_common.h"
+--- a/tools/fit_image.c	2026-04-23 15:54:07.198840078 -0300
++++ b/tools/fit_image.c	2026-04-23 15:54:07.199425727 -0300
+@@ -14,6 +14,7 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ 
++#include <stdlib.h>
+ #include "imagetool.h"
+ #include "fit_common.h"
+ #include "mkimage.h"
+--- a/tools/fit_info.c	2026-04-23 15:54:07.202500762 -0300
++++ b/tools/fit_info.c	2026-04-23 15:54:07.203065561 -0300
+@@ -22,6 +22,7 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ 
++#include <stdlib.h>
+ #include "mkimage.h"
+ #include "fit_common.h"
+ #include <image.h>
+--- a/tools/gpimage.c	2026-04-23 15:54:07.206218313 -0300
++++ b/tools/gpimage.c	2026-04-23 15:54:07.206796119 -0300
+@@ -19,6 +19,7 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ 
++#include <stdlib.h>
+ #include "imagetool.h"
+ #include <compiler.h>
+ #include <image.h>
+--- a/tools/gpimage-common.c	2026-04-23 15:54:07.210312174 -0300
++++ b/tools/gpimage-common.c	2026-04-23 15:54:07.210872366 -0300
+@@ -18,6 +18,7 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ 
++#include <stdlib.h>
+ #include "imagetool.h"
+ #include <compiler.h>
+ #include <image.h>
+--- a/tools/imximage.c	2026-04-23 15:54:07.214724682 -0300
++++ b/tools/imximage.c	2026-04-23 15:54:07.215328793 -0300
+@@ -9,6 +9,7 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ 
++#include <stdlib.h>
+ #include "imagetool.h"
+ #include <image.h>
+ #include "imximage.h"
+--- a/tools/kwbimage.c	2026-04-23 15:54:07.218773783 -0300
++++ b/tools/kwbimage.c	2026-04-23 15:54:07.219411827 -0300
+@@ -11,6 +11,7 @@
+  * headers in v1 images
+  */
+ 
++#include <stdlib.h>
+ #include "imagetool.h"
+ #include <limits.h>
+ #include <image.h>
+--- a/tools/mkimage.c	2026-04-23 15:54:07.223204504 -0300
++++ b/tools/mkimage.c	2026-04-23 15:54:07.223783706 -0300
+@@ -8,6 +8,7 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ 
++#include <stdlib.h>
+ #include "mkimage.h"
+ #include <image.h>
+ #include <version.h>
+--- a/tools/mxsimage.c	2026-04-23 15:54:07.227632124 -0300
++++ b/tools/mxsimage.c	2026-04-23 15:54:07.228226843 -0300
+@@ -8,6 +8,7 @@
+ 
+ #ifdef CONFIG_MXS
+ 
++#include <stdlib.h>
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <stdio.h>
+--- a/tools/omapimage.c	2026-04-23 15:54:07.231728916 -0300
++++ b/tools/omapimage.c	2026-04-23 15:54:07.232280499 -0300
+@@ -14,6 +14,7 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ 
++#include <stdlib.h>
+ #include "imagetool.h"
+ #include <compiler.h>
+ #include <image.h>
+--- a/tools/pblimage.c	2026-04-23 15:54:07.235971752 -0300
++++ b/tools/pblimage.c	2026-04-23 15:54:07.236563036 -0300
+@@ -3,6 +3,7 @@
+  *
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
++#include <stdlib.h>
+ #include "imagetool.h"
+ #include <image.h>
+ #include "pblimage.h"
+--- a/tools/socfpgaimage.c	2026-04-23 15:54:07.239938054 -0300
++++ b/tools/socfpgaimage.c	2026-04-23 15:54:07.240528902 -0300
+@@ -31,6 +31,7 @@
+  * typically used to write the image to the boot medium.
+  */
+ 
++#include <stdlib.h>
+ #include "pbl_crc32.h"
+ #include "imagetool.h"
+ #include <image.h>
+--- a/tools/ublimage.c	2026-04-23 15:54:07.243886741 -0300
++++ b/tools/ublimage.c	2026-04-23 15:54:07.244482359 -0300
+@@ -13,6 +13,7 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ 
++#include <stdlib.h>
+ #include "imagetool.h"
+ #include <image.h>
+ #include "ublimage.h"
