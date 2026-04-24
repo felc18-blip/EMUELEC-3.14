@@ -11,13 +11,13 @@ PKG_SITE="https://github.com/libretro/RetroArch"
 PKG_URL=""
 PKG_LICENSE="GPLv3"
 #PKG_DEPENDS_TARGET="retroarch lib32-zlib lib32-${OPENGLES}"
-PKG_DEPENDS_TARGET="retroarch lib32-toolchain lib32-SDL2 lib32-alsa-lib lib32-openssl lib32-freetype lib32-zlib lib32-ffmpeg lib32-libass lib32-libdrm lib32-${OPENGLES}"
+PKG_DEPENDS_TARGET="retroarch lib32-toolchain lib32-SDL3 lib32-alsa-lib lib32-openssl lib32-freetype lib32-zlib lib32-ffmpeg lib32-libass lib32-libdrm lib32-${OPENGLES}"
 # samba avahi nss-mdns  openal-soft
 PKG_LONGDESC="Reference frontend for the libretro API."
 PKG_BUILD_FLAGS="lib32"
 
 RA_DIRECTORY="$(get_pkg_directory retroarch)"
-PKG_PATCH_DIRS+=" ${RA_DIRECTORY}/patches"
+# NextOS: patches migrated into the fork (github.com/felc18-blip/RetroArch-nextos-sdl3), no PKG_PATCH_DIRS needed
 
 PKG_CONFIGURE_OPTS_TARGET="--disable-qt \
                            --enable-alsa \
@@ -33,12 +33,13 @@ PKG_CONFIGURE_OPTS_TARGET="--disable-qt \
                            --disable-discord \
                            --disable-vg \
                            --disable-sdl \
-                           --enable-sdl2 \
+                           --disable-sdl2 \
+                           --enable-sdl3 \
                            --enable-ffmpeg \
                            --enable-neon"
 
 if [ "${PROJECT}" = "Amlogic-ce" ]; then
-  PKG_PATCH_DIRS+=" ${RA_DIRECTORY}/patches/Amlogic"
+  # patches/Amlogic: migrated into fork RetroArch-nextos-sdl3
   PKG_CONFIGURE_OPTS_TARGET+=" --disable-kms \
                            --enable-mali_fbdev"
 elif [[ "${DEVICE}" =~ ^(OdroidGoAdvance|GameForce|RK356x|OdroidM1)$ ]]; then
@@ -49,10 +50,8 @@ elif [[ "${DEVICE}" =~ ^(OdroidGoAdvance|GameForce|RK356x|OdroidM1)$ ]]; then
                            --enable-kms \
                            --disable-mali_fbdev"
   if [ "${DEVICE}" = "OdroidGoAdvance" ]; then
-    PKG_PATCH_DIRS+=" ${RA_DIRECTORY}/patches/OdroidGoAdvance"
+    # patches/OdroidGoAdvance: migrated into fork RetroArch-nextos-sdl3
     PKG_CONFIGURE_OPTS_TARGET+=" --enable-odroidgo2"
-  elif [ "${DEVICE}" = "GameForce" ]; then
-    PKG_PATCH_DIRS+=" ${RA_DIRECTORY}/patches/OdroidGoAdvance"
   fi
 else
   echo "${PKG_NAME}: Unsupported devices ${DEVICE} when only AmlNG, AmlOld, OGA, GF, RK356X, M1 is supported" 1>&2

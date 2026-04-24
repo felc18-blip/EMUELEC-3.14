@@ -19,21 +19,22 @@
 ################################################################################
 
 PKG_NAME="retroarch"
-PKG_VERSION="fae7468de15b32a0e105e45325e5ca85e62ea7d4"
-PKG_SITE="https://github.com/libretro/RetroArch"
+PKG_VERSION="6849b0d2782ede3ae4d23376ccc8cef6e3a62ccf"
+PKG_SITE="https://github.com/felc18-blip/RetroArch-nextos-sdl3"
 PKG_URL="${PKG_SITE}.git"
 PKG_LICENSE="GPLv3"
-PKG_DEPENDS_TARGET="toolchain SDL2 alsa-lib openssl freetype zlib retroarch-assets retroarch-overlays core-info ffmpeg libass joyutils empty ${OPENGLES} samba avahi nss-mdns freetype openal-soft espeak libX11 libXext libXrandr libXrender"
+PKG_DEPENDS_TARGET="toolchain SDL3 alsa-lib openssl freetype zlib retroarch-assets retroarch-overlays core-info ffmpeg libass joyutils empty ${OPENGLES} samba avahi nss-mdns freetype openal-soft espeak libX11 libXext libXrandr libXrender"
 PKG_LONGDESC="Reference frontend for the libretro API."
 PKG_BUILD_FLAGS="+speed +lto"
 
 if [ "${DEVICE}" = "Amlogic-ng" ] || [ "${DEVICE}" = "Amlogic-no" ] || [ "${DEVICE}" = "Amlogic-old" ]; then
-  PKG_PATCH_DIRS="${DEVICE}"
+  # device patches migrated into fork RetroArch-nextos-sdl3
+  :
 fi
 
 if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ] || [ "${DEVICE}" == "RK356x" ] || [ "${DEVICE}" == "OdroidM1" ]; then
 PKG_DEPENDS_TARGET+=" libdrm librga"
-PKG_PATCH_DIRS="OdroidGoAdvance"
+# OdroidGoAdvance patches migrated into fork RetroArch-nextos-sdl3
 fi
 
 # Pulseaudio Support
@@ -59,7 +60,8 @@ PKG_CONFIGURE_OPTS_TARGET="--disable-qt \
                            --disable-discord \
                            --disable-vg \
                            --disable-sdl \
-                           --enable-sdl2 \
+                           --disable-sdl2 \
+                           --enable-sdl3 \
                            --enable-ffmpeg"
 
 if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ] || [ "${DEVICE}" == "RK356x" ] || [ "${DEVICE}" == "OdroidM1" ]; then
@@ -142,7 +144,10 @@ makeinstall_target() {
   sed -i -e "s/# video_fullscreen = false/video_fullscreen = true/" ${INSTALL}/etc/retroarch.cfg
 
   # Audio
-  sed -i -e "s/# audio_driver =/audio_driver = \"alsathread\"/" ${INSTALL}/etc/retroarch.cfg
+  # NextOS runs PulseAudio — using 'alsathread' here conflicts with pulse (ALSA device
+  # gets 'Device or resource busy'), which silences audio AND breaks audio_sync (causing
+  # games to run at uncapped framerate).
+  sed -i -e "s/# audio_driver =/audio_driver = \"pulse\"/" ${INSTALL}/etc/retroarch.cfg
   sed -i -e "s/# audio_filter_dir =/audio_filter_dir =\/usr\/share\/audio_filters/" ${INSTALL}/etc/retroarch.cfg
   if [ "${PROJECT}" == "OdroidXU3" ]; then # workaround the 55fps bug
     sed -i -e "s/# audio_out_rate = 48000/audio_out_rate = 44100/" ${INSTALL}/etc/retroarch.cfg
@@ -152,7 +157,9 @@ makeinstall_target() {
   echo "savestate_thumbnail_enable = \"true\"" >> ${INSTALL}/etc/retroarch.cfg
 
   # Input
+  # input_driver = udev (keyboard/mouse via udev/evdev); joypads via SDL3 (PR #18833)
   sed -i -e "s/# input_driver = sdl/input_driver = udev/" ${INSTALL}/etc/retroarch.cfg
+  sed -i -e "s/# input_joypad_driver = \"\"/input_joypad_driver = \"sdl3\"/" ${INSTALL}/etc/retroarch.cfg
   sed -i -e "s/# input_max_users = 16/input_max_users = 5/" ${INSTALL}/etc/retroarch.cfg
   sed -i -e "s/# input_autodetect_enable = true/input_autodetect_enable = true/" ${INSTALL}/etc/retroarch.cfg
   sed -i -e "s/# joypad_autoconfig_dir =/joypad_autoconfig_dir = \/tmp\/joypads/" ${INSTALL}/etc/retroarch.cfg
@@ -160,6 +167,16 @@ makeinstall_target() {
   sed -i -e "s/# input_menu_toggle_gamepad_combo = 0/input_menu_toggle_gamepad_combo = 2/" ${INSTALL}/etc/retroarch.cfg
   sed -i -e "s/# all_users_control_menu = false/all_users_control_menu = true/" ${INSTALL}/etc/retroarch.cfg
   sed -i -e "s/# menu_swap_ok_cancel_buttons = false/menu_swap_ok_cancel_buttons = false/" ${INSTALL}/etc/retroarch.cfg
+
+  # Hotkeys (SDL3 standard IDs: Back=4, Start=6, LS=7, RS=8, L1=9, R1=10)
+  # Works on any controller correctly mapped in SDL3 autoconfig; per-device
+  # autoconfig can override if a controller reports non-standard IDs.
+  sed -i -e "s/# input_enable_hotkey_btn =.*/input_enable_hotkey_btn = \"4\"/" ${INSTALL}/etc/retroarch.cfg
+  sed -i -e "s/# input_exit_emulator_btn =.*/input_exit_emulator_btn = \"6\"/" ${INSTALL}/etc/retroarch.cfg
+  sed -i -e "s/# input_save_state_btn =.*/input_save_state_btn = \"9\"/" ${INSTALL}/etc/retroarch.cfg
+  sed -i -e "s/# input_load_state_btn =.*/input_load_state_btn = \"10\"/" ${INSTALL}/etc/retroarch.cfg
+  # Fast forward by R2 trigger axis (analog triggers on most pads)
+  sed -i -e "s/# input_hold_fast_forward_axis =.*/input_hold_fast_forward_axis = \"+5\"/" ${INSTALL}/etc/retroarch.cfg
 
   # Menu
   sed -i -e "s/# menu_mouse_enable = false/menu_mouse_enable = false/" ${INSTALL}/etc/retroarch.cfg
