@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
-# Copyright (C) 2016-2018 Team LibreELEC
-# Copyright (C) 2018-present Team CoreELEC
+# Copyright (C) 2016-2018 Team LibreELEC (https://libreelec.tv)
+# Copyright (C) 2018-present Team CoreELEC (https://coreelec.org)
 
 PKG_NAME="device-trees-amlogic"
 PKG_VERSION="cdfe64399f04ef958b4bd8ac629026007c9dd900"
@@ -11,46 +11,40 @@ PKG_URL="https://github.com/CoreELEC/device-trees-amlogic/archive/$PKG_VERSION.t
 PKG_DEPENDS_TARGET="toolchain"
 PKG_DEPENDS_UNPACK="linux"
 PKG_LONGDESC="Device trees for Amlogic devices."
+# some unpack recursive loop happen with yes maybe because already unpacked from linux
+# don't set no either 
+#PKG_IS_KERNEL_PKG="yes"
 PKG_TOOLCHAIN="manual"
 
-make_host() {
-  $HOST_CC -Wall $PKG_BUILD/dtbTool.c -o $PKG_BUILD/dtbTool
-}
-
-makeinstall_host() {
-  mkdir -p $TOOLCHAIN/bin
-  cp $PKG_BUILD/dtbTool $TOOLCHAIN/bin/
-}
-
 make_target() {
-  export PATH=$TOOLCHAIN/bin:$PATH
-
+  # Enter kernel directory
   pushd $BUILD/build/linux-$(kernel_version) > /dev/null
 
-  # 🔥 FIX GCC 15 + KERNEL ANTIGO
-  export KCFLAGS="-std=gnu89"
-  export HOSTCFLAGS="$HOSTCFLAGS -std=gnu89"
+  # NextOS: kernel .config has NEW options (PREEMPT, HZ=250, etc.) that stock
+  # silentoldconfig can't resolve without stdin. Run olddefconfig to accept
+  # defaults before building DTBs.
+  kernel_make olddefconfig
 
-  kernel_make HOSTLDFLAGS="$HOSTLDFLAGS -Wl,--allow-multiple-definition" olddefconfig
-
+  # Device trees already present in kernel tree we want to include
   EXTRA_TREES=( \
-    gxbb_p200 gxbb_p200_2G gxbb_p201 gxbb_p200_1G_wetek_hub gxbb_p200_2G_wetek_play_2 \
-    gxl_p212_1g gxl_p212_2g gxl_p230_2g gxl_p281_1g gxm_q200_2g gxm_q201_1g gxm_q201_2g \
-  )
+                gxbb_p200 gxbb_p200_2G gxbb_p201 gxbb_p200_1G_wetek_hub gxbb_p200_2G_wetek_play_2 \
+                gxl_p212_1g gxl_p212_2g gxl_p230_2g gxl_p281_1g gxm_q200_2g gxm_q201_1g gxm_q201_2g \
+	      )
 
+  # Add trees to the list
   for f in ${EXTRA_TREES[@]}; do
     DTB_LIST="$DTB_LIST $f.dtb"
   done
 
+  # Copy all device trees to kernel source folder and create a list
   cp -f $PKG_BUILD/*.dts* arch/$TARGET_KERNEL_ARCH/boot/dts/amlogic/
-
   for f in $PKG_BUILD/*.dts; do
     DTB_NAME="$(basename $f .dts).dtb"
     DTB_LIST="$DTB_LIST $DTB_NAME"
   done
 
-  kernel_make HOSTLDFLAGS="$HOSTLDFLAGS -Wl,--allow-multiple-definition" $DTB_LIST
-
+  # Compile device trees
+  kernel_make $DTB_LIST
   cp arch/$TARGET_KERNEL_ARCH/boot/dts/amlogic/*.dtb $PKG_BUILD
 
   popd > /dev/null

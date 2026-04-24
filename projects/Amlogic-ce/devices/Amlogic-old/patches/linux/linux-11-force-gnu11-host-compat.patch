@@ -1,0 +1,44 @@
+Force -std=gnu11 for host AND target kernel compilation.
+
+GCC 15 defaults C compilation to C23, which makes `bool`, `true`, `false`
+reserved keywords. The legacy Amlogic 3.14-based kernel source uses these as
+regular identifiers and typedefs in include/linux/types.h and include/linux/stddef.h.
+
+The fix has two sides:
+- Host tools (scripts/mod/*, scripts/dtc/*, etc.) built with HOSTCC: use
+  `override HOSTCFLAGS` so that `make HOSTCFLAGS=...` command-line overrides
+  from LibreELEC's kernel_make wrapper can't remove our -std=gnu11.
+- Target kernel objects built with $(CC) (the cross-compiler, also GCC 15):
+  add -std=gnu11 to KBUILD_CFLAGS. Files like scripts/mod/devicetable-offsets.c
+  are actually compiled with the target $(CC) even though they're build-time
+  helpers, so HOSTCFLAGS alone isn't enough.
+
+diff --git a/Makefile b/Makefile
+--- a/Makefile
++++ b/Makefile
+@@ -245,8 +245,8 @@
+
+ HOSTCC       = gcc
+ HOSTCXX      = g++
+-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer
+-HOSTCXXFLAGS = -O2
++override HOSTCFLAGS   := -std=gnu11 -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer
++override HOSTCXXFLAGS := -std=gnu++14 -O2
+
+ # Decide whether to build built-in, modular, or both.
+ # Normally, just do built-in.
+@@ -378,12 +378,13 @@ LINUXINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include -Iarch/$(hdr-arch)/incl
+
+ KBUILD_CPPFLAGS := -D__KERNEL__
+
+-KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
++KBUILD_CFLAGS   := -std=gnu11 \
++		   -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
+ 		   -fno-strict-aliasing -fno-common \
+ 		   -Wno-format-security \
+ 		   -fno-delete-null-pointer-checks \
+ 		   -mstrict-align
+ KBUILD_CFLAGS   += -Wno-error=cpp
+ KBUILD_AFLAGS_KERNEL :=
+ KBUILD_CFLAGS_KERNEL :=
+ KBUILD_AFLAGS   := -D__ASSEMBLY__

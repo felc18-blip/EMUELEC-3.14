@@ -193,11 +193,13 @@ pre_make_target() {
     done
   fi
 
-  # 🔥 FIX proc.S (mínimo necessário, sem agressividade)
+  # FIX proc.S: converte sintaxe antiga do GNU assembler (#alloc, #execinstr)
+  # para a nova com flags em string ("ax"). Preserva a section .text.init
+  # que era apagada pela abordagem antiga (sed agressivo).
   PROC_S="$PKG_BUILD/arch/arm64/mm/proc.S"
   if [ -f "$PROC_S" ]; then
-    echo "Fixing proc.S..."
-    sed -i '165s/[[:space:]]\+.*$//' "$PROC_S"
+    echo "Fixing proc.S (convertendo sintaxe .section)..."
+    sed -i 's|\.section[[:space:]]\+"\.text\.init",[[:space:]]*#alloc,[[:space:]]*#execinstr|.section ".text.init", "ax"|' "$PROC_S"
   fi
 
   # 🔥 REMOVE WERROR (SOMENTE Makefile principal - seguro)
