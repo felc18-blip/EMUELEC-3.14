@@ -1,0 +1,101 @@
+Shader hacks for Ship of Harkinian ImGui + Fast3D ES 3.0 shaders on Mali-450.
+
+SoH's ImGui backend compiles its vertex+fragment shaders with #version 300 es
+(OpenGL ES 3.0), which Mali-450 Utgard (ES 2.0 only) rejects. The gl4es preproc
+downgrades the version line but does not convert in/out/layout syntax, producing
+an invalid mix that Mali rejects. SoH treats this as fatal (abort()).
+
+The 3 shaders are:
+  1. ImGui vertex shader (fixed string inside ImGui backend)
+  2. ImGui fragment shader (fixed string inside ImGui backend)
+  3. Fast3D vertex shader template (may have variants; this covers the simplest one)
+
+The hack converts each to #version 100 + attribute/varying/texture2D, which the
+Mali driver accepts and the existing preproc then passes through unmodified.
+
+--- a/src/gl/shader_hacks.c
++++ b/src/gl/shader_hacks.c
+@@ -442,6 +442,83 @@ static const hack_t gl4es_hacks[] = {
+     {"void main() { discard; }"}
+ }
+ #endif
++
++// for Ship of Harkinian (SoH) — ImGui vertex shader compiled as GL ES 3.0
++// Mali-450 Utgard only supports ES 2.0, so convert in/out/layout to GLES 2 syntax
++{"#version 300 es\n"
++ "precision highp float;\n"
++ "layout (location = 0) in vec2 Position;\n"
++ "layout (location = 1) in vec2 UV;\n"
++ "layout (location = 2) in vec4 Color;\n"
++ "uniform mat4 ProjMtx;\n"
++ "out vec2 Frag_UV;\n"
++ "out vec4 Frag_Color;\n"
++ "void main()\n"
++ "{\n"
++ "    Frag_UV = UV;\n"
++ "    Frag_Color = Color;\n"
++ "    gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
++ "}\n",
++ 1,
++ {"#version 100\n"
++  "precision highp float;\n"
++  "attribute vec2 Position;\n"
++  "attribute vec2 UV;\n"
++  "attribute vec4 Color;\n"
++  "uniform mat4 ProjMtx;\n"
++  "varying vec2 Frag_UV;\n"
++  "varying vec4 Frag_Color;\n"
++  "void main()\n"
++  "{\n"
++  "    Frag_UV = UV;\n"
++  "    Frag_Color = Color;\n"
++  "    gl_Position = ProjMtx * vec4(Position.xy,0.0,1.0);\n"
++  "}\n"}},
++
++// for Ship of Harkinian (SoH) — ImGui fragment shader compiled as GL ES 3.0
++{"#version 300 es\n"
++ "precision mediump float;\n"
++ "uniform sampler2D Texture;\n"
++ "in vec2 Frag_UV;\n"
++ "in vec4 Frag_Color;\n"
++ "layout (location = 0) out vec4 Out_Color;\n"
++ "void main()\n"
++ "{\n"
++ "    Out_Color = Frag_Color * texture(Texture, Frag_UV.st);\n"
++ "}\n",
++ 1,
++ {"#version 100\n"
++  "precision mediump float;\n"
++  "uniform sampler2D Texture;\n"
++  "varying vec2 Frag_UV;\n"
++  "varying vec4 Frag_Color;\n"
++  "void main()\n"
++  "{\n"
++  "    gl_FragColor = Frag_Color * texture2D(Texture, Frag_UV.st);\n"
++  "}\n"}},
++
++// for Ship of Harkinian (SoH) — Fast3D vertex shader template (may appear in variants)
++{"#version 300 es\n"
++ "in vec4 aVtxPos;\n"
++ "in vec3 aInput1;\n"
++ "out vec3 vInput1;\n"
++ "void main() {\n"
++ "vInput1 = aInput1;\n"
++ "gl_Position = aVtxPos;\n"
++ "gl_Position.z *= 0.3f;\n"
++ "}\n",
++ 1,
++ {"#version 100\n"
++  "precision mediump float;\n"
++  "attribute vec4 aVtxPos;\n"
++  "attribute vec3 aInput1;\n"
++  "varying vec3 vInput1;\n"
++  "void main() {\n"
++  "vInput1 = aInput1;\n"
++  "gl_Position = aVtxPos;\n"
++  "gl_Position.z *= 0.3;\n"
++  "}\n"}},
++
+ };
+
+ // For Stellaris

@@ -1,0 +1,115 @@
+diff --git a/cmake/dependencies/common.cmake b/cmake/dependencies/common.cmake
+index 8f5813a..6c90c9e 100644
+--- a/cmake/dependencies/common.cmake
++++ b/cmake/dependencies/common.cmake
+@@ -52,7 +52,12 @@ endif()
+ 
+ #=================== STB ===================
+ set(STB_DIR ${CMAKE_BINARY_DIR}/_deps/stb)
+-file(DOWNLOAD "https://github.com/nothings/stb/raw/0bc88af4de5fb022db643c2d8e549a0927749354/stb_image.h" "${STB_DIR}/stb_image.h")
++# NextOS Mali-450 fork: use cached stb_image.h if provided (offline build-safe)
++if(DEFINED NEXTOS_STB_H AND EXISTS "${NEXTOS_STB_H}")
++    configure_file("${NEXTOS_STB_H}" "${STB_DIR}/stb_image.h" COPYONLY)
++else()
++    file(DOWNLOAD "https://github.com/nothings/stb/raw/0bc88af4de5fb022db643c2d8e549a0927749354/stb_image.h" "${STB_DIR}/stb_image.h")
++endif()
+ file(WRITE "${STB_DIR}/stb_impl.c" "#define STB_IMAGE_IMPLEMENTATION\n#include \"stb_image.h\"")
+ 
+ add_library(stb STATIC)
+diff --git a/cmake/dependencies/linux.cmake b/cmake/dependencies/linux.cmake
+index 02301f1..dc1a9d3 100644
+--- a/cmake/dependencies/linux.cmake
++++ b/cmake/dependencies/linux.cmake
+@@ -4,7 +4,8 @@ target_link_libraries(ImGui PUBLIC SDL2::SDL2)
+ 
+ if (USE_OPENGLES)
+     target_link_libraries(ImGui PUBLIC ${OPENGL_GLESv2_LIBRARY})
+-    add_compile_definitions(IMGUI_IMPL_OPENGL_ES3)
++    # NextOS Mali-450 fork: ES 2.0 target (Utgard has no ES3)
++    add_compile_definitions(IMGUI_IMPL_OPENGL_ES2)
+ else()
+     target_link_libraries(ImGui PUBLIC ${OPENGL_opengl_LIBRARY})
+ endif()
+diff --git a/src/fast/backends/gfx_opengl.cpp b/src/fast/backends/gfx_opengl.cpp
+index c0746d3..3c058ff 100644
+--- a/src/fast/backends/gfx_opengl.cpp
++++ b/src/fast/backends/gfx_opengl.cpp
+@@ -27,6 +27,19 @@
+ #include "fast/interpreter.h"
+ #include "ship/config/ConsoleVariable.h"
+ 
++#ifdef USE_OPENGLES
++// NextOS Mali-450 fork: GLES3/gl3.h declares these ES3 entry points, but
++// libGLESv2.so on Mali-450 does NOT implement them (Utgard is ES 2.0 only).
++// Macros redirect call sites to safe fallbacks so the linker is happy.
++// MSAA code never takes the multisampled branch with msaa_level<=1;
++// glReadBuffer in ES 2 defaults to GL_BACK; glBlitFramebuffer failure only
++// drops post-process effects.
++#define glRenderbufferStorageMultisample(target, samples, fmt, w, h) \
++    glRenderbufferStorage((target), (fmt), (w), (h))
++#define glBlitFramebuffer(...) ((void)0)
++#define glReadBuffer(src) ((void)(src))
++#endif
++
+ namespace Fast {
+ int GfxRenderingAPIOGL::GetMaxTextureSize() {
+     GLint max_texture_size;
+@@ -284,12 +297,13 @@ std::string GfxRenderingAPIOGL::BuildFsShader(const CCFeatures& cc_features) {
+         { "texture", "texture" },
+         { "vOutColor", "vOutColor" },
+ #elif defined(USE_OPENGLES)
+-        { "GLSL_VERSION", "#version 300 es\nprecision mediump float;" },
+-        { "attr", "in" },
++        // NextOS Mali-450 fork: force GLES 2.0 shader idioms (Utgard has no ES3)
++        { "GLSL_VERSION", "#version 100\nprecision mediump float;" },
++        { "attr", "varying" },
+         { "opengles", true },
+         { "core_opengl", false },
+-        { "texture", "texture" },
+-        { "vOutColor", "vOutColor" },
++        { "texture", "texture2D" },
++        { "vOutColor", "gl_FragColor" },
+ #else
+         { "GLSL_VERSION", "#version 130" },
+         { "attr", "varying" },
+@@ -345,9 +359,10 @@ static std::string BuildVsShader(const CCFeatures& cc_features) {
+                                      { "out", "out" },
+                                      { "opengles", false }
+ #elif defined(USE_OPENGLES)
+-                                     { "GLSL_VERSION", "#version 300 es" },
+-                                     { "attr", "in" },
+-                                     { "out", "out" },
++                                     // NextOS Mali-450 fork: vertex shader as GLES 2.0
++                                     { "GLSL_VERSION", "#version 100" },
++                                     { "attr", "attribute" },
++                                     { "out", "varying" },
+                                      { "opengles", true }
+ #else
+                                      { "GLSL_VERSION", "#version 110" },
+@@ -681,10 +696,11 @@ void GfxRenderingAPIOGL::Init() {
+     glGenBuffers(1, &mOpenglVbo);
+     glBindBuffer(GL_ARRAY_BUFFER, mOpenglVbo);
+ 
+-#if defined(__APPLE__) || defined(USE_OPENGLES)
++#if defined(__APPLE__)
+     glGenVertexArrays(1, &mOpenglVao);
+     glBindVertexArray(mOpenglVao);
+ #endif
++    // NextOS Mali-450: skip VAO in GLES path (GL_OES_vertex_array_object unsupported on Utgard)
+ 
+ #ifndef USE_OPENGLES // not supported on gles
+     glEnable(GL_DEPTH_CLAMP);
+diff --git a/src/ship/window/gui/Gui.cpp b/src/ship/window/gui/Gui.cpp
+index 426a965..8789199 100644
+--- a/src/ship/window/gui/Gui.cpp
++++ b/src/ship/window/gui/Gui.cpp
+@@ -212,7 +212,8 @@ void Gui::ImGuiBackendInit() {
+ #ifdef __APPLE__
+             ImGui_ImplOpenGL3_Init("#version 410 core");
+ #elif USE_OPENGLES
+-            ImGui_ImplOpenGL3_Init("#version 300 es");
++            // NextOS Mali-450 fork: Mali-450 is ES 2.0 only; use #version 100
++            ImGui_ImplOpenGL3_Init("#version 100");
+ #else
+             ImGui_ImplOpenGL3_Init("#version 120");
+ #endif
