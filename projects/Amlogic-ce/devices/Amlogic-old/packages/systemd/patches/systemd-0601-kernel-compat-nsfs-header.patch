@@ -1,0 +1,28 @@
+Ship a minimal linux/nsfs.h for kernels that don't provide it.
+
+systemd 257.x uses the Linux-specific NS_GET_OWNER_UID ioctl
+(added in kernel 4.11) via <linux/nsfs.h>. The CoreELEC Amlogic-old
+kernel (3.14-based) ships no nsfs.h at all, so the include fails.
+
+Provide the header inside src/basic/linux/ — it sits on the local
+include path (src/basic/) and will be found via #include <linux/nsfs.h>
+since the directory is in systemd's include search path. When the
+real kernel headers on the host/target do provide nsfs.h, the kernel
+headers win because they come first; our file is the fallback.
+
+diff --git a/src/basic/linux/nsfs.h b/src/basic/linux/nsfs.h
+new file mode 100644
+--- /dev/null
++++ b/src/basic/linux/nsfs.h
+@@ -0,0 +1,11 @@
++#ifndef _LINUX_NSFS_H
++#define _LINUX_NSFS_H
++
++#include <linux/ioctl.h>
++
++#define NSIO             0xb7
++#define NS_GET_USERNS    _IO(NSIO, 0x1)
++#define NS_GET_PARENT    _IO(NSIO, 0x2)
++#define NS_GET_NSTYPE    _IO(NSIO, 0x3)
++#define NS_GET_OWNER_UID _IO(NSIO, 0x4)
++#endif

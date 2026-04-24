@@ -23,7 +23,7 @@ PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Dbpf-framework=false \
                        -Dseccomp=false \
                        -Dselinux=false \
-					   -Dvmspawn=disabled \
+                       -Dvmspawn=disabled \
                        -Dapparmor=false \
                        -Dpolkit=false \
                        -Dacl=false \
@@ -104,38 +104,20 @@ PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Dmount-path=/usr/bin/mount \
                        -Dumount-path=/usr/bin/umount \
                        -Ddebug-tty=${DEBUG_TTY} \
-					   -Dcompat-mutable-uid-boundaries=true \
-                       -Dversion-tag=${PKG_VERSION}"
-					   
-# Arrumando o erro de sintaxe do IF
-if [[ "${PROJECT}" == "Generic" ]]; then
-  PKG_MESON_OPTS_TARGET+=" -Defi=true"
-else
-  PKG_MESON_OPTS_TARGET+=" -Defi=false"
-fi
+                       -Dcompat-mutable-uid-boundaries=true \
+                       -Dversion-tag=${PKG_VERSION} \
+                       -Defi=false"
 
 pre_configure_target() {
-  # 1. Patch para TIOCGPTPEER (Terminal)
-  sed -i '/#include <sys\/ioctl.h>/a #ifndef TIOCGPTPEER\n#define TIOCGPTPEER _IOR('\''T'\'', 0x41, int)\n#endif' ${PKG_BUILD}/src/basic/terminal-util.c
+  # Kernel 3.14 (Amlogic-old) compat — tratado via patches 0600 e 0601:
+  #   - 0600 define TIOCGPTPEER (kernel 4.13+) em src/basic/terminal-util.c
+  #   - 0601 adiciona src/basic/linux/nsfs.h com os ioctls NS_GET_* (kernel 4.11+)
+  #
+  # src/basic já está no include path do meson (basic_includes →
+  # libsystemd_includes → includes), logo não precisamos de -I extra.
 
-  # 2. 🔥 Atualização do linux/nsfs.h "falso"
-  mkdir -p ${PKG_BUILD}/src/basic/linux
-  cat <<EOF > ${PKG_BUILD}/src/basic/linux/nsfs.h
-#ifndef _LINUX_NSFS_H
-#define _LINUX_NSFS_H
-#include <linux/ioctl.h>
-#define NSIO    0xb7
-#define NS_GET_USERNS   _IO(NSIO, 0x1)
-#define NS_GET_PARENT   _IO(NSIO, 0x2)
-#define NS_GET_NSTYPE   _IO(NSIO, 0x3)
-#define NS_GET_OWNER_UID _IO(NSIO, 0x4)
-#endif
-EOF
-
-  # 3. Garante que o compilador use o nosso header
-  export TARGET_CFLAGS="${TARGET_CFLAGS} -I${PKG_BUILD}/src/basic"
-
-  # Suas flags originais
+  # Flags de codegen: workaround p/ um bug de reordenação que quebra
+  # unwind em ARM + ignora format-truncation (warning de gcc 15).
   export TARGET_CFLAGS="${TARGET_CFLAGS} -fno-schedule-insns -fno-schedule-insns2 -Wno-format-truncation"
   export LC_ALL=en_US.UTF-8
 }
@@ -244,12 +226,10 @@ post_makeinstall_target() {
   mkdir -p ${INSTALL}/usr/sbin
   cp ${PKG_DIR}/scripts/network-base-setup ${INSTALL}/usr/sbin
   cp ${PKG_DIR}/scripts/systemd-timesyncd-setup ${INSTALL}/usr/sbin
-  
-  mkdir -p ${INSTALL}/usr/bin
+
   cp ${PKG_DIR}/scripts/environment-setup ${INSTALL}/usr/bin/
   chmod +x ${INSTALL}/usr/bin/environment-setup
   ln -sf /run/libreelec/environment ${INSTALL}/etc/environment
-  
   # /etc/resolv.conf and /etc/hosts must be writable
   ln -sf /run/libreelec/resolv.conf ${INSTALL}/etc/resolv.conf
   ln -sf /run/libreelec/hosts ${INSTALL}/etc/hosts
@@ -264,7 +244,6 @@ post_makeinstall_target() {
   mkdir -p ${INSTALL}/etc/udev/rules.d
   ln -sf /dev/null ${INSTALL}/etc/udev/rules.d/60-persistent-storage.rules
   ln -sf /dev/null ${INSTALL}/etc/udev/rules.d/60-persistent-input.rules
-  
   # strip
   debug_strip ${INSTALL}/usr
 
@@ -285,9 +264,7 @@ post_makeinstall_target() {
   ln -sf /storage/.config/hwdb.d ${INSTALL}/etc/udev/hwdb.d
   safe_remove ${INSTALL}/etc/udev/rules.d
   ln -sf /storage/.config/udev.rules.d ${INSTALL}/etc/udev/rules.d
-  
   # ===== CPUFREQ =====
-  mkdir -p ${INSTALL}/usr/bin
   cp ${PKG_DIR}/scripts/cpufreq ${INSTALL}/usr/bin
   chmod +x ${INSTALL}/usr/bin/cpufreq
 
@@ -304,7 +281,6 @@ post_makeinstall_target() {
   # journald
   ln -sf /storage/.cache/journald.conf.d ${INSTALL}/usr/lib/systemd/journald.conf.d
   find ${INSTALL}/usr/sbin -type f -exec chmod +x {} \;
- 
 }
 
 post_install() {
@@ -325,7 +301,6 @@ post_install() {
   add_group kmem 9
   add_group kvm 10
   add_group lp 7
-  add_group sgx 106
   add_group render 12
   add_group tape 33
   add_group tty 5

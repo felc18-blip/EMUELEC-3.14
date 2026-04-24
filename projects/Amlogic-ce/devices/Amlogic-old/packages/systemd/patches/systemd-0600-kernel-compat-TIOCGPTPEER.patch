@@ -1,0 +1,25 @@
+Add fallback definition for TIOCGPTPEER on legacy kernels.
+
+TIOCGPTPEER was introduced in Linux 4.13 for race-free PTY peer opening.
+The CoreELEC Amlogic-old kernel (3.14-based backport) does not define
+this ioctl, so systemd 257.x fails to compile src/basic/terminal-util.c.
+
+Define the ioctl inline right after the sys/ioctl.h include so the code
+paths that use TIOCGPTPEER compile. At runtime the legacy kernel returns
+ENOTTY for the ioctl and systemd falls back to the pre-4.13 path
+(ptsname + open), which is already present in the same function.
+
+diff --git a/src/basic/terminal-util.c b/src/basic/terminal-util.c
+--- a/src/basic/terminal-util.c
++++ b/src/basic/terminal-util.c
+@@ -14,5 +14,10 @@
+ #include <sys/inotify.h>
+ #include <sys/ioctl.h>
++
++#ifndef TIOCGPTPEER
++#define TIOCGPTPEER _IOR('T', 0x41, int)
++#endif
++
+ #include <sys/sysmacros.h>
+ #include <sys/time.h>
+ #include <sys/types.h>
