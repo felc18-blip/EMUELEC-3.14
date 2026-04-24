@@ -94,6 +94,40 @@ error() {
   # Send debug_shell output to stderr, in case caller is redirecting/consuming stdout
   # Return exitcode=1 so that called may detect when an error has occurred
   echo "*** Error in $BOOT_STEP: $1: $2 ***" >&2
+
+  # NextOS: grava diagnostico em /flash (se montado) pra poder ler do PC
+  if [ -d /flash ] && /usr/bin/busybox mountpoint -q /flash 2>/dev/null; then
+    /usr/bin/busybox mount -o remount,rw /flash 2>/dev/null
+    {
+      echo "=== boot-diag $(date 2>/dev/null) ==="
+      echo "BOOT_STEP: $BOOT_STEP / action: $1 / msg: $2"
+      echo ""
+      echo "=== /proc/cmdline ==="
+      cat /proc/cmdline 2>/dev/null
+      echo ""
+      echo "=== /proc/partitions ==="
+      cat /proc/partitions 2>/dev/null
+      echo ""
+      echo "=== ls /dev/mmc* /dev/sd* /dev/nvme* ==="
+      ls -la /dev/mmc* /dev/sd* /dev/nvme* 2>/dev/null
+      echo ""
+      echo "=== blkid ==="
+      /usr/sbin/blkid 2>/dev/null || /usr/bin/blkid 2>/dev/null
+      echo ""
+      echo "=== /proc/mounts ==="
+      cat /proc/mounts 2>/dev/null
+      echo ""
+      echo "=== dmesg tail (mmc|partition|sd|block) ==="
+      dmesg 2>/dev/null | grep -iE "mmc|partition|sd |block|mtd" | tail -40
+      echo ""
+      echo "=== /sys/class/block ==="
+      ls /sys/class/block/ 2>/dev/null
+    } > /flash/boot-diag.txt 2>&1
+    sync 2>/dev/null
+    /usr/bin/busybox mount -o remount,ro /flash 2>/dev/null
+    echo "*** Diag saved to /flash/boot-diag.txt ***" >&2
+  fi
+
   debug_shell >&2
   return 1
 }
