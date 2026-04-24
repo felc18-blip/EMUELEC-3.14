@@ -15,133 +15,105 @@ PKG_BUILD_FLAGS="-lto"
 
 PKG_CMAKE_OPTS_TARGET="
   -DCMAKE_BUILD_TYPE=Release
-  -DEKA2L1_BUILD_TESTS=OFF
   -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+  -DEKA2L1_BUILD_TESTS=OFF
+  -DENABLE_TESTING=OFF
+  -DENABLE_PROGRAMS=OFF
   -DEKA2L1_BUILD_SDL2_FRONTEND=ON
 "
 
 pre_configure_target() {
-  # --- 1. Seus Fixes Originais (Preservados) ---
+  # GCC 15 promove vários warnings antigos a errors; ignoramos os que afetam
+  # subprojects (mbedtls tests etc) e mantemos o restante do build limpo.
+  export CFLAGS="${CFLAGS} -Wno-error=unterminated-string-initialization -Wno-error=calloc-transposed-args -Wno-error"
+  export CXXFLAGS="${CXXFLAGS} -Wno-error=unterminated-string-initialization -Wno-error=calloc-transposed-args -Wno-error"
+
+  # Disable subprojects que não compilam ou não usamos
   sed -i '/add_subdirectory(qt)/d' ${PKG_BUILD}/src/emu/CMakeLists.txt
   sed -i '/target_include_directories(buildvm/d' ${PKG_BUILD}/src/external/CMakeLists.txt
   sed -i '/add_subdirectory(programs)/d' ${PKG_BUILD}/src/external/mbedtls/CMakeLists.txt
   sed -i '/add_subdirectory(tests)/d' ${PKG_BUILD}/src/external/mbedtls/CMakeLists.txt
-  sed -i '/add_library(mbedtls_test/,/)/d' ${PKG_BUILD}/src/external/mbedtls/CMakeLists.txt
-  sed -i '/add_executable(mbedtls_test/,/)/d' ${PKG_BUILD}/src/external/mbedtls/CMakeLists.txt
-  sed -i 's/-Werror//g' ${PKG_BUILD}/src/external/mbedtls/CMakeLists.txt
-  sed -i 's/CMP0048 OLD/CMP0048 NEW/g' ${PKG_BUILD}/src/external/capstone/CMakeLists.txt
-  sed -i '/target_include_directories(drivers/ s|)| ${CMAKE_SOURCE_DIR}/src/emu/common/include)|' ${PKG_BUILD}/src/emu/drivers/CMakeLists.txt
-  sed -i '/find_package(Wayland/ s/^/#/' ${PKG_BUILD}/src/emu/drivers/CMakeLists.txt
-  sed -i '/context_wayland.cpp/d' ${PKG_BUILD}/src/emu/drivers/CMakeLists.txt
-  sed -i '/context_wayland.h/d' ${PKG_BUILD}/src/emu/drivers/CMakeLists.txt
-  sed -i '/wayland/Id' ${PKG_BUILD}/src/emu/drivers/src/graphics/context.cpp
-  sed -i 's/EGL_CONTEXT_MAJOR_VERSION/EGL_CONTEXT_MAJOR_VERSION_KHR/g' ${PKG_BUILD}/src/emu/drivers/src/graphics/backend/context_egl.cpp
-  sed -i 's/EGL_CONTEXT_MINOR_VERSION/EGL_CONTEXT_MINOR_VERSION_KHR/g' ${PKG_BUILD}/src/emu/drivers/src/graphics/backend/context_egl.cpp
-  sed -i '/precompile_headers/d' ${PKG_BUILD}/src/external/dynarmic/CMakeLists.txt
-  sed -i '/cmake_pch/d' ${PKG_BUILD}/src/external/dynarmic/CMakeLists.txt
-  sed -i 's/-Winvalid-offsetof//g' ${PKG_BUILD}/src/external/dynarmic/CMakeLists.txt
 
-  # --- 2. Limpeza e Linkagem FFmpeg 8.1 ---
-  rm -rf ${PKG_BUILD}/src/external/ffmpeg
-  sed -i '/add_subdirectory(ffmpeg)/d' ${PKG_BUILD}/src/external/CMakeLists.txt
-  sed -i '/external\/ffmpeg/d' ${PKG_BUILD}/src/emu/drivers/CMakeLists.txt
-  sed -i '/external\/ffmpeg/d' ${PKG_BUILD}/src/emu/sdl2/CMakeLists.txt
-  for f in libavformat.a libavcodec.a libswscale.a libavutil.a libswresample.a; do
-    sed -i "s|\${CMAKE_SOURCE_DIR}/src/external/ffmpeg/linux/x86_64/lib/$f||g" ${PKG_BUILD}/src/emu/sdl2/CMakeLists.txt
-  done
-  sed -i '/cmake_minimum_required/a add_compile_options("-fpermissive")' ${PKG_BUILD}/CMakeLists.txt
-
-  # --- 3. Header de Compatibilidade ---
-cat > ${PKG_BUILD}/ffmpeg_compat.h << 'EOF'
-#pragma once
-#include <libavcodec/avcodec.h>
-#include <libswresample/swresample.h>
-#include <libavutil/channel_layout.h>
-#include <libavutil/common.h>
-
-#ifndef avcodec_close
-#define avcodec_close(ctx) avcodec_free_context(&(ctx))
-#endif
-
-#define av_get_channel_layout_nb_channels(x) av_popcount64(x)
-
-static inline SwrContext* swr_alloc_set_opts_compat(SwrContext* s, int64_t out_m, enum AVSampleFormat out_f, int out_r,
-                                                   int64_t in_m, enum AVSampleFormat in_f, int in_r, int lo, void* lc) {
-    AVChannelLayout out_l, in_l;
-    av_channel_layout_from_mask(&out_l, out_m);
-    av_channel_layout_from_mask(&in_l, in_m);
-    SwrContext* res = s;
-    swr_alloc_set_opts2(&res, &out_l, out_f, out_r, &in_l, in_f, in_r, lo, lc);
-    return res;
-}
-#define swr_alloc_set_opts swr_alloc_set_opts_compat
-EOF
-
-  cp ${PKG_BUILD}/ffmpeg_compat.h ${PKG_BUILD}/src/emu/drivers/src/audio/backend/ffmpeg/
-  cp ${PKG_BUILD}/ffmpeg_compat.h ${PKG_BUILD}/src/emu/drivers/src/video/backend/ffmpeg/
-
-  # --- 4. Script Python Cirúrgico (Correção Final) ---
-cat > ${PKG_BUILD}/ffmpeg_fix_v3.py << 'EOF'
-import sys, re, os
-
-def fix_file(path):
-    with open(path, 'r') as f:
-        content = f.read()
-
-    # Injeta header
-    if 'ffmpeg_compat.h' not in content:
-        content = '#include "ffmpeg_compat.h"\n' + content
-
-    # 1. Renomeia propriedades de lista (plurais)
-    content = content.replace('channel_layouts', 'ch_layouts')
-
-    # 2. Corrige declaração de ponteiros de iteradores (uint64_t* -> AVChannelLayout*)
-    # Ex: const uint64_t *layout_support_layout = ...
-    content = re.sub(r'const\s+(std::)?uint64_t\s*\*\s*([a-zA-Z0-9_]+)\s*=', r'const AVChannelLayout *\2 =', content)
-
-    # 3. Corrige o acesso aos canais e loop para os iteradores transformados
-    for v in ['p', 'layout_support_layout']:
-        # Loop: while (*v) -> while (v && v->nb_channels > 0)
-        content = re.sub(r'while\s*\(\s*\*' + v + r'\s*\)', f'while ({v} && {v}->nb_channels > 0)', content)
-        # Extração de máscara: dest = *v -> dest = v->u.mask
-        content = re.sub(r'=\s*\*' + v + r'\b', f'= {v}->u.mask', content)
-        # Retorno: return *v -> return v->u.mask
-        content = re.sub(r'return\s*\*' + v + r'\b', f'return {v}->u.mask', content)
-        # Contagem de canais: av_...(*v) -> v->nb_channels
-        content = re.sub(r'av_get_channel_layout_nb_channels\(\s*\*' + v + r'\s*\)', f'{v}->nb_channels', content)
-        content = re.sub(r'av_popcount64\(\s*\*' + v + r'\s*\)', f'{v}->nb_channels', content)
-        # Comparação: if (*v == ...)
-        content = re.sub(r'\*' + v + r'\s*==', f'{v}->nb_channels ==', content)
-
-    # 4. Corrige acesso a campos de structs (singular)
-    # Apenas onde não for variável de classe (sem o _ no final)
-    content = re.sub(r'(?<![a-zA-Z0-9_])channel_layout(?![a-zA-Z0-9_])', 'ch_layout.u.mask', content)
-    content = re.sub(r'(?<![a-zA-Z0-9_])channels(?![a-zA-Z0-9_])', 'ch_layout.nb_channels', content)
-
-    # 5. Fix específico para leitura de codec (linha 379/401)
-    content = re.sub(r'av_get_channel_layout_nb_channels\(\*new_codec->ch_layouts\)', 'new_codec->ch_layouts->nb_channels', content)
-    content = re.sub(r'av_popcount64\(\*new_codec->ch_layouts\)', 'new_codec->ch_layouts->nb_channels', content)
-
-    with open(path, 'w') as f:
-        f.write(content)
-
-target_files = [
-    'src/emu/drivers/src/audio/backend/ffmpeg/player_ffmpeg.cpp',
-    'src/emu/drivers/src/audio/backend/ffmpeg/dsp_ffmpeg.cpp',
-    'src/emu/drivers/src/video/backend/ffmpeg/video_player_ffmpeg.cpp'
-]
-for f in target_files:
-    full_path = os.path.join(sys.argv[1], f)
-    if os.path.exists(full_path):
-        fix_file(full_path)
-EOF
-
-  python3 ${PKG_BUILD}/ffmpeg_fix_v3.py ${PKG_BUILD}
-
-  # --- 5. Link Final ---
-  sed -i '/target_link_libraries(eka2l1_sdl2/ s/)/ avformat avcodec avutil swscale swresample)/' ${PKG_BUILD}/src/emu/sdl2/CMakeLists.txt
+  # Stub backends de display/render que não usamos (sem X11, sem Vulkan, sem Wayland)
   echo "// stub" > ${PKG_BUILD}/src/emu/drivers/src/graphics/backend/context_glx.cpp
   echo "// stub" > ${PKG_BUILD}/src/emu/drivers/src/graphics/backend/vulkan/graphics_vulkan.cpp
+  echo "// stub" > ${PKG_BUILD}/src/emu/drivers/src/graphics/backend/context_wayland.cpp
+
+  # Aplica patches da pasta patches/ (NextOS: no-X11/no-Wayland + cmake 4.x)
+  for p in "${PKG_DIR}/patches/"*.patch; do
+    [ -f "$p" ] || continue
+    ( cd "${PKG_BUILD}" && patch -p1 < "$p" || true )
+  done
+
+  # NextOS: ffmpeg 8.x compat — AVPacket virou opaco, não pode mais alocar como
+  # struct. Trocar packet_ por ponteiro e av_init_packet por av_packet_alloc.
+  PFH="${PKG_BUILD}/src/emu/drivers/include/drivers/audio/backend/ffmpeg/player_ffmpeg.h"
+  PFC="${PKG_BUILD}/src/emu/drivers/src/audio/backend/ffmpeg/player_ffmpeg.cpp"
+  sed -i 's|^        AVPacket packet_;|        AVPacket *packet_;|' "${PFH}"
+  sed -i 's|av_read_frame(format_context_, &packet_)|av_read_frame(format_context_, packet_)|g' "${PFC}"
+  sed -i 's|avcodec_send_packet(codec_, &packet_)|avcodec_send_packet(codec_, packet_)|g' "${PFC}"
+  sed -i 's|av_packet_unref(&packet_)|av_packet_unref(packet_)|g' "${PFC}"
+  sed -i 's|av_init_packet(&packet_);|packet_ = av_packet_alloc();|g' "${PFC}"
+
+  # NextOS: ffmpeg 8.x removeu avcodec_close, swr_alloc_set_opts (sem 2),
+  # av_get_channel_layout_nb_channels. Cria shim wrapper que mapeia pra API moderna.
+  SHIM_DIR="${PKG_BUILD}/src/emu/drivers/include/drivers/audio/backend/ffmpeg"
+  cat > "${SHIM_DIR}/nextos_ffmpeg8_shim.h" << 'SHIMEOF'
+#pragma once
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavutil/channel_layout.h>
+#include <libswresample/swresample.h>
+}
+/* avcodec_close foi removido; avcodec_free_context faz o trabalho equivalente. */
+static inline int avcodec_close(AVCodecContext *ctx) {
+    if (ctx) avcodec_free_context(&ctx);
+    return 0;
+}
+/* swr_alloc_set_opts (sem 2) removido; reimplementar via swr_alloc_set_opts2. */
+static inline struct SwrContext *swr_alloc_set_opts(
+        struct SwrContext *s, int64_t out_layout, enum AVSampleFormat out_fmt, int out_rate,
+        int64_t in_layout, enum AVSampleFormat in_fmt, int in_rate, int log_offset, void *log_ctx) {
+    AVChannelLayout out_ch, in_ch;
+    av_channel_layout_from_mask(&out_ch, (uint64_t)out_layout);
+    av_channel_layout_from_mask(&in_ch, (uint64_t)in_layout);
+    int err = swr_alloc_set_opts2(&s, &out_ch, out_fmt, out_rate, &in_ch, in_fmt, in_rate, log_offset, log_ctx);
+    av_channel_layout_uninit(&out_ch);
+    av_channel_layout_uninit(&in_ch);
+    return err < 0 ? NULL : s;
+}
+/* av_get_channel_layout_nb_channels removido; equivalente via AVChannelLayout. */
+static inline int av_get_channel_layout_nb_channels(uint64_t layout) {
+    AVChannelLayout ch; av_channel_layout_from_mask(&ch, layout);
+    int n = ch.nb_channels;
+    av_channel_layout_uninit(&ch);
+    return n;
+}
+SHIMEOF
+  # Injeta o shim em todos os .cpp do path ffmpeg do drivers
+  for f in "${PKG_BUILD}/src/emu/drivers/src/audio/backend/ffmpeg/"*.cpp \
+           "${PKG_BUILD}/src/emu/drivers/src/video/backend/ffmpeg/"*.cpp; do
+    [ -f "$f" ] || continue
+    grep -q "nextos_ffmpeg8_shim.h" "$f" || \
+      sed -i '1i #include "drivers/audio/backend/ffmpeg/nextos_ffmpeg8_shim.h"' "$f"
+  done
+
+  # NextOS: libMali EGL 1.4 só expõe versões _KHR; eka2l1 usa nomes core EGL 1.5
+  CTX_EGL="${PKG_BUILD}/src/emu/drivers/src/graphics/backend/context_egl.cpp"
+  sed -i 's|EGL_CONTEXT_MAJOR_VERSION\b|EGL_CONTEXT_MAJOR_VERSION_KHR|g' "${CTX_EGL}"
+  sed -i 's|EGL_CONTEXT_MINOR_VERSION\b|EGL_CONTEXT_MINOR_VERSION_KHR|g' "${CTX_EGL}"
+  # Reverter caso o sed bata duas vezes (X_KHR_KHR)
+  sed -i 's|_KHR_KHR|_KHR|g' "${CTX_EGL}"
+
+  cat > ${PKG_BUILD}/src/external/ffmpeg/CMakeLists.txt << 'EOF'
+if (NOT DEFINED FFMPEG_CORE_NAME)
+    set(FFMPEG_CORE_NAME ffmpeg)
+endif()
+add_library(${FFMPEG_CORE_NAME} INTERFACE)
+# NextOS: NÃO incluir headers do submodule (são do ffmpeg 4.x, conflitam com a
+# lib do sistema que é 8.x). Usa headers do sysroot (vêm do CMAKE_SYSROOT).
+target_link_libraries(${FFMPEG_CORE_NAME} INTERFACE avformat avcodec avutil swscale swresample z)
+EOF
 }
 
 make_target() {
