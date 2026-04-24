@@ -33,7 +33,7 @@
     esac
 
   # Bootloader to use (syslinux / u-boot / atv-bootloader / bcm2835-bootloader)
-    BOOTLOADER=""
+    BOOTLOADER="u-boot"
 
   # u-boot version to use (default)
     UBOOT_VERSION="vendor"
@@ -167,8 +167,8 @@
     ENTWARE_SUPPORT="yes"
     ENTWARE_ARCH="aarch64-k3.10"
 
-  # CoreELEC Subdevices
-    SUBDEVICES=""
+  # CoreELEC Subdevices (u-boot builds: LePotato p/ S905X, Odroid_C2 p/ S905)
+    SUBDEVICES="LePotato Odroid_C2"
 
 ################################################################################
 # NextOS Elite - Custom Features
