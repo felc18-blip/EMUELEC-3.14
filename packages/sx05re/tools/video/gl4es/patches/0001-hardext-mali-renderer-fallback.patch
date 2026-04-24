@@ -1,0 +1,27 @@
+Mali detection fallback via GL_RENDERER.
+
+Some libmali blobs (notably the ODROID/Amlogic variants shipped on
+Amlogic-old devices) report a GL_VENDOR string that does not contain
+"ARM", so gl4es misses setting hardext.vendor = VEND_ARM and therefore
+skips the Mali-specific workarounds (fbomakecurrent, fbounbind) guarded
+by that flag. As a fallback, also look at GL_RENDERER: if it contains
+"Mali" we're on a Mali GPU regardless of what GL_VENDOR claims.
+
+diff --git a/src/glx/hardext.c b/src/glx/hardext.c
+--- a/src/glx/hardext.c
++++ b/src/glx/hardext.c
+@@ -430,6 +430,14 @@ void GetHardwareExtensions(int notest)
+         hardext.vendor = VEND_ARM;
+     else if(strstr(vendor, "Imagination Technologies"))
+         hardext.vendor = VEND_IMGTEC;
++    // Fallback: some libmali blobs don't put "ARM" in GL_VENDOR, so the
++    // Mali-specific workarounds further down (fbomakecurrent, fbounbind)
++    // would be skipped. GL_RENDERER on Mali always contains "Mali".
++    if(hardext.vendor != VEND_ARM) {
++        const char *renderer_probe = (const char *) gles_glGetString(GL_RENDERER);
++        if(renderer_probe && strstr(renderer_probe, "Mali"))
++            hardext.vendor = VEND_ARM;
++    }
+     if(hardext.esversion>1) {
+         if(testGLSL("#version 120", 1))
+             hardext.glsl120 = 1;
