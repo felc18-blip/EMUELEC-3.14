@@ -3,12 +3,12 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="systemd"
-PKG_VERSION="255.13"
-PKG_SHA256="b24bbfc18e27339f02bdef12d2be95b747c766e7eb9248554e53ad8979c01f2c"
+PKG_VERSION="257.13"
+PKG_SHA256="1eb7d5f9ff8a426ff880a3cded9ce819613ba8003ac5ddde9eca162f14ddabe7"
 PKG_LICENSE="LGPL2.1+"
 PKG_SITE="http://www.freedesktop.org/wiki/Software/systemd"
-PKG_URL="https://github.com/systemd/systemd-stable/archive/v${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain libcap kmod util-linux entropy libidn2 wait-time-sync Jinja2:host libxcrypt"
+PKG_URL="https://github.com/systemd/systemd/archive/v${PKG_VERSION}.tar.gz"
+PKG_DEPENDS_TARGET="toolchain libcap kmod util-linux entropy libidn2 wait-time-sync Jinja2:host libxcrypt glib"
 PKG_LONGDESC="A system and session manager for Linux, compatible with SysV and LSB init scripts."
 
 # CFLAGS vitais para o Kernel 4.9 (Impede o Kernel Panic no boot)
@@ -20,8 +20,10 @@ PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Ddefault-hierarchy=hybrid \
                        -Dtty-gid=5 \
                        -Dtests=false \
+                       -Dbpf-framework=false \
                        -Dseccomp=false \
                        -Dselinux=false \
+                       -Dvmspawn=disabled \
                        -Dapparmor=false \
                        -Dpolkit=false \
                        -Dacl=false \
@@ -49,12 +51,12 @@ PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Dlz4=false \
                        -Dxkbcommon=false \
                        -Dpcre2=false \
-                       -Dglib=false \
+                       -Dglib=enabled \
                        -Ddbus=false \
                        -Ddefault-dnssec=no \
                        -Dimportd=false \
                        -Dremote=false \
-                       -Dutmp=true \
+                       -Dutmp=false \
                        -Dhibernate=false \
                        -Denvironment-d=false \
                        -Dbinfmt=false \
@@ -66,7 +68,7 @@ PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Dlocaled=false \
                        -Dmachined=false \
                        -Dportabled=false \
-                       -Duserdb=false \
+                       -Duserdb=true \
                        -Dhomed=false \
                        -Dnetworkd=false \
                        -Dtimedated=false \
@@ -93,6 +95,7 @@ PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Dman=false \
                        -Dhtml=false \
                        -Dlink-udev-shared=true \
+                       -Dstatic-libudev=false \
                        -Dlink-systemctl-shared=true \
                        -Dlink-networkd-shared=false \
                        -Dbashcompletiondir=no \
@@ -101,16 +104,20 @@ PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Dmount-path=/usr/bin/mount \
                        -Dumount-path=/usr/bin/umount \
                        -Ddebug-tty=${DEBUG_TTY} \
-                       -Dversion-tag=${PKG_VERSION}"
-					   
-# Arrumando o erro de sintaxe do IF
-if [[ "${PROJECT}" == "Generic" ]]; then
-  PKG_MESON_OPTS_TARGET+=" -Defi=true"
-else
-  PKG_MESON_OPTS_TARGET+=" -Defi=false"
-fi
+                       -Dcompat-mutable-uid-boundaries=true \
+                       -Dversion-tag=${PKG_VERSION} \
+                       -Defi=false"
 
 pre_configure_target() {
+  # Kernel 3.14 (Amlogic-old) compat — tratado via patches 0600 e 0601:
+  #   - 0600 define TIOCGPTPEER (kernel 4.13+) em src/basic/terminal-util.c
+  #   - 0601 adiciona src/basic/linux/nsfs.h com os ioctls NS_GET_* (kernel 4.11+)
+  #
+  # src/basic já está no include path do meson (basic_includes →
+  # libsystemd_includes → includes), logo não precisamos de -I extra.
+
+  # Flags de codegen: workaround p/ um bug de reordenação que quebra
+  # unwind em ARM + ignora format-truncation (warning de gcc 15).
   export TARGET_CFLAGS="${TARGET_CFLAGS} -fno-schedule-insns -fno-schedule-insns2 -Wno-format-truncation"
   export LC_ALL=en_US.UTF-8
 }
@@ -123,6 +130,8 @@ post_makeinstall_target() {
   safe_remove ${INSTALL}/etc/X11
   safe_remove ${INSTALL}/usr/bin/kernel-install
   safe_remove ${INSTALL}/usr/lib/kernel/install.d
+  safe_remove ${INSTALL}/usr/lib/tmpfiles.d/credstore.conf
+  safe_remove ${INSTALL}/usr/bin/systemd-creds
   safe_remove ${INSTALL}/usr/lib/rpm
   safe_remove ${INSTALL}/usr/lib/systemd/user
   safe_remove ${INSTALL}/usr/lib/tmpfiles.d/etc.conf
@@ -217,12 +226,10 @@ post_makeinstall_target() {
   mkdir -p ${INSTALL}/usr/sbin
   cp ${PKG_DIR}/scripts/network-base-setup ${INSTALL}/usr/sbin
   cp ${PKG_DIR}/scripts/systemd-timesyncd-setup ${INSTALL}/usr/sbin
-  
-  mkdir -p ${INSTALL}/usr/bin
+
   cp ${PKG_DIR}/scripts/environment-setup ${INSTALL}/usr/bin/
   chmod +x ${INSTALL}/usr/bin/environment-setup
   ln -sf /run/libreelec/environment ${INSTALL}/etc/environment
-  
   # /etc/resolv.conf and /etc/hosts must be writable
   ln -sf /run/libreelec/resolv.conf ${INSTALL}/etc/resolv.conf
   ln -sf /run/libreelec/hosts ${INSTALL}/etc/hosts
@@ -234,7 +241,9 @@ post_makeinstall_target() {
   ln -sf /usr/bin/systemctl ${INSTALL}/usr/sbin/runlevel
   ln -sf /usr/bin/systemctl ${INSTALL}/usr/sbin/shutdown
   ln -sf /usr/bin/systemctl ${INSTALL}/usr/sbin/telinit
-
+  mkdir -p ${INSTALL}/etc/udev/rules.d
+  ln -sf /dev/null ${INSTALL}/etc/udev/rules.d/60-persistent-storage.rules
+  ln -sf /dev/null ${INSTALL}/etc/udev/rules.d/60-persistent-input.rules
   # strip
   debug_strip ${INSTALL}/usr
 
@@ -255,7 +264,13 @@ post_makeinstall_target() {
   ln -sf /storage/.config/hwdb.d ${INSTALL}/etc/udev/hwdb.d
   safe_remove ${INSTALL}/etc/udev/rules.d
   ln -sf /storage/.config/udev.rules.d ${INSTALL}/etc/udev/rules.d
-  
+  # ===== CPUFREQ =====
+  cp ${PKG_DIR}/scripts/cpufreq ${INSTALL}/usr/bin
+  chmod +x ${INSTALL}/usr/bin/cpufreq
+
+  mkdir -p ${INSTALL}/usr/lib/systemd/system
+  cp ${PKG_DIR}/system.d/cpufreq.service ${INSTALL}/usr/lib/systemd/system/
+
   # 🔥 REMOVE COMPLETAMENTE O SERVIÇO PROBLEMÁTICO
   safe_remove ${INSTALL}/usr/lib/systemd/system/systemd-tmpfiles-setup-dev.service
   safe_remove ${INSTALL}/usr/lib/systemd/system/*.target.wants/systemd-tmpfiles-setup-dev.service
@@ -266,7 +281,6 @@ post_makeinstall_target() {
   # journald
   ln -sf /storage/.cache/journald.conf.d ${INSTALL}/usr/lib/systemd/journald.conf.d
   find ${INSTALL}/usr/sbin -type f -exec chmod +x {} \;
- 
 }
 
 post_install() {

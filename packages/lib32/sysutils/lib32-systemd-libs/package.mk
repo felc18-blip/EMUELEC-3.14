@@ -16,13 +16,10 @@ PKG_PATCH_DIRS+=" ${SD_DIRECTORY}/patches"
 PKG_LONGDESC="A system and session manager for Linux, compatible with SysV and LSB init scripts."
 PKG_BUILD_FLAGS="lib32"
 
-if [ "${DEVICE}" = "Amlogic-old" ]; then
-  PKG_PATCH_DIRS+=" ${SD_DIRECTORY}/patches/amlogic"
-fi
-
 PKG_MESON_OPTS_TARGET="--libdir=/usr/lib \
                        -Drootprefix=/usr \
                        -Dsplit-usr=false \
+                       -Dvmspawn=disabled \
                        -Dsplit-bin=true \
                        -Ddefault-hierarchy=unified \
                        -Dtty-gid=5 \
@@ -122,72 +119,55 @@ unpack() {
 }
 
 pre_configure_target() {
-  SYSROOT="$(${TARGET_PREFIX}gcc -print-sysroot)"
+  # Kernel 3.14 compat — os patches 0600 (TIOCGPTPEER) e 0601 (nsfs.h)
+  # vem automaticamente via PKG_PATCH_DIRS+=" ${SD_DIRECTORY}/patches"
+  # (apontado pra systemd principal). Mesmo tratamento, mesma fonte.
 
-  # garantir librt.so
-  if [ -f ${SYSROOT}/usr/lib/librt.so.1 ] && [ ! -f ${SYSROOT}/usr/lib/librt.so ]; then
-    ln -sf librt.so.1 ${SYSROOT}/usr/lib/librt.so
-  fi
-
-  # ❌ NÃO copiar libcrypt manualmente
-  # ❌ NÃO copiar crypt.h manualmente
-
-  export CFLAGS="${CFLAGS} --sysroot=${SYSROOT}"
-  export CXXFLAGS="${CXXFLAGS} --sysroot=${SYSROOT}"
-  export LDFLAGS="${LDFLAGS} --sysroot=${SYSROOT} -lcrypt -lrt"
-
+  # Flags de codegen: workaround p/ um bug de reordenação que quebra
+  # unwind em ARM + ignora format-truncation (warning de gcc 15).
   export TARGET_CFLAGS="${TARGET_CFLAGS} -fno-schedule-insns -fno-schedule-insns2 -Wno-format-truncation"
   export LC_ALL=en_US.UTF-8
 }
 
-
-
-
-
 make_target() {
-  local LIBSYSTEMD_VERSION=$(grep "^libsystemd_version = '[0-9]\+\.[0-9]\+\.[0-9]\+'" "${PKG_BUILD}/meson.build" | awk -F "'" '{print $2}')
-  local LIBUDEV_VERSION=$(grep "^libudev_version = '[0-9]\+\.[0-9]\+\.[0-9]\+'" "${PKG_BUILD}/meson.build" | awk -F "'" '{print $2}')
+  ninja ${NINJA_OPTS}
 
-  if [ "${DEVICE}" = "Amlogic-old" ]; then
-    LIBUDEV_TARGET=src/udev/libudev.so.${LIBUDEV_VERSION}
-    local PC_TARGETS=""
-  else
-    LIBUDEV_TARGET=libudev.so.${LIBUDEV_VERSION}
-    local PC_TARGETS="src/libudev/libudev.pc \
-                      src/libsystemd/libsystemd.pc"
-  fi
-
-  LIBSYSTEMD_TARGET=libsystemd.so.${LIBSYSTEMD_VERSION}
-
-  ninja ${NINJA_OPTS} ${LIBUDEV_TARGET} \
-                      ${LIBSYSTEMD_TARGET} \
-                      ${PC_TARGETS}
-
-  ${TARGET_PREFIX}strip ${LIBUDEV_TARGET} \
-                        ${LIBSYSTEMD_TARGET}
+  # strip direto no output real
+  find . -name "libudev.so*" -exec ${TARGET_PREFIX}strip {} \; 2>/dev/null || true
+  find . -name "libsystemd.so*" -exec ${TARGET_PREFIX}strip {} \; 2>/dev/null || true
 }
 
 makeinstall_target() {
   mkdir -p "${INSTALL}/usr/lib32"
   mkdir -p "${SYSROOT_PREFIX}/usr/lib"
 
-  local i
-  for i in ${LIBUDEV_TARGET%%.so*}.so* ${LIBSYSTEMD_TARGET%%.so*}.so*; do
-    if [ "${i: -1}" = 'p' ]; then
-      continue
-    fi
-    cp -va "${i}" "${INSTALL}/usr/lib32/"
-    cp -va "${i}" "${SYSROOT_PREFIX}/usr/lib/"
+  # copiar libs reais (path correto do meson)
+  for i in $(find . -name "libudev.so*" -o -name "libsystemd.so*"); do
+    cp -va "$i" "${INSTALL}/usr/lib32/"
+    cp -va "$i" "${SYSROOT_PREFIX}/usr/lib/"
   done
 
+  # headers
   mkdir -p "${SYSROOT_PREFIX}/usr/include/systemd"
-  cp -va "../src/libudev/libudev.h" "${SYSROOT_PREFIX}/usr/include/"
-  cp -va "../src/systemd/_sd-common.h" "${SYSROOT_PREFIX}/usr/include/systemd/"
+  cp -va ../src/libudev/libudev.h "${SYSROOT_PREFIX}/usr/include/" 2>/dev/null || true
+  cp -va ../src/systemd/_sd-common.h "${SYSROOT_PREFIX}/usr/include/systemd/" 2>/dev/null || true
 
-  for i in bus-protocol bus-vtable bus daemon device event hwdb id128 journal login messages path; do
-    cp -va "../src/systemd/sd-${i}.h" "${SYSROOT_PREFIX}/usr/include/systemd/"
+  for i in bus-protocol \
+           bus-vtable \
+           bus \
+           daemon \
+           device \
+           event \
+           hwdb \
+           id128 \
+           journal \
+           login \
+           messages \
+           path; do
+    cp -va "../src/systemd/sd-${i}.h" "${SYSROOT_PREFIX}/usr/include/systemd/" 2>/dev/null || true
   done
 
+  # pkg-config (corrigido)
   mkdir -p "${SYSROOT_PREFIX}/usr/lib/pkgconfig"
-  cp -va "src/libudev/libudev.pc" "src/libsystemd/libsystemd.pc" "${SYSROOT_PREFIX}/usr/lib/pkgconfig/"
+  find . -name "*.pc" -exec cp -va {} "${SYSROOT_PREFIX}/usr/lib/pkgconfig/" \; 2>/dev/null || true
 }
