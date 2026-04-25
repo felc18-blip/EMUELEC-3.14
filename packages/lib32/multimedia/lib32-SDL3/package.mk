@@ -67,6 +67,17 @@ unpack() {
 }
 
 pre_configure_target() {
+  # FIX: SDL3 CMakeLists.txt:426 hard-codes _TIME_BITS=64 for 32-bit glibc.
+  # On Amlogic-old (kernel 4.9), the evdev compat ABI still writes 16-byte
+  # events to 32-bit tasks while glibc's 64-bit time_t makes
+  # sizeof(struct input_event) = 24. SDL3's read(fd, events, sizeof(events))
+  # asks for 24*32 = 768 bytes; kernel writes 16-byte events; SDL parses
+  # them as 24-byte and joystick events disappear silently.
+  # Strip the _TIME_BITS=64 directive — y2038 isn't a concern here.
+  if [ -f "${PKG_BUILD}/CMakeLists.txt" ]; then
+    sed -i '/_TIME_BITS=64/d' "${PKG_BUILD}/CMakeLists.txt"
+  fi
+
   case "${DEVICE}" in
     'Amlogic-ng'|'Amlogic-no'|'Amlogic-old')
       export CFLAGS="${CFLAGS} -DSDL_VIDEO_DRIVER_MALI=1"
