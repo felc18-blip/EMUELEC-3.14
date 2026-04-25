@@ -310,8 +310,6 @@ else
     SPLASH="${VIDEOSPLASH}"
   fi
 
-  set_audio alsa
-
   if [ ${SS_DEVICE} -eq 1 ]; then
     ${PLAYER_VID} --fullscreen --no-keepaspect --vf="${MPV_VF}" "${SPLASH}" >/dev/null 2>&1
   else

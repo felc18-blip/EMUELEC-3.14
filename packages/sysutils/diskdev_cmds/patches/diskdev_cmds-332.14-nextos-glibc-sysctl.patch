@@ -1,0 +1,23 @@
+NextOS: guard <sys/sysctl.h> include for glibc 2.32+
+
+glibc 2.32 (2020) removed the obsolete <sys/sysctl.h> header; the
+sysctl(2) syscall has been deprecated by Linux in favor of /proc.
+The Apple diskdev_cmds port still #includes it unconditionally in
+makehfs.c, but nothing in the file actually calls sysctl() — it's
+just a leftover from the Darwin original.
+
+Fix: wrap the include in `#if !LINUX`, matching the style already
+used for <sys/vmmeter.h> two lines below.
+
+--- diskdev_cmds-332.14/newfs_hfs.tproj/makehfs.c	2006-02-20 22:45:15.000000000 +0100
++++ diskdev_cmds-332.14/newfs_hfs.tproj/makehfs.c	2026-04-24 14:00:00.000000000 +0000
+@@ -37,7 +37,9 @@
+ #endif
+ #include <sys/errno.h>
+ #include <sys/stat.h>
++#if !LINUX
+ #include <sys/sysctl.h>
++#endif
+ #if !LINUX
+ #include <sys/vmmeter.h>
+ #endif
