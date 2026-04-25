@@ -117,7 +117,8 @@ if [[ "${DEVICE}" != "Amlogic-ng" || "${DEVICE}" != "Amlogic-ne" || "${DEVICE}" 
         remove_cores="mesen-s quicknes mame2016 mesen yabasanshiroSA yabasanshiro"
         xmlstarlet ed -L -P -d "/systemList/system[name='saturn']" ${CORESFILE}
         xmlstarlet ed -L -P -d "/systemList/system[name='philips-cdi']" ${CORESFILE}
-        xmlstarlet ed -L -P -d "/systemList/system/emulators/emulator[@name='Duckstation']" ${CORESFILE}
+        # NextOS: DuckStation standalone agora roda em Mali-450 (patches dlsym + path).
+        # NAO remove a entry Duckstation aqui — ES exibe a opcao no system PSX.
     fi
 
     for discore in ${remove_cores}; do

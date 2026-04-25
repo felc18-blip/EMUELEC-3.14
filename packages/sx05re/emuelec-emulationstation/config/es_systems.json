@@ -2267,6 +2267,14 @@
               "name": "gliden64"
             }
           ]
+        },
+        {
+          "name": "daedalusx64",
+          "cores": [
+            {
+              "name": "daedalus"
+            }
+          ]
         }
       ]
     },
@@ -5158,6 +5166,34 @@
           "cores": [
             {
               "name": "eka2l1",
+              "default": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ios",
+      "fullname": "Apple iPhone OS",
+      "manufacturer": "Apple",
+      "release": "2007",
+      "hardware": "portable",
+      "path": "/storage/roms/ios",
+      "platform": "ios",
+      "theme": "ios",
+      "command": "default",
+      "extensions": [
+        ".app",
+        ".APP",
+        ".ipa",
+        ".IPA"
+      ],
+      "emulators": [
+        {
+          "name": "touchhle",
+          "cores": [
+            {
+              "name": "touchhle",
               "default": true
             }
           ]

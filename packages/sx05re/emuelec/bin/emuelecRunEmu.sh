@@ -234,15 +234,20 @@ case ${PLATFORM} in
                 fi
                 ;;
         "n64")
-                set_kill_keys "mupen64plus"
-                if [ "${EMU}" = "rice" ]; then
-                    RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}" rice'
-                elif [ "${EMU}" = "gl64mk2" ]; then
-                    RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}" gl64mk2'
-                elif [ "${EMU}" = "gliden64" ]; then
-                    RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}" gliden64'
+                if [ "${EMU}" = "daedalus" ]; then
+                    set_kill_keys "daedalus"
+                    RUNTHIS='${TBASH} start_daedalusx64.sh "${ROMNAME}" n64'
                 else
-                    RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}"'
+                    set_kill_keys "mupen64plus"
+                    if [ "${EMU}" = "rice" ]; then
+                        RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}" rice'
+                    elif [ "${EMU}" = "gl64mk2" ]; then
+                        RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}" gl64mk2'
+                    elif [ "${EMU}" = "gliden64" ]; then
+                        RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}" gliden64'
+                    else
+                        RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}"'
+                    fi
                 fi
                 ;;
         "amiga"|"amigacd32")
@@ -311,6 +316,12 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} ekastart.sh "${ROMNAME}"'
                fi
                ;;
+        "ios")
+                if [ "${EMU}" = "touchhle" ] || [ "${EMU}" = "TOUCHHLE" ]; then
+            set_kill_keys "touchHLE"
+            RUNTHIS='${TBASH} start_touchhle.sh "${ROMNAME}" "${PLATFORM}"'
+                fi
+                ;;
         "neocd")
                 if [ "${EMU}" = "FbneoSA" ]; then
             set_kill_keys "fbneo"
