@@ -1,0 +1,121 @@
+From 46ad0281e5c5691ee1f3991906b6b6519f376197 Mon Sep 17 00:00:00 2001
+From: Felipe <fel.c18@gmail.com>
+Date: Sat, 25 Apr 2026 04:09:43 -0300
+Subject: [PATCH 102/102] GLExtensions+SWOGLWindow+EGL: GLES2 path complete
+
+- EGL.cpp: ES2_BIT detection + dlsym fallback + ES2 ctx fallback
+- SWOGLWindow.cpp: GLSL ES 1.0 presenter, attribute layout, no VAO
+- GLExtensions.cpp: switch sem fall-through quando version<300;
+  InitFunctionPointers always returns true (KHR_debug etc opcionais)
+
+Allows Software backend to boot on Mali-450 (Amlogic-old) 1GB devices.
+
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+---
+ .../Common/GL/GLExtensions/GLExtensions.cpp   | 24 ++++++++++---------
+ Source/Core/Common/GL/GLInterface/EGL.cpp     | 16 ++++++++++---
+ .../VideoBackends/Software/SWOGLWindow.cpp    |  3 +++
+ 3 files changed, 29 insertions(+), 14 deletions(-)
+
+diff --git a/Source/Core/Common/GL/GLExtensions/GLExtensions.cpp b/Source/Core/Common/GL/GLExtensions/GLExtensions.cpp
+index e761f9e..53e1c1f 100644
+--- a/Source/Core/Common/GL/GLExtensions/GLExtensions.cpp
++++ b/Source/Core/Common/GL/GLExtensions/GLExtensions.cpp
+@@ -2170,17 +2170,15 @@ static void InitExtensionList(GLContext* context)
+   s_extension_list.clear();
+   if (context->IsGLES())
+   {
+-    switch (s_gl_version)
+-    {
+-    default:
+-    case 320:
++    // NextOS Mali-450 (Amlogic-old): a versão default switch caiu em GLES_3_2
++    // quando InitVersion seta s_gl_version=210 (fallback GLES2 pq glGetIntegerv
++    // GL_MAJOR_VERSION nao existe). Aqui setamos so as flags reais.
++    if (s_gl_version >= 320)
+       s_extension_list["VERSION_GLES_3_2"] = true;
+-    case 310:
++    if (s_gl_version >= 310)
+       s_extension_list["VERSION_GLES_3_1"] = true;
+-    case 300:
++    if (s_gl_version >= 300)
+       s_extension_list["VERSION_GLES_3"] = true;
+-      break;
+-    }
+ 
+     // We always have ES 2.0
+     s_extension_list["VERSION_GLES_2"] = true;
+@@ -2499,10 +2497,14 @@ static bool HasFeatures(const std::string& extensions)
+ }
+ bool InitFunctionPointers(GLContext* context)
+ {
+-  bool result = true;
++  // NextOS Mali-450 (Amlogic-old): em GLES2 muitas funcoes (KHR_debug, etc.)
++  // sao declaradas como "available" via extension flags mas eglGetProcAddress
++  // retorna NULL no Mali. Nao falhar a init inteira por causa disso — Software
++  // backend nao chama essas funcoes. Logo: retorna sempre true, deixando o
++  // ponteiro NULL pras ausentes (warning de cada uma ja' e' impresso).
+   for (const auto& it : gl_function_array)
+     if (HasFeatures(it.requirements))
+-      result &= !!GetFuncAddress(context, it.function_name, it.function_ptr);
+-  return result;
++      GetFuncAddress(context, it.function_name, it.function_ptr);
++  return true;
+ }
+ }  // namespace GLExtensions
+diff --git a/Source/Core/Common/GL/GLInterface/EGL.cpp b/Source/Core/Common/GL/GLInterface/EGL.cpp
+index d49d81f..fa984ce 100644
+--- a/Source/Core/Common/GL/GLInterface/EGL.cpp
++++ b/Source/Core/Common/GL/GLInterface/EGL.cpp
+@@ -210,10 +210,20 @@ bool GLContextEGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
+     return false;
+   }
+ 
+-  if (!eglChooseConfig(m_egl_display, attribs, &m_config, 1, &num_configs))
++  if (!eglChooseConfig(m_egl_display, attribs, &m_config, 1, &num_configs) || num_configs < 1)
+   {
+-    INFO_LOG_FMT(VIDEO, "Error: couldn't get an EGL visual config");
+-    return false;
++    // NextOS Mali-450: GLES3 config nao existe; tenta GLES2.
++    if (m_opengl_mode == Mode::OpenGLES)
++    {
++      INFO_LOG_FMT(VIDEO, "GLES3 config unavailable, retrying with EGL_OPENGL_ES2_BIT");
++      attribs[1] = EGL_OPENGL_ES2_BIT;
++      ctx_attribs = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
++    }
++    if (!eglChooseConfig(m_egl_display, attribs, &m_config, 1, &num_configs) || num_configs < 1)
++    {
++      INFO_LOG_FMT(VIDEO, "Error: couldn't get an EGL visual config");
++      return false;
++    }
+   }
+ 
+   if (m_opengl_mode == Mode::OpenGL)
+diff --git a/Source/Core/VideoBackends/Software/SWOGLWindow.cpp b/Source/Core/VideoBackends/Software/SWOGLWindow.cpp
+index ab05add..f113c2d 100644
+--- a/Source/Core/VideoBackends/Software/SWOGLWindow.cpp
++++ b/Source/Core/VideoBackends/Software/SWOGLWindow.cpp
+@@ -35,10 +35,12 @@ bool SWOGLWindow::IsHeadless() const
+ bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
+ {
+   m_gl_context = GLContext::Create(wsi);
++  std::fprintf(stderr, "[NEXTOS] after GLContext::Create: %p\n", (void*)m_gl_context.get());
+   if (!m_gl_context)
+     return false;
+ 
+   // Init extension support.
++  std::fprintf(stderr, "[NEXTOS] before GLExtensions::Init, IsGLES=%d\n", (int)m_gl_context->IsGLES());
+   if (!GLExtensions::Init(m_gl_context.get()))
+   {
+     ERROR_LOG_FMT(VIDEO, "GLExtensions::Init failed!Does your video card support OpenGL 2.0?");
+@@ -50,6 +52,7 @@ bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
+   // VAOs + gl_VertexID. No caminho ES2 abaixo trocamos por #version 100,
+   // attribute-based vertex layout e nao usamos VAO.
+   m_is_gles2 = m_gl_context->IsGLES() && GLExtensions::Version() < 300;
++  std::fprintf(stderr, "[NEXTOS] GL version=%d is_gles2=%d\n", GLExtensions::Version(), (int)m_is_gles2);
+   if (!m_is_gles2 && GLExtensions::Version() < 310)
+   {
+     ERROR_LOG_FMT(VIDEO, "OpenGL Version {} detected, but at least 3.1 is required.",
+-- 
+2.53.0
+

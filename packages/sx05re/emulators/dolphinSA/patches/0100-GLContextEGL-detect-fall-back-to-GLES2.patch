@@ -1,0 +1,94 @@
+From 42c33986387fe60a1b7ec9921e5d5f73731be232 Mon Sep 17 00:00:00 2001
+From: Felipe <fel.c18@gmail.com>
+Date: Sat, 25 Apr 2026 02:32:57 -0300
+Subject: [PATCH 100/102] GLContextEGL: detect + fall back to GLES2
+
+Mali-450 (Amlogic-old, S905L) only exposes GLES2 via fbdev EGL.
+Original DetectMode only checked OPENGL_BIT and ES3_BIT_KHR, falling
+through to a doomed Mode::OpenGL when neither was present.
+
+Probe ES2_BIT as well and pick Mode::OpenGLES when only that's
+available; on Initialize, fall back to a CLIENT_VERSION 2 context if
+the GLES3 attempt returns NULL.  Subsequent backends still need their
+own GLES2 work (SWOGLWindow + OGLConfig).
+
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+---
+ Source/Core/Common/GL/GLInterface/EGL.cpp | 33 +++++++++++++++++++++--
+ 1 file changed, 31 insertions(+), 2 deletions(-)
+
+diff --git a/Source/Core/Common/GL/GLInterface/EGL.cpp b/Source/Core/Common/GL/GLInterface/EGL.cpp
+index 30230e7..d49d81f 100644
+--- a/Source/Core/Common/GL/GLInterface/EGL.cpp
++++ b/Source/Core/Common/GL/GLInterface/EGL.cpp
+@@ -56,8 +56,10 @@ void* GLContextEGL::GetFuncAddress(const std::string& name)
+ void GLContextEGL::DetectMode()
+ {
+   EGLint num_configs;
+-  bool supportsGL = false, supportsGLES3 = false;
+-  std::array<int, 3> renderable_types{{EGL_OPENGL_BIT, EGL_OPENGL_ES3_BIT_KHR}};
++  bool supportsGL = false, supportsGLES3 = false, supportsGLES2 = false;
++  // NextOS: inclui ES2_BIT na probe pra Mali-450 que nao tem GLES3.
++  std::array<int, 3> renderable_types{
++      {EGL_OPENGL_BIT, EGL_OPENGL_ES3_BIT_KHR, EGL_OPENGL_ES2_BIT}};
+ 
+   for (auto renderable_type : renderable_types)
+   {
+@@ -103,6 +105,8 @@ void GLContextEGL::DetectMode()
+           supportsGL = true;
+         if (attribVal & EGL_OPENGL_ES3_BIT_KHR)
+           supportsGLES3 = true;
++        if (attribVal & EGL_OPENGL_ES2_BIT)
++          supportsGLES2 = true;
+       }
+     }
+     delete[] config;
+@@ -118,6 +122,13 @@ void GLContextEGL::DetectMode()
+     INFO_LOG_FMT(VIDEO, "Using OpenGL|ES");
+     m_opengl_mode = Mode::OpenGLES;
+   }
++  else if (supportsGLES2)
++  {
++    // NextOS Mali-450 (Amlogic-old): so' GLES2 disponivel — Software backend
++    // ainda funciona desde que reduzamos os requisitos em SWOGLWindow.
++    INFO_LOG_FMT(VIDEO, "Using OpenGL|ES (2.0 fallback)");
++    m_opengl_mode = Mode::OpenGLES;
++  }
+   else
+   {
+     // Errored before we found a mode
+@@ -187,6 +198,10 @@ bool GLContextEGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
+     ctx_attribs = {EGL_NONE};
+     break;
+   case Mode::OpenGLES:
++    // NextOS Mali-450 (Amlogic-old): tenta GLES3 primeiro, mas mantemos
++    // ctx_attribs num caminho que possa cair pra GLES2 mais abaixo se a
++    // criacao falhar. EGL_OPENGL_ES2_BIT cobre os configs GLES2 quando
++    // GLES3 nao tem driver.
+     attribs[1] = EGL_OPENGL_ES3_BIT_KHR;
+     ctx_attribs = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
+     break;
+@@ -245,6 +260,20 @@ bool GLContextEGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
+     m_attribs = std::move(ctx_attribs);
+   }
+ 
++  // NextOS GLES2 fallback (Mali-450 Amlogic-old): se GLES3 falhou,
++  // refaz eglChooseConfig com EGL_OPENGL_ES2_BIT e cria contexto v2.
++  if (!m_egl_context && m_opengl_mode == Mode::OpenGLES)
++  {
++    INFO_LOG_FMT(VIDEO, "GLES3 context creation failed, falling back to GLES2");
++    attribs[1] = EGL_OPENGL_ES2_BIT;
++    if (eglChooseConfig(m_egl_display, attribs, &m_config, 1, &num_configs))
++    {
++      std::vector<EGLint> es2_attribs = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
++      m_egl_context = eglCreateContext(m_egl_display, m_config, EGL_NO_CONTEXT, &es2_attribs[0]);
++      m_attribs = std::move(es2_attribs);
++    }
++  }
++
+   if (!m_egl_context)
+   {
+     INFO_LOG_FMT(VIDEO, "Error: eglCreateContext failed");
+-- 
+2.53.0
+

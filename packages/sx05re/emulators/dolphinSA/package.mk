@@ -1,103 +1,87 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2020-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="dolphinSA"
+PKG_VERSION="3c4d4fcd09173ea070dc812ab5d64ca3a3af5f29"
+PKG_ARCH="aarch64"
 PKG_LICENSE="GPLv2"
-
-PKG_SITE="https://github.com/rtissera/dolphin"
+PKG_SITE="https://github.com/dolphin-emu/dolphin"
 PKG_URL="${PKG_SITE}.git"
-PKG_VERSION="0b160db48796f727311cea16072174d96b784f80"
-PKG_GIT_CLONE_BRANCH="egldrm"
+PKG_DEPENDS_TARGET="toolchain qt-everywhere libevdev"
+PKG_LONGDESC="Dolphin is a GameCube / Wii emulator, allowing you to play games for these two platforms on PC with improvements. "
+PKG_BUILD_FLAGS="lto"
 
-PKG_DEPENDS_TARGET="toolchain libevdev ffmpeg zlib libpng lzo libusb zstd ecm openal-soft alsa-lib"
-PKG_DEPENDS_TARGET+=" ${OPENGLES}"
+# NextOS Amlogic-old: tuning agressivo Cortex-A53. -mcpu=cortex-a53 ativa
+# microarchitecture-specific scheduling; -ftree-vectorize roda autovectoriza-
+# tion que NEON na A53 aproveita; -funroll-loops ajuda hot loops do JIT e
+# do software rasterizer.
+if [ "${DEVICE}" == "Amlogic-old" ]; then
+  TARGET_CFLAGS+=" -mcpu=cortex-a53 -mtune=cortex-a53 -ftree-vectorize -funroll-loops"
+  TARGET_CXXFLAGS+=" -mcpu=cortex-a53 -mtune=cortex-a53 -ftree-vectorize -funroll-loops"
+fi
 
-PKG_LONGDESC="Dolphin is a GameCube / Wii emulator."
-PKG_TOOLCHAIN="cmake"
-
-PKG_PATCH_DIRS+=" legacy"
+# Configure CMake for LTO with BFD linker
+PKG_CMAKE_OPTS_TARGET=" -DENABLE_LTO=ON \
+                        -DCMAKE_EXE_LINKER_FLAGS='-fuse-ld=bfd' \
+                        -DCMAKE_SHARED_LINKER_FLAGS='-fuse-ld=bfd' \
+                        -DDISTRIBUTOR='EmuELEC' \
+                        -DBUILD_SHARED_LIBS=OFF \
+                        -DTHREADS_PTHREAD_ARG=OFF \
+                        -DENABLE_FBDEV=ON \
+                        -DENABLE_EGL=ON \
+                        -DENABLE_X11=OFF \
+                        -DENABLE_NOGUI=ON \
+                        -DUSE_DISCORD_PRESENCE=OFF \
+                        -DENABLE_QT=OFF \
+                        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+                        -DUSE_SYSTEM_FMT=OFF \
+                        -DCMAKE_BUILD_TYPE=Release"
 
 pre_configure_target() {
-  # GCC 15 fixes
-  export CXXFLAGS="${CXXFLAGS} -include algorithm -include cstdint -Wno-class-memaccess"
+  if [ "${DEVICE}" == "Amlogic-old" ]; then
+    # Kernel 3.14 nao tem INPUT_PROP_ACCELEROMETER nos headers do sysroot.
+    # libevdev traz uma copia atualizada de input-event-codes.h — exponha
+    # temporariamente pro Dolphin compilar contra ela.
+    cp -rf $(get_build_dir libevdev)/include/linux/linux/input-event-codes.h \
+      ${SYSROOT_PREFIX}/usr/include/linux/ 2>/dev/null || true
+    # Tambem: linux/input.h do 3.14 nao puxa input-event-codes.h. Adiciona.
+    if ! grep -q "input-event-codes.h" ${SYSROOT_PREFIX}/usr/include/linux/input.h; then
+      cp -f ${SYSROOT_PREFIX}/usr/include/linux/input.h \
+            ${SYSROOT_PREFIX}/usr/include/linux/input.h.nextos-bak
+      sed -i '/^#include <linux\/types.h>$/a #include <linux/input-event-codes.h>' \
+        ${SYSROOT_PREFIX}/usr/include/linux/input.h
+    fi
+  fi
 }
 
-PKG_CMAKE_OPTS_TARGET+=" -DENABLE_EGL=ON \
-                         -DENABLE_VULKAN=OFF \
-                         -DENABLE_X11=OFF \
-                         -DENABLE_WAYLAND=OFF \
-                         -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-                         -DENABLE_HEADLESS=ON \
-                         -DENABLE_EVDEV=ON \
-                         -DUSE_DISCORD_PRESENCE=OFF \
-                         -DBUILD_SHARED_LIBS=OFF \
-                         -DLINUX_LOCAL_DEV=ON \
-                         -DENABLE_PULSEAUDIO=OFF \
-                         -DENABLE_ALSA=ON \
-                         -DENABLE_TESTS=OFF \
-                         -DENABLE_LLVM=OFF \
-                         -DENABLE_ANALYTICS=OFF \
-                         -DENABLE_LTO=ON \
-                         -DENABLE_QT=OFF \
-                         -DENCODE_FRAMEDUMPS=OFF \
-                         -DENABLE_CLI_TOOL=OFF \
-                         -DCMAKE_BUILD_TYPE=Release"
-
-pre_make_target() {
-
-  echo "Applying final compatibility fixes..."
-
-  # =========================
-  # FIX 1: EVDEV (kernel antigo)
-  # =========================
-  EVDEV_FILE="${PKG_BUILD}/Source/Core/InputCommon/ControllerInterface/evdev/evdev.cpp"
-
-  if [ -f "${EVDEV_FILE}" ]; then
-    sed -i '1i #include <linux/input.h>' "${EVDEV_FILE}"
-    sed -i '1i #ifndef INPUT_PROP_ACCELEROMETER\n#define INPUT_PROP_ACCELEROMETER 0\n#endif' "${EVDEV_FILE}"
+post_make_target() {
+  if [ "${DEVICE}" == "Amlogic-old" ]; then
+    rm -f ${SYSROOT_PREFIX}/usr/include/linux/input-event-codes.h
+    # restaura input.h original
+    if [ -f ${SYSROOT_PREFIX}/usr/include/linux/input.h.nextos-bak ]; then
+      mv -f ${SYSROOT_PREFIX}/usr/include/linux/input.h.nextos-bak \
+            ${SYSROOT_PREFIX}/usr/include/linux/input.h
+    fi
   fi
-
-  # =========================
-  # FIX 2: FMT (GCC15 + fmt12)
-  # =========================
-  FMT_FILE="${PKG_BUILD}/Source/Core/Core/IOS/FS/FileSystemProxy.cpp"
-
-  if [ -f "${FMT_FILE}" ]; then
-    sed -i 's/request.mode/static_cast<int>(request.mode)/g' "${FMT_FILE}"
-  fi
-
-  # =========================
-  # FIX 3: Headers VulkanMemoryAllocator
-  # =========================
-  case ${DEVICE} in
-    RK3588*|AMD64|S922X|Amlogic-old)
-      VMA_FILE="${PKG_BUILD}/Externals/VulkanMemoryAllocator/include/vk_mem_alloc.h"
-      if [ -f "${VMA_FILE}" ]; then
-        sed -i 's~#include <cstdlib>~#include <cstdlib>\n#include <cstdint>~g' "${VMA_FILE}"
-        sed -i 's~#include <cstdint>~#include <cstdint>\n#include <string>~g' "${VMA_FILE}"
-      fi
-    ;;
-  esac
 }
 
 makeinstall_target() {
-  mkdir -p ${INSTALL}/usr/bin
-  cp -rf ${PKG_BUILD}/.${TARGET_NAME}/Binaries/dolphin* ${INSTALL}/usr/bin
-  cp -rf ${PKG_DIR}/scripts/* ${INSTALL}/usr/bin
+export CXXFLAGS="`echo ${CXXFLAGS} | sed -e "s|-O.|-O3|g"`"
+mkdir -p ${INSTALL}/usr/bin
+cp -rf ${PKG_BUILD}/.${TARGET_NAME}/Binaries/dolphin-emu-nogui ${INSTALL}/usr/bin
+cp -rf ${PKG_DIR}/scripts/* ${INSTALL}/usr/bin
 
-  chmod +x ${INSTALL}/usr/bin/start_dolphin_gc.sh
-  chmod +x ${INSTALL}/usr/bin/start_dolphin_wii.sh
+mkdir -p ${INSTALL}/usr/config/emuelec/configs/dolphin-emu
+cp -rf ${PKG_BUILD}/Data/Sys/* ${INSTALL}/usr/config/emuelec/configs/dolphin-emu
+cp -rf ${PKG_DIR}/config/* ${INSTALL}/usr/config/emuelec/configs/dolphin-emu
 
-  mkdir -p ${INSTALL}/usr/config/dolphin-emu
-  cp -rf ${PKG_BUILD}/Data/Sys/* ${INSTALL}/usr/config/dolphin-emu
-  cp -rf ${PKG_DIR}/config/* ${INSTALL}/usr/config/dolphin-emu
-}
-
-post_install() {
-  DOLPHIN_PLATFORM="drm"
-
-  sed -e "s/@DOLPHIN_PLATFORM@/${DOLPHIN_PLATFORM}/g" \
-      -i ${INSTALL}/usr/bin/start_dolphin_gc.sh
-
-  sed -e "s/@DOLPHIN_PLATFORM@/${DOLPHIN_PLATFORM}/g" \
-      -i ${INSTALL}/usr/bin/start_dolphin_wii.sh
+# Dolphin lê config em ${XDG_CONFIG_HOME}/dolphin-emu/Config/. O launcher
+# seta XDG_CONFIG_HOME=/emuelec/configs e symlinka /storage/.local/share/
+# dolphin-emu pra /emuelec/configs/dolphin-emu. Logo: copia o Dolphin.ini
+# device-specifico pra Config/.
+mkdir -p ${INSTALL}/usr/config/emuelec/configs/dolphin-emu/Config
+DEVICE_CFG="${PKG_DIR}/config/${DEVICE}"
+if [ -d "${DEVICE_CFG}" ]; then
+  cp -rf ${DEVICE_CFG}/* ${INSTALL}/usr/config/emuelec/configs/dolphin-emu/Config/ || true
+fi
 }

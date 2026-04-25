@@ -1,0 +1,193 @@
+From c1fd24e1128710ee26faa24daa04ff8a2373027d Mon Sep 17 00:00:00 2001
+From: Felipe <fel.c18@gmail.com>
+Date: Sat, 25 Apr 2026 02:34:03 -0300
+Subject: [PATCH 101/102] Software/SWOGLWindow: GLES 2.0 fallback presenter
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The Software backend's display path required OpenGL 3.1+ — used
+gl_VertexID, in/out qualifiers, texture(), and VAOs. Mali-450 only
+exposes GLES 2.0; the version gate refused to start.
+
+Add a parallel GLES2 presenter:
+
+* Detect via context IsGLES() && Version() < 300; lower the version
+  gate to OpenGL 2.0 in that path
+* GLSL ES 1.0 shaders (#version 100, attribute/varying, texture2D)
+* a_pos vertex attribute bound to slot 0; quad geometry in a static
+  VBO created during Initialize
+* glVertexAttribPointer + glEnableVertexAttribArray per draw instead
+  of VAO bind
+* Skip GL_UNPACK_ROW_LENGTH (unsupported in ES2 unless extension)
+* Header gains m_is_gles2 + m_image_vbo
+
+Note: this only fixes the presenter. Dolphin's HW emulation still
+won't run on Mali-450 — the goal here is to let the Software
+backend boot and display *something* on Amlogic-old.
+
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+---
+ .../VideoBackends/Software/SWOGLWindow.cpp    | 99 +++++++++++++++----
+ .../Core/VideoBackends/Software/SWOGLWindow.h |  2 +
+ 2 files changed, 80 insertions(+), 21 deletions(-)
+
+diff --git a/Source/Core/VideoBackends/Software/SWOGLWindow.cpp b/Source/Core/VideoBackends/Software/SWOGLWindow.cpp
+index a002e3e..ab05add 100644
+--- a/Source/Core/VideoBackends/Software/SWOGLWindow.cpp
++++ b/Source/Core/VideoBackends/Software/SWOGLWindow.cpp
+@@ -44,35 +44,79 @@ bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
+     ERROR_LOG_FMT(VIDEO, "GLExtensions::Init failed!Does your video card support OpenGL 2.0?");
+     return false;
+   }
+-  else if (GLExtensions::Version() < 310)
++
++  // NextOS Mali-450 (Amlogic-old): aceitar GLES 2.0. Versao GL minima
++  // sobe pra 3.1 normalmente porque o presenter usa #version 300 es +
++  // VAOs + gl_VertexID. No caminho ES2 abaixo trocamos por #version 100,
++  // attribute-based vertex layout e nao usamos VAO.
++  m_is_gles2 = m_gl_context->IsGLES() && GLExtensions::Version() < 300;
++  if (!m_is_gles2 && GLExtensions::Version() < 310)
+   {
+     ERROR_LOG_FMT(VIDEO, "OpenGL Version {} detected, but at least 3.1 is required.",
+                   GLExtensions::Version());
+     return false;
+   }
+ 
+-  std::string frag_shader = "in vec2 TexCoord;\n"
+-                            "out vec4 ColorOut;\n"
+-                            "uniform sampler2D samp;\n"
+-                            "void main() {\n"
+-                            "	ColorOut = texture(samp, TexCoord);\n"
+-                            "}\n";
+-
+-  std::string vertex_shader = "out vec2 TexCoord;\n"
+-                              "void main() {\n"
+-                              "	vec2 rawpos = vec2(gl_VertexID & 1, (gl_VertexID & 2) >> 1);\n"
+-                              "	gl_Position = vec4(rawpos * 2.0 - 1.0, 0.0, 1.0);\n"
+-                              "	TexCoord = vec2(rawpos.x, -rawpos.y);\n"
+-                              "}\n";
++  std::string vertex_shader, frag_shader, header;
+ 
+-  std::string header = m_gl_context->IsGLES() ? "#version 300 es\n"
+-                                                "precision highp float;\n" :
+-                                                "#version 140\n";
++  if (m_is_gles2)
++  {
++    // GLSL ES 1.0 (GLES2): sem in/out, sem gl_VertexID, sem texture().
++    // Geometria do quad vai por attribute-array (criada na primeira draw).
++    header = "#version 100\nprecision highp float;\n";
++
++    vertex_shader = "attribute vec2 a_pos;\n"
++                    "varying vec2 TexCoord;\n"
++                    "void main() {\n"
++                    "  gl_Position = vec4(a_pos * 2.0 - 1.0, 0.0, 1.0);\n"
++                    "  TexCoord = vec2(a_pos.x, -a_pos.y);\n"
++                    "}\n";
++
++    frag_shader = "varying vec2 TexCoord;\n"
++                  "uniform sampler2D samp;\n"
++                  "void main() {\n"
++                  "  gl_FragColor = texture2D(samp, TexCoord);\n"
++                  "}\n";
++  }
++  else
++  {
++    vertex_shader = "out vec2 TexCoord;\n"
++                    "void main() {\n"
++                    "  vec2 rawpos = vec2(gl_VertexID & 1, (gl_VertexID & 2) >> 1);\n"
++                    "  gl_Position = vec4(rawpos * 2.0 - 1.0, 0.0, 1.0);\n"
++                    "  TexCoord = vec2(rawpos.x, -rawpos.y);\n"
++                    "}\n";
++
++    frag_shader = "in vec2 TexCoord;\n"
++                  "out vec4 ColorOut;\n"
++                  "uniform sampler2D samp;\n"
++                  "void main() {\n"
++                  "  ColorOut = texture(samp, TexCoord);\n"
++                  "}\n";
++
++    header = m_gl_context->IsGLES() ? "#version 300 es\nprecision highp float;\n" :
++                                       "#version 140\n";
++  }
+ 
+   m_image_program = GLUtil::CompileProgram(header + vertex_shader, header + frag_shader);
+ 
+   glUseProgram(m_image_program);
+ 
++  if (m_is_gles2)
++  {
++    // Bind 'a_pos' atributo no slot 0
++    glBindAttribLocation(m_image_program, 0, "a_pos");
++    // Re-link com binding fixo
++    glLinkProgram(m_image_program);
++    glUseProgram(m_image_program);
++
++    // VBO com 4 vertices (triangle strip do quad NDC normalizado)
++    static const float quad_verts[] = {0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f};
++    glGenBuffers(1, &m_image_vbo);
++    glBindBuffer(GL_ARRAY_BUFFER, m_image_vbo);
++    glBufferData(GL_ARRAY_BUFFER, sizeof(quad_verts), quad_verts, GL_STATIC_DRAW);
++  }
++
+   glUniform1i(glGetUniformLocation(m_image_program, "samp"), 0);
+   glGenTextures(1, &m_image_texture);
+   glBindTexture(GL_TEXTURE_2D, m_image_texture);
+@@ -80,7 +124,8 @@ bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+ 
+-  glGenVertexArrays(1, &m_image_vao);
++  if (!m_is_gles2)
++    glGenVertexArrays(1, &m_image_vao);
+   return true;
+ }
+ 
+@@ -101,7 +146,8 @@ void SWOGLWindow::ShowImage(const AbstractTexture* image,
+   // TODO: Apply xfb_region
+ 
+   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
+-  glPixelStorei(GL_UNPACK_ROW_LENGTH, sw_image->GetConfig().width);
++  if (!m_is_gles2)
++    glPixelStorei(GL_UNPACK_ROW_LENGTH, sw_image->GetConfig().width);
+ 
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(sw_image->GetConfig().width),
+                static_cast<GLsizei>(sw_image->GetConfig().height), 0, GL_RGBA, GL_UNSIGNED_BYTE,
+@@ -109,8 +155,19 @@ void SWOGLWindow::ShowImage(const AbstractTexture* image,
+ 
+   glUseProgram(m_image_program);
+ 
+-  glBindVertexArray(m_image_vao);
+-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
++  if (m_is_gles2)
++  {
++    glBindBuffer(GL_ARRAY_BUFFER, m_image_vbo);
++    glEnableVertexAttribArray(0);
++    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
++    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
++    glDisableVertexAttribArray(0);
++  }
++  else
++  {
++    glBindVertexArray(m_image_vao);
++    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
++  }
+ 
+   m_gl_context->Swap();
+ }
+diff --git a/Source/Core/VideoBackends/Software/SWOGLWindow.h b/Source/Core/VideoBackends/Software/SWOGLWindow.h
+index 965f7f4..ad36f72 100644
+--- a/Source/Core/VideoBackends/Software/SWOGLWindow.h
++++ b/Source/Core/VideoBackends/Software/SWOGLWindow.h
+@@ -33,6 +33,8 @@ private:
+   u32 m_image_program = 0;
+   u32 m_image_texture = 0;
+   u32 m_image_vao = 0;
++  u32 m_image_vbo = 0;     // GLES2 path: VBO com quad NDC
++  bool m_is_gles2 = false; // GLES2 path ativa quando context < 3.0
+ 
+   std::unique_ptr<GLContext> m_gl_context;
+ };
+-- 
+2.53.0
+
