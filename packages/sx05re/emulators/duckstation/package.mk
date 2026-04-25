@@ -10,7 +10,7 @@
 # patches.
 
 PKG_NAME="duckstation"
-PKG_VERSION="aae997d6f30244caec46549c7f048c4d5cb2278b"
+PKG_VERSION="edaa0f833beb1a4308dd78466a39744715ffadb1"
 PKG_ARCH="aarch64"
 PKG_LICENSE="GPLv3"
 PKG_SITE="https://github.com/felc18-blip/duckstation-nextos"
