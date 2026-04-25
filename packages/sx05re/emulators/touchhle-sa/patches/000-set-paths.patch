@@ -24,12 +24,12 @@ index d0ab20b8..ac14b0de 100644
 @@ -110,6 +116,12 @@ pub const WALLPAPER_FILES: &[&str] = &[
  /// the `Documents` directory.
  pub const SANDBOX_DIR: &str = "touchHLE_sandbox";
- 
+
 +#[cfg(target_os = "linux")]
 +const LINUX_RESOURCE_BASE: &str = "/usr/lib/touchHLE";
 +
 +#[cfg(target_os = "linux")]
-+const LINUX_USER_BASE: &str = "/storage/.config/touchHLE";
++const LINUX_USER_BASE: &str = "/storage/.config/emuelec/configs/touchHLE";
 +
  /// Get a platform-specific base path needed for accessing touchHLE's
  /// user-modifiable files. This is empty on platforms other than Android.
@@ -49,7 +49,7 @@ index d0ab20b8..ac14b0de 100644
 @@ -190,6 +207,10 @@ pub fn prepopulate_user_data_dir() {
          return;
      }
- 
+
 +    #[cfg(target_os = "linux")]
 +    let apps_dir = PathBuf::from("/storage/roms/ios");
 +

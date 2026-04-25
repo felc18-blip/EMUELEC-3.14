@@ -1,0 +1,40 @@
+From: NextOS Elite Edition
+Subject: [PATCH] Allow env vars to override resource/user-data paths
+
+NextOS keeps /usr on a read-only squashfs, so during dev/testing we
+need to point touchHLE at /storage instead of the hardcoded /usr/lib
+paths from 000-set-paths.patch.
+
+  TOUCHHLE_RESOURCES   - overrides /usr/lib/touchHLE  (LINUX_RESOURCE_BASE)
+  TOUCHHLE_USER_DATA   - overrides /storage/.config/emuelec/configs/touchHLE
+                         (LINUX_USER_BASE)
+
+If unset, the patched defaults from 000-set-paths.patch are used, so
+production rootfs builds behave the same as before.
+
+diff --git a/src/paths.rs b/src/paths.rs
+--- a/src/paths.rs
++++ b/src/paths.rs
+@@ -73,7 +73,9 @@ impl ResourceFile {
+             #[cfg(not(target_os = "android"))]
+             file: {
+                 #[cfg(target_os = "linux")]
+-                let base_path = Path::new(LINUX_RESOURCE_BASE);
++                let base_path: PathBuf = std::env::var_os("TOUCHHLE_RESOURCES")
++                    .map(PathBuf::from)
++                    .unwrap_or_else(|| PathBuf::from(LINUX_RESOURCE_BASE));
+
+                 #[cfg(not(target_os = "linux"))]
+                 let base_path = get_macos_bundled_resources_path()
+@@ -150,7 +152,10 @@ pub fn user_data_base_path() -> Cow<'static, Path> {
+     {
+         #[cfg(target_os = "linux")]
+         {
+-            return Cow::from(PathBuf::from(LINUX_USER_BASE));
++            let base = std::env::var_os("TOUCHHLE_USER_DATA")
++                .map(PathBuf::from)
++                .unwrap_or_else(|| PathBuf::from(LINUX_USER_BASE));
++            return Cow::from(base);
+         }
+
+         // When touchHLE is run from a .app bundle on macOS, the user might not
