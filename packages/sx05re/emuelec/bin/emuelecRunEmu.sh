@@ -203,12 +203,6 @@ case ${PLATFORM} in
             RUNTHIS='flycastdojo.sh "${ROMNAME}"'
                 fi
                 ;;
-        "psx")
-                if [ "${EMU}" = "duckstation" ]; then
-            set_kill_keys "duckstation-nogui"
-            RUNTHIS='${TBASH} duckstation.sh "${ROMNAME}"'
-        fi
-                ;;
         "mame"|"arcade"|"cps1"|"cps2"|"cps3")
                 if [ "${EMU}" = "AdvanceMame" ]; then
             set_kill_keys "advmame" 3
@@ -240,11 +234,7 @@ case ${PLATFORM} in
                 fi
                 ;;
         "n64")
-                if [ "${EMU}" = "daedalusx64" ]; then
-                    set_kill_keys "daedalusx64"
-                    RUNTHIS='${TBASH} start_daedalusx64.sh "${ROMNAME}"'
-                else
-                    set_kill_keys "mupen64plus"
+                set_kill_keys "mupen64plus"
                 if [ "${EMU}" = "rice" ]; then
                     RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}" rice'
                 elif [ "${EMU}" = "gl64mk2" ]; then
@@ -253,7 +243,6 @@ case ${PLATFORM} in
                     RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}" gliden64'
                 else
                     RUNTHIS='${TBASH} start_mupen64plus.sh "${ROMNAME}"'
-                fi
                 fi
                 ;;
         "amiga"|"amigacd32")
@@ -279,18 +268,6 @@ case ${PLATFORM} in
                 set_kill_keys "solarus-run"
                 RUNTHIS='${TBASH} solarus.sh "${ROMNAME}"'
                 ;;
-		"ti99")
-                if [ "${EMU}" = "ti99sim" ]; then
-				set_kill_keys "ti99sim-sdl"
-				RUNTHIS='${TBASH} ti99sdlstart.sh "${ROMNAME}"'
-                fi
-                ;;
-		"samcoupe")
-                if [ "${EMU}" = "simcoupe" ]; then
-				set_kill_keys "simcoupe"
-				RUNTHIS='${TBASH} simcoupestart.sh "${ROMNAME}"'
-                fi
-                ;;
         "daphne")
                 if [ "${EMU}" = "HYPSEUS" ]; then
             set_kill_keys "hypseus"
@@ -310,12 +287,12 @@ case ${PLATFORM} in
                 if [ "${EMU}" = "DOSBOXSDL2" ]; then
             set_kill_keys "dosbox"
             RUNTHIS='${TBASH} dosbox.start "${ROMNAME}"'
-            #RUNTHIS='${TBASH} dosbox.start -conf "${GAMEFOLDER}dosbox-SDL2.conf"'
                 fi
-                if [ "${EMU}" = "DOSBOX-X" ]; then
-            set_kill_keys "dosbox-x"
-            RUNTHIS='${TBASH} dosbox-x.start "${ROMNAME}"'
-            #RUNTHIS='${TBASH} dosbox-x.start -conf "${GAMEFOLDER}dosbox-SDL2.conf"'
+                ;;
+        "psx")
+                if [ "${EMU}" = "duckstation" ]; then
+            set_kill_keys "duckstation-nogui"
+            RUNTHIS='${TBASH} duckstation.sh "${ROMNAME}"'
                 fi
                 ;;
         "psp"|"pspminis")
@@ -323,7 +300,7 @@ case ${PLATFORM} in
             set_kill_keys "PPSSPPSDL"
             RUNTHIS='${TBASH} ppsspp.sh "${ROMNAME}"'
                 fi
-                if [ "$EMU" = "PPSSPPSA" ]; then
+                if [ "$EMU" = "PPSSPPSA" ] || [ "$EMU" = "ppsspp" ]; then
             set_kill_keys "PPSSPPSA"
             RUNTHIS='${TBASH} start_ppsspp.sh "${ROMNAME}"'
                 fi
@@ -335,9 +312,7 @@ case ${PLATFORM} in
                fi
                ;;
         "neocd")
-                if [ "${EMU}" = "fbneo" ]; then
-            RUNTHIS='${RABIN} ${VERBOSE} -L /tmp/cores/fbneo_libretro.so --subsystem neocd --config ${RACONF} "${ROMNAME}"'
-                elif [ "${EMU}" = "FbneoSA" ]; then
+                if [ "${EMU}" = "FbneoSA" ]; then
             set_kill_keys "fbneo"
             RUNTHIS='fbneo.sh "${ROMNAME}" NCD'
                 fi
@@ -412,54 +387,12 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} /usr/bin/start_x128.sh "${ROMNAME}"'
         fi
         ;;
-		"x16")
-        if [ "${EMU}" = "x16emu" ]; then
-            set_kill_keys "x16emu"
-            RUNTHIS='${TBASH} x16emustart.sh "${ROMNAME}"'
-        fi
-		;;
-		"oricutron")
-        if [ "${EMU}" = "oricutron" ]; then
-            set_kill_keys "oricutron"
-            RUNTHIS='${TBASH} oricutronstart.sh "${ROMNAME}"'
-        fi
-		;;
-        "dragon32"|"dragon64")
-			if [ "${EMU}" = "xroar" ]; then
-			set_kill_keys "xroar.aarch64"
-			RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
-		fi
-		;;
         "ports")
             if [[ "${ROMNAME}" == *".sh" ]]; then
                 set_kill_keys "gptokeyb"
                 RUNTHIS='${TBASH} "${ROMNAME}"'
             fi
             ;;
-		"coco")
-			if [ "${EMU}" = "xroar" ]; then
-			set_kill_keys "xroar.aarch64"
-            RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
-		fi
-		;;
-		"coco3")
-			if [ "${EMU}" = "xroar" ]; then
-			set_kill_keys "xroar.aarch64"
-		    RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
-		fi
-		;;
-		"mc10")
-			if [ "${EMU}" = "xroar" ]; then
-			set_kill_keys "xroar.aarch64"
-            RUNTHIS='${TBASH} /usr/bin/xroar.sh "${ROMNAME}"'
-		fi
-		;;
-        "saturn")
-        if [ "${EMU}" = "mednafen" ]; then
-            set_kill_keys "mednafen"
-            RUNTHIS='${TBASH} start_mednafen.sh "${ROMNAME}" ss saturn'
-        fi
-        ;;
         esac
 elif [ ${LIBRETRO} == "yes" ]; then
 # NextOS Elite: set audio to alsa only for libretro/retroarch
@@ -488,10 +421,14 @@ else
 fi
 
 if [ -s "/emuelec/configs/RA_ARGS" ]; then
-	RA_ARGS = $(cat "/emuelec/configs/RA_ARGS")
+	RA_ARGS=$(cat "/emuelec/configs/RA_ARGS")
 fi
 
-RUNTHIS='${RABIN} ${VERBOSE} ${RA_ARGS} -L /tmp/cores/${EMU}.so --config ${RACONF} "${ROMNAME}"'
+if [ "${PLATFORM}" = "neocd" ] && [ "${EMU}" = "fbneo_libretro" ]; then
+    RUNTHIS='${RABIN} ${VERBOSE} ${RA_ARGS} -L /tmp/cores/${EMU}.so --subsystem neocd --config ${RACONF} "${ROMNAME}"'
+else
+    RUNTHIS='${RABIN} ${VERBOSE} ${RA_ARGS} -L /tmp/cores/${EMU}.so --config ${RACONF} "${ROMNAME}"'
+fi
 CONTROLLERCONFIG="${arguments#*--controllers=*}"
 
 if [[ "${arguments}" == *"-state_slot"* ]]; then
@@ -582,7 +519,7 @@ else # Retrorun was selected
         RUNTHIS+="32"
     fi
 
-		JOY_FILE=$(ls "/dev/input/by-path/*-event-joystick" )
+		JOY_FILE=$(ls /dev/input/by-path/*-event-joystick 2>/dev/null | head -1)
     if [[ -f "${JOY_FILE}" ]]; then
             ln -s /dev/input/event2 ${JOY_FILE}
     fi
