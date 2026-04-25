@@ -36,7 +36,7 @@ BASEROMNAME_NOEXT="${BASEROMNAME%.*}"
 GAMELOADINGSPLASH="/storage/.config/splash/loading-game.png"
 BLANKSPLASH="/storage/.config/splash/blank.png"
 DEFAULTSPLASH="/storage/.config/splash/splash-1080.png"
-VIDEOSPLASH="/usr/config/splash/emuelec_intro_1080p.mp4"
+VIDEOSPLASH="/usr/config/splash/nextos_intro_1080p.mp4"
 RANDOMVIDEO="/storage/roms/splash/introvideos"
 
 [ -f "/storage/roms/splash/intro.mp4" ] && VIDEOSPLASH="/storage/roms/splash/intro.mp4"
@@ -110,6 +110,12 @@ if [ "${ACTION_TYPE}" = "intro" ] || [ "${ACTION_TYPE}" = "exit" ]; then
  [[ "${MODE}" == *"x"* ]] && SPLASH="/storage/.config/splash/splash-std.png"
 
  if [ "${ACTION_TYPE}" = "exit" ]; then
+   # NextOS: prefere exit-splash-*.png se existir (logo limpo, sem barra
+   # de "Carregando...") em vez de reusar o splash de boot.
+   EXIT_DEFAULT="/storage/.config/splash/exit-splash-1080.png"
+   [[ "${MODE}" == *"x"* ]] && EXIT_DEFAULT="/storage/.config/splash/exit-splash-std.png"
+   [[ -f "${EXIT_DEFAULT}" ]] && SPLASH="${EXIT_DEFAULT}"
+
    EE_SPLASH_EXIT="$(get_ee_setting ee_splashexit)"
    [[ -z "${EE_SPLASH_EXIT}" ]] && EE_SPLASH_EXIT=0
 
@@ -310,10 +316,15 @@ else
     SPLASH="${VIDEOSPLASH}"
   fi
 
+  # NextOS: garante audio via Pulse (sem isso, ffplay tenta ALSA direto e
+  # nao tem som; antes era 'set_audio alsa' do EmuELEC, mas em NextOS so
+  # rodamos Pulse — alsa nao tem direct hw access aqui).
+  set_audio pulseaudio
+
   if [ ${SS_DEVICE} -eq 1 ]; then
-    ${PLAYER_VID} --fullscreen --no-keepaspect --vf="${MPV_VF}" "${SPLASH}" >/dev/null 2>&1
+    ${PLAYER_VID} --fullscreen --no-keepaspect --vf="${MPV_VF}" --audio-device=pulse/default "${SPLASH}" >/dev/null 2>&1
   else
-    ${PLAYER_VID} -fs -autoexit -vf "${FILTER_FILL}" -i "${SPLASH}" >/dev/null 2>&1
+    SDL_AUDIODRIVER=pulseaudio ${PLAYER_VID} -fs -autoexit -vf "${FILTER_FILL}" -i "${SPLASH}" >/dev/null 2>&1
   fi
 
   touch "/storage/.config/emuelec/configs/novideo"

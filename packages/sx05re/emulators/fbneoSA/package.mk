@@ -15,7 +15,7 @@ PKG_TOOLCHAIN="make"
 PKG_MAKE_OPTS_TARGET=" sdl2 RELEASEBUILD=1"
 
 # Forçamos as flags de linkagem a incluírem o pthread explicitamente no final
-export LDFLAGS="-L${SYSROOT_PREFIX}/usr/lib -L$(get_install_dir gl4es)/usr/lib -lpthread -ldl"
+export LDFLAGS="-L${SYSROOT_PREFIX}/usr/lib -L$(get_install_dir gl4es)/usr/lib -Wl,-rpath-link,$(get_install_dir gl4es)/usr/lib -lpthread -ldl"
 
 pre_configure_target() {
     # 1. Seus SEDs de diretórios que funcionam
@@ -29,14 +29,35 @@ pre_configure_target() {
     find src -type d -exec mkdir -p ${PKG_BUILD}/obj/{} \;
     cd -
 
+    # 2b. NextOS: gl4es nao copia libGL.so pro sysroot — fbneoSA precisa
+    # encontrar -lGL. Symlink temporario.
+    GL4ES_LIB="$(get_install_dir gl4es)/usr/lib/libGL.so"
+    if [ -f "$GL4ES_LIB" ] && [ ! -e "${SYSROOT_PREFIX}/usr/lib/libGL.so" ]; then
+      ln -sf "$GL4ES_LIB" "${SYSROOT_PREFIX}/usr/lib/libGL.so"
+    fi
+
     # 3. TRAVA TOTAL NO LINKER (Resolve o erro "unsupported ELF machine")
-    # Vamos substituir qualquer definição de LD, CC e CXX no arquivo
-    sed -i "s|^CC.*=.*|CC = ${CC}|" makefile.sdl2
-    sed -i "s|^CXX.*=.*|CXX = ${CXX}|" makefile.sdl2
-    sed -i "s|^LD.*=.*|LD = ${CXX}|" makefile.sdl2
-    
-    # Algumas versões do FBNeo usam a variável 'ld' em minúsculo no Makefile
-    sed -i "s|^ld.*=.*|ld = ${CXX}|" makefile.sdl2
+    # NextOS: em vez de tentar substituir CC/CXX/LD inline (regex broke makefile
+    # com if/else/endif blocks e linhas de continuacao com `\`), simplesmente
+    # apenda overrides no final — Make usa a ULTIMA definicao de cada variavel.
+    # Localiza native gcc/g++ p/ HOST_CC/HOST_CXX (build de tools rodam no x86_64)
+    NATIVE_CC=$(command -v gcc)
+    NATIVE_CXX=$(command -v g++)
+
+    cat >> makefile.sdl2 <<EOF
+
+# === NextOS: cross-compile overrides (last-write-wins) ===
+CC := ${CC}
+CXX := ${CXX}
+LD := ${CXX}
+ld := ${CXX}
+# HOST_* tem que ser native — ctv_make.exe e similares rodam no host x86_64
+HOST_CC := ${NATIVE_CC}
+HOST_CXX := ${NATIVE_CXX}
+HOST_CFLAGS :=
+HOST_CXXFLAGS :=
+HOST_LDFLAGS :=
+EOF
 
     # 4. Flags para o S905L (64-bit)
     echo "PTR64 = 1" >> makefile.sdl2
@@ -49,10 +70,16 @@ makeinstall_target() {
     mkdir -p ${INSTALL}/usr/bin
     [ -f "${PKG_BUILD}/fbneo" ] && cp -rf ${PKG_BUILD}/fbneo ${INSTALL}/usr/bin/
     [ -f "${PKG_BUILD}/fbneo.sdl" ] && cp -rf ${PKG_BUILD}/fbneo.sdl ${INSTALL}/usr/bin/fbneo
-    
+
     cp -rf ${PKG_BUILD}/src/license.txt ${INSTALL}/usr/bin/fbneo_license.txt
-    
+
     if [ -d "${PKG_DIR}/scripts" ]; then
         cp -rf ${PKG_DIR}/scripts/* ${INSTALL}/usr/bin/
     fi
+
+    # NextOS: gptokeyb config p/ Select+Start = kill fbneo
+    mkdir -p ${INSTALL}/usr/config/emuelec/configs/gptokeyb
+    [ -f "${PKG_DIR}/config/gptokeyb/fbneo.gptk" ] && \
+      cp -f ${PKG_DIR}/config/gptokeyb/fbneo.gptk \
+            ${INSTALL}/usr/config/emuelec/configs/gptokeyb/fbneo.gptk
 }

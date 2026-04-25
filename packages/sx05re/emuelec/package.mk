@@ -17,8 +17,9 @@ PKG_EXPERIMENTAL="nestopiaCV flycast2021-lr skyemu-lr mesen tic-80 panda3ds-lr \
                   dolphin dosbox-core quicknes mesen-s easyrpg smsplus-gx wasm4 \
                   snes9x2005_plus snes9x2005 race ecwolf fileman portmaster \
                   quasi88 xmil np2kai hypseus-singe ikemen-go viceSA \
-                  doublecherrygb play yabasanshiro mupen64plus-sa flycast \
+                  doublecherrygb play mupen64plus-sa flycast \
                   flycast-dojo same_cdi daedalusx64-sa"
+# yabasanshiro variants tirados temporariamente — outro terminal mexendo neles
 
 PKG_EMUS="${LIBRETRO_CORES} beetle-saturn pico-8 drastic-advanced vircon32 mu \
           mojozork gametank-lr gametank32-lr emuscv duckstation-lr duckstation \
@@ -32,7 +33,9 @@ PKG_EMUS="${LIBRETRO_CORES} beetle-saturn pico-8 drastic-advanced vircon32 mu \
           dosbox-staging mupen64plus-nx mupen64plus-nx-alt scummvmsa stellasa \
           solarus dosbox-pure pcsx_rearmed potator freej2me flycastsa \
           fmsx-libretro jzintv xroar x16 simcoupe ti99sim oricutron eka2l1 \
-          touchhle-sa"
+          touchhle-sa atari800sa dosbox-sdl2 dosbox-x fbneoSA mesen2 \
+          picodrivesa vector06sdl sundog \
+          yabasanshiroSA_1_11"
 
 PKG_COMPRESS="gzip minizip idtech lynx yamlcpp textviewer rapidxml libcroco \
               pugixml pyFDT cifs-utils libzip xash3d SDL3 love re3 reVC"
@@ -58,9 +61,9 @@ fi
 if [ "${DEVICE}" = "OdroidGoAdvance" ] || [ "${DEVICE}" = "GameForce" ]; then
   PKG_DEPENDS_TARGET+=" kmscon odroidgoa-utils"
   for discore in duckstation mesen-s virtualjaguar quicknes MC; do
-    PKG_DEPENDS_TARGET=$(echo ${PKG_DEPENDS_TARGET} | sed "s|${discore} | |")
+    PKG_DEPENDS_TARGET=$(echo " ${PKG_DEPENDS_TARGET} " | sed "s| ${discore} | |g")
   done
-  PKG_DEPENDS_TARGET+=" yabasanshiro"
+  # yabasanshiro tirado temporariamente — outro terminal mexendo
 else
   PKG_DEPENDS_TARGET+=" fbterm"
 fi
@@ -70,9 +73,10 @@ fi
 # ---------------------------------------------------------------------------
 
 if [ "${ARCH}" = "aarch64" ]; then
-  # Cores que nao sao necessarios em aarch64
+  # Cores que nao sao necessarios em aarch64. Word boundary evita pcsx_rearmed
+  # corromper pcsx_rearmed-lr / pcsx_rearmed_libretro etc.
   for discore in quicknes parallel-n64 pcsx_rearmed; do
-    PKG_DEPENDS_TARGET=$(echo ${PKG_DEPENDS_TARGET} | sed "s|${discore}| |")
+    PKG_DEPENDS_TARGET=$(echo " ${PKG_DEPENDS_TARGET} " | sed "s| ${discore} | |g")
   done
 
   PKG_DEPENDS_TARGET+=" swanstation \
@@ -106,17 +110,20 @@ case "${DEVICE}" in
     ;;
 esac
 
-# Amlogic-old: tira variantes de yabasanshiro/fceumm-mod (usamos versao base)
+# Amlogic-old: yabasanshiroSA_1_11 funciona (4 fixes do VIDSoft em 2026-04-25).
+# Outras variantes Saturn ficam fora — muito pesado/redundante. fceumm-mod
+# tambem fica fora (usamos versao base).
 if [ "${DEVICE}" = "Amlogic-old" ]; then
-  for discore in yabasanshiro fceumm-mod yabasanshiroSA_1_5 yabasanshiro-libretro; do
-    PKG_DEPENDS_TARGET=$(echo ${PKG_DEPENDS_TARGET} | sed "s|${discore}| |g")
+  for discore in yabasanshiroSA_1_5 yabasanshiro-libretro yabasanshiro-sa \
+                 fceumm-mod yabasanshiro; do
+    PKG_DEPENDS_TARGET=$(echo " ${PKG_DEPENDS_TARGET} " | sed "s| ${discore} | |g")
   done
 fi
 
 # RK356x / OdroidM1: flycast-dojo nao compila
 if [ "${DEVICE}" = "RK356x" ] || [ "${DEVICE}" = "OdroidM1" ]; then
   for discore in flycast-dojo; do
-    PKG_DEPENDS_TARGET=$(echo ${PKG_DEPENDS_TARGET} | sed "s|${discore}| |")
+    PKG_DEPENDS_TARGET=$(echo " ${PKG_DEPENDS_TARGET} " | sed "s| ${discore} | |g")
   done
 fi
 

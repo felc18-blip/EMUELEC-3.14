@@ -24,6 +24,10 @@ fi
   cd ${PKG_BUILD}
   rm -rf .${TARGET_NAME}
 
+  # NextOS: dosbox-sdl2 tem check estrito SDL_MINOR_VERSION == 0,
+  # mas sdl2-compat reporta 2.32.x. Afrouxa pra >= 0.
+  sed -i 's|(SDL_MINOR_VERSION == 0)|(SDL_MINOR_VERSION >= 0)|g' ${PKG_BUILD}/configure
+
   PKG_CONFIGURE_OPTS_TARGET="--prefix=/usr \
                              --enable-core-inline \
                              --enable-dynrec \

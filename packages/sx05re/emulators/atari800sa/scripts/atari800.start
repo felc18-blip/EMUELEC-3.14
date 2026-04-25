@@ -1,0 +1,84 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2024-present NextOS-Elite-Edition
+#
+# atari800 standalone launcher for EmuELEC / NextOS
+# - autodetects BIOS in /storage/roms/bios
+# - sets pulseaudio (NextOS default) + Mali-friendly software rendering
+# - handles .zip, .car, .rom, .xex, .atr, .xfd, .cas, .a52 extensions
+
+. /etc/profile
+
+ROM="$1"
+A800_CFG="/storage/.atari800.cfg"
+BIOS_DIR="/storage/roms/bios"
+LOG="/emuelec/logs/atari800.log"
+
+mkdir -p "$(dirname "$LOG")"
+echo "==== atari800sa launch $(date) ====" >> "$LOG"
+echo "ROM=$ROM" >> "$LOG"
+
+# Audio: NextOS roda pulseaudio (alsathread quebra audio_sync)
+export SDL_AUDIODRIVER=pulseaudio
+
+# Garante que existe um config base — atari800 cria sozinho no primeiro run
+if [ ! -f "$A800_CFG" ]; then
+  echo "First run: criando config base" >> "$LOG"
+  /usr/bin/atari800 -help >/dev/null 2>&1 || true
+fi
+
+# Mapeia BIOS automaticamente se nao estao setados
+set_bios() {
+  local key="$1" file="$2"
+  if [ -f "$BIOS_DIR/$file" ] && ! grep -q "^${key}=/" "$A800_CFG"; then
+    sed -i "s|^${key}=.*|${key}=$BIOS_DIR/$file|" "$A800_CFG"
+    echo "BIOS set: $key -> $BIOS_DIR/$file" >> "$LOG"
+  fi
+}
+
+set_bios "ROM_OS_B_NTSC"  "ATARIOSB.ROM"
+set_bios "ROM_OS_A_NTSC"  "ATARIOSA.ROM"
+set_bios "ROM_OS_BB01R2"  "ATARIXL.ROM"
+set_bios "ROM_BASIC_C"    "ATARIBAS.ROM"
+set_bios "ROM_5200"       "5200.rom"
+
+# Detect system mode pela path (atari800 vs atari5200)
+case "$ROM" in
+  */atari5200/*)
+    SYS_MODE="-5200"
+    ;;
+  *)
+    SYS_MODE="-xl -nobasic"
+    ;;
+esac
+
+# Detect resolucao do display ativo (fallback 1280x720 = 720p safe)
+# /sys/class/graphics/fb0/virtual_size retorna "W,H_double" (page-flip),
+# entao usamos /sys/class/graphics/fb0/modes que e' "U:WxH<...>"
+FB_W=1280
+FB_H=720
+if [ -r /sys/class/graphics/fb0/modes ]; then
+  MODE_LINE=$(head -1 /sys/class/graphics/fb0/modes 2>/dev/null)
+  # Formato: U:1280x720p-60 ou U:1920x1080p-60
+  PARSED=$(echo "$MODE_LINE" | grep -oE '[0-9]+x[0-9]+' | head -1)
+  if [ -n "$PARSED" ]; then
+    FB_W=${PARSED%x*}
+    FB_H=${PARSED#*x}
+  fi
+fi
+
+# Localiza o binario — /usr/bin (instalado) ou /storage (live test)
+ATARI_BIN=/usr/bin/atari800
+[ ! -x "$ATARI_BIN" ] && [ -x /storage/atari800 ] && ATARI_BIN=/storage/atari800
+
+echo "Mode=$SYS_MODE  Display=${FB_W}x${FB_H}  Bin=$ATARI_BIN" >> "$LOG"
+
+# -no-video-accel: Mali-450 GLES2-only, atari800 OpenGL fixed-function
+# nao funciona — software rendering e' o caminho.
+exec "$ATARI_BIN" \
+  $SYS_MODE \
+  -no-video-accel \
+  -fullscreen \
+  -fs-width "$FB_W" \
+  -fs-height "$FB_H" \
+  -run "$ROM" >> "$LOG" 2>&1

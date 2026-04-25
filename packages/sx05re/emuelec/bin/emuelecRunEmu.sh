@@ -328,7 +328,17 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} start_touchhle.sh "${ROMNAME}" "${PLATFORM}"'
                 fi
                 ;;
-        "neocd")
+        "saturn")
+                if [ "${EMU}" = "yabasanshiroSA" ] || [ "${EMU}" = "yabasanshiro1_5" ]; then
+            set_kill_keys "yabasanshiro1_5"
+            RUNTHIS='${TBASH} yabasanshiro1_5.sh "${ROMNAME}"'
+                fi
+                if [ "${EMU}" = "yabasanshiroSA1_11" ] || [ "${EMU}" = "yabasanshiro1_11" ]; then
+            set_kill_keys "yabasanshiro1_11"
+            RUNTHIS='${TBASH} yabasanshiro1_11.sh "${ROMNAME}"'
+                fi
+                ;;
+        "neocd"|"neogeocd")
                 if [ "${EMU}" = "FbneoSA" ]; then
             set_kill_keys "fbneo"
             RUNTHIS='fbneo.sh "${ROMNAME}" NCD'
@@ -404,6 +414,23 @@ case ${PLATFORM} in
             RUNTHIS='${TBASH} /usr/bin/start_x128.sh "${ROMNAME}"'
         fi
         ;;
+
+        "atari800"|"atari5200")
+        if [ "${EMU}" = "atari800sa" ]; then
+            set_audio pulseaudio
+            set_kill_keys "atari800"
+            RUNTHIS='${TBASH} /usr/bin/atari800.start "${ROMNAME}"'
+        fi
+        ;;
+
+        "megadrive"|"genesis"|"sega32x"|"segacd"|"mastersystem"|"gamegear")
+        if [ "${EMU}" = "picodrivesa" ]; then
+            set_audio pulseaudio
+            set_kill_keys "PicoDrive"
+            RUNTHIS='${TBASH} /usr/bin/picodrive.start "${ROMNAME}"'
+        fi
+        ;;
+
         "ports")
             if [[ "${ROMNAME}" == *".sh" ]]; then
                 set_kill_keys "gptokeyb"
@@ -643,7 +670,7 @@ fi
 
 # These emus do not like to be killed by gptokeyb
 case "${EMU}" in
-    "dolphin" | "Chocolate-Doom" | "yabasanshiroSA" | "yabasanshiroSA1_5" | *"scummvm_libretro"* | *"ikemen"* | *"jzintv"*)
+    "dolphin" | "Chocolate-Doom" | "yabasanshiroSA" | "yabasanshiroSA1_5" | "yabasanshiroSA1_11" | "yabasanshiro1_5" | "yabasanshiro1_11" | *"scummvm_libretro"* | *"ikemen"* | *"jzintv"*)
         ret_error="0"
         ;;
 esac

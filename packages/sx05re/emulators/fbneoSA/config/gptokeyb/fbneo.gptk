@@ -1,0 +1,6 @@
+# NextOS fbneoSA — Select+Start = kill (via gptokeyb -1).
+# Mapeamento minimo (buttons unmapped) pra nao conflitar com fbneo -joy
+# que ja le SDL_JOYBUTTONDOWN diretamente via libSDL2.
+back = esc
+start = enter
+guide = enter

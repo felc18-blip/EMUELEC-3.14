@@ -1,0 +1,93 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2024-present NextOS-Elite-Edition
+#
+# PicoDrive standalone launcher for EmuELEC / NextOS
+# - aceita .md/.smd/.bin/.gen direto, extrai .zip/.7z em /tmp
+# - configura mapeamento de joystick padrao no primeiro run
+# - audio pulseaudio (NextOS default)
+
+. /etc/profile
+
+ROM="$1"
+PD_DIR=/storage/.picodrive
+CFG_DIR="$PD_DIR/cfg"
+TMP_DIR=/tmp/picodrive
+LOG=/emuelec/logs/picodrive.log
+
+mkdir -p "$CFG_DIR" "$TMP_DIR" "$(dirname "$LOG")"
+echo "==== picodrivesa launch $(date) ====" >> "$LOG"
+echo "ROM=$ROM" >> "$LOG"
+
+export SDL_AUDIODRIVER=pulseaudio
+
+# Cria config padrao se nao existe (mapeamento USB Gamepad sensato)
+if [ ! -s "$CFG_DIR/config2.cfg" ]; then
+  echo "First run: criando config padrao" >> "$LOG"
+  cat > "$CFG_DIR/config2.cfg" <<'CFG_END'
+[sdl keys]
+bind escape = menu
+bind return = player1 start
+bind z = player1 a
+bind x = player1 b
+bind c = player1 c
+bind up = player1 up
+bind down = player1 down
+bind left = player1 left
+bind right = player1 right
+
+[sdl USB Gamepad]
+bind b0 = player1 b
+bind b1 = player1 c
+bind b2 = player1 a
+bind b3 = player1 mode
+bind b4 = player1 x
+bind b5 = player1 y
+bind b6 = player1 z
+bind b7 = player1 start
+bind b8 = menu
+bind b9 = player1 start
+CFG_END
+fi
+
+# PicoDrive nao le .zip/.7z — precisa extrair
+ROM_TO_LOAD="$ROM"
+case "$ROM" in
+  *.zip)
+    rm -rf "$TMP_DIR"/*
+    unzip -q -o "$ROM" -d "$TMP_DIR" 2>>"$LOG"
+    EXTRACTED=$(find "$TMP_DIR" -type f \( -iname "*.md" -o -iname "*.smd" -o -iname "*.bin" -o -iname "*.gen" \) | head -1)
+    [ -n "$EXTRACTED" ] && ROM_TO_LOAD="$EXTRACTED"
+    ;;
+  *.7z)
+    rm -rf "$TMP_DIR"/*
+    7z x -y "$ROM" -o"$TMP_DIR" >/dev/null 2>>"$LOG"
+    EXTRACTED=$(find "$TMP_DIR" -type f \( -iname "*.md" -o -iname "*.smd" -o -iname "*.bin" -o -iname "*.gen" \) | head -1)
+    [ -n "$EXTRACTED" ] && ROM_TO_LOAD="$EXTRACTED"
+    ;;
+esac
+
+echo "Loading: $ROM_TO_LOAD" >> "$LOG"
+
+# Localiza binario
+PD_BIN=/usr/bin/PicoDrive
+[ ! -x "$PD_BIN" ] && [ -x /storage/PicoDrive ] && PD_BIN=/storage/PicoDrive
+
+# NextOS: sdl12-compat NAO entrega SDL_JOYBUTTONDOWN events corretamente p/
+# SDL 1.2 apps no NextOS (gamepad reconhecido como GameController,
+# eventos de botao silenciosamente descartados). Workaround: usa gptokeyb
+# pra traduzir gamepad -> teclado, e PicoDrive le SDL keys diretamente.
+GPTK_CFG=/emuelec/configs/gptokeyb/picodrive.gptk
+if [ -f "$GPTK_CFG" ] && [ -x /usr/bin/gptokeyb ]; then
+  echo "Starting gptokeyb with $GPTK_CFG" >> "$LOG"
+  # PicoDrive ja tem menu interno (Select=esc) — nao precisa kill combo.
+  /usr/bin/gptokeyb -c "$GPTK_CFG" &
+  GPTK_PID=$!
+  trap "kill $GPTK_PID 2>/dev/null" EXIT
+fi
+
+cd "$(dirname "$PD_BIN")"
+"$PD_BIN" "$ROM_TO_LOAD" >> "$LOG" 2>&1
+RC=$?
+[ -n "$GPTK_PID" ] && kill "$GPTK_PID" 2>/dev/null
+exit $RC

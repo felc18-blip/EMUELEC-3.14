@@ -2,30 +2,48 @@
 +++ b/CMakeLists.txt
 @@ -7,7 +7,7 @@
  message("CMAKE_SYSTEM_NAME is ${CMAKE_SYSTEM_NAME}")
- 
+
  add_definitions(-Wall)
 -add_definitions(-std=gnu++14)
 +add_definitions(-std=gnu++17)
  add_definitions(-fpermissive)
  add_definitions(-O3)
  #add_definitions(-Rpass=loop-vectorize)
-@@ -45,6 +45,9 @@
+@@ -45,6 +45,10 @@
          message("Assuming this is Linux on Raspberry Pi")
          set(BFDNAME -O elf32-littlearm -B arm)
          add_definitions(-mfpu=neon-vfpv4 -mfloat-abi=hard -mcpu=cortex-a53 -funsafe-math-optimizations -ftree-vectorize -ftree-vectorizer-verbose=2 -fopt-info-vec)
 +    elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
 +        message("Assuming this is aarch64")
++        set(BFDNAME -O elf64-littleaarch64 -B aarch64)
 +        add_definitions(-mcpu=cortex-a53 -funsafe-math-optimizations -ftree-vectorize -ftree-vectorizer-verbose=2 -fopt-info-vec)
      else()
          message("Looks like it's a desktop Linux on amd64, will use xxd")
-         set(USE_XXD true) 
-@@ -158,7 +161,7 @@
- 
+         set(USE_XXD true)
+@@ -60,7 +64,7 @@
+ set(SOURCE_FILES src/main.cpp src/memory.cpp src/tv.cpp src/board.cpp src/emulator.cpp
+     src/hal.cpp src/i8080.cpp src/options.cpp src/sound.cpp src/filler.cpp
+     src/resampler.cpp # src/biquad.cpp
+-    src/cadence.cpp
++    src/cadence.cpp src/debug.cpp src/fsimage.cpp src/utils_string.cpp
+     src/icon.cpp
+     src/glextns.cpp src/shaders.cpp
+     src/scriptnik.cpp src/util.cpp
+@@ -71,7 +75,7 @@
+ endif(USE_XXD)
+
+ set(Boost_USE_STATIC_LIBS ON)
+-find_package(Boost COMPONENTS thread system filesystem program_options chrono REQUIRED)
++find_package(Boost COMPONENTS thread filesystem program_options chrono REQUIRED)
+ include_directories(${Boost_INCLUDE_DIRS})
+
+ set(SDL2_INCLUDE_DIRS ${SDL2_INCLUDE_DIRS}
+@@ -158,7 +162,7 @@
+
  target_link_libraries(v06x ${BOOT_O} ${EXTRA_LIBS})
- 
+
 -set(TEST_SOURCE_FILES test/tests.cpp)
 +#set(TEST_SOURCE_FILES test/tests.cpp)
  include_directories(src)
 -add_executable(tests ${TEST_SOURCE_FILES} boots.o)
 +#add_executable(tests ${TEST_SOURCE_FILES} boots.o)
- 

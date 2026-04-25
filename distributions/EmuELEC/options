@@ -19,7 +19,7 @@
   ROOT_PASSWORD="emuelec"
 
 # Partition labels for USB/SD installation media
-  DISTRO_BOOTLABEL="EMUELEC"
+  DISTRO_BOOTLABEL="RETROELITE"
   DISTRO_DISKLABEL="STORAGE"
 
 

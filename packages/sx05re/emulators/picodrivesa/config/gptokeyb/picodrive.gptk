@@ -1,0 +1,26 @@
+# NextOS picodrive — gamepad → keyboard (workaround p/ sdl12-compat bug
+# que descarta SDL_JOYBUTTONDOWN events. PicoDrive le SDL keys diretamente.)
+# SNES-style USB Gamepad layout:
+#   button0 (top-right/X)    → 'a' gptokeyb → c (PicoDrive C)
+#   button1 (bot-right/A)    → 'b' gptokeyb → x (PicoDrive B)
+#   button2 (bot-left/B)     → 'x' gptokeyb → z (PicoDrive A)
+#   button3 (top-left/Y)     → 'y' gptokeyb → escape (Menu PicoDrive)
+a = c
+b = x
+x = z
+y = esc
+back = esc
+start = enter
+guide = enter
+l1 = a
+l2 = q
+r1 = s
+r2 = w
+up = up
+down = down
+left = left
+right = right
+left_analog_up = up
+left_analog_down = down
+left_analog_left = left
+left_analog_right = right

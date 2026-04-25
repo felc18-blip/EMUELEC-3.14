@@ -57,4 +57,16 @@ export LIBGL_NOBANNER=1
 export LIBGL_SILENTSTUB=1
 
 fbfix $( emuelec-utils getmainfb )
+
+# NextOS: gptokeyb monitora Select+Start e mata fbneo (atalho de saida).
+# fbneo -joy le SDL_JOYBUTTONDOWN direto, gptkb mapeia o minimo p/ nao
+# conflitar com gameplay.
+GPTK_CFG=/emuelec/configs/gptokeyb/fbneo.gptk
+if [ -f "$GPTK_CFG" ] && [ -x /usr/bin/gptokeyb ]; then
+  /usr/bin/gptokeyb -1 fbneo -c "$GPTK_CFG" &
+  GPTK_PID=$!
+  trap "kill $GPTK_PID 2>/dev/null" EXIT
+fi
+
 fbneo -joy -fullscreen "${ROM}" ${EXTRAOPTS} >> /emuelec/logs/emuelec.log 2>&1
+[ -n "$GPTK_PID" ] && kill "$GPTK_PID" 2>/dev/null

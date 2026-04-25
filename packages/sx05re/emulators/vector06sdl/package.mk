@@ -11,6 +11,29 @@ PKG_DEPENDS_TARGET="toolchain freetype slang alsa"
 PKG_LONGDESC="Opensource Vector-06C emulator in C++"
 
 pre_configure_target() {
-PKG_CMAKE_OPTS_TARGET="-DCMAKE_SYSTEM_PROCESSOR=arm -DSDL2_LIBRARY=${SYSROOT_PREFIX}/usr/lib/libSDL2.so -DSDL2_IMAGE_LIBRARY=${SYSROOT_PREFIX}/usr/lib/libSDL2_image.so"
-#PKG_CONFIGURE_OPTS_TARGET=" --disable-pulseaudio --disable-esd --disable-video-mir --disable-video-wayland --disable-video-x11 --disable-video-opengl"
+# NextOS:
+# - CMAKE_POLICY_VERSION_MINIMUM=3.5 — CMake 4 removeu compat <3.5
+# - SYSTEM_PROCESSOR=aarch64 — patch tem branch elseif p/ aarch64 (BFDNAME correto)
+# - OBJCOPY do cross-toolchain — host objcopy gera ELF x86_64 que linker recusa
+PKG_CMAKE_OPTS_TARGET="-DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_SYSTEM_PROCESSOR=aarch64 -DUSE_XXD=true -DSDL2_LIBRARY=${SYSROOT_PREFIX}/usr/lib/libSDL2.so -DSDL2_IMAGE_LIBRARY=${SYSROOT_PREFIX}/usr/lib/libSDL2_image.so"
+# NextOS: BIN2OBJ via xxd gera arquivos .c que sao compilados por `cc` (host).
+# Trocamos `cc` por cross-gcc senao linker reclama de ELF x86_64 vs aarch64.
+sed -i "s|COMMAND cc -c|COMMAND ${CC} -c|g" ${PKG_BUILD}/CMakeLists.txt
+# NextOS: GCC 15.2 / std=gnu++17 — std::clamp/find_if/remove_if precisam
+# <algorithm> mas varios .cpp nao incluem (eram transitivos no <vector> antigo).
+for f in memory.cpp debug.cpp fsimage.cpp utils_string.cpp; do
+  [ -f "${PKG_BUILD}/src/$f" ] && \
+    grep -q "^#include <algorithm>" ${PKG_BUILD}/src/$f || \
+    sed -i '1a #include <algorithm>' ${PKG_BUILD}/src/$f 2>/dev/null
+done
+# NextOS: Boost 1.66+ renomeou boost::asio::io_service -> io_context.
+# Boost 1.90 removeu io_service. server.cpp usa API antiga.
+sed -i 's|boost::asio::io_service|boost::asio::io_context|g' ${PKG_BUILD}/src/server.cpp
+sed -i 's|io_service&|io_context\&|g' ${PKG_BUILD}/src/server.cpp
+}
+
+makeinstall_target() {
+  # NextOS: CMakeLists upstream nao tem regra install — copiamos manualmente.
+  mkdir -p ${INSTALL}/usr/bin
+  cp -f ${PKG_BUILD}/.${TARGET_NAME}/v06x ${INSTALL}/usr/bin/v06x
 }

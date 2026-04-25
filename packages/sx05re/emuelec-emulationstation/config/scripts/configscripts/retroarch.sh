@@ -511,7 +511,19 @@ function onend_retroarch_joystick() {
         mv "${dir}/${file}" "${dir}/${file}.bak"
     fi
     sed -i '/^[[:space:]]*$/d' "/tmp/tempconfig.cfg"
-    mv "/tmp/tempconfig.cfg" "${dir}/${file}"
+
+    # NextOS: o RetroArch pode ler autoconfig de:
+    #   /tmp/joypads (overlay padrão, retroarch.cfg system aponta)
+    #   /storage/joypads (upperdir do overlay — autoconfig escrito quando
+    #     overlayfs não foi mountado a tempo OU o user RA cfg aponta diferente)
+    #   /storage/.config/retroarch/autoconfig (user-level do RA — usado
+    #     quando o joypad_autoconfig_dir não está customizado)
+    # Escrever os 3 garante que SDL3 + RA pegue o controller no primeiro try.
+    cp -f "/tmp/tempconfig.cfg" "${dir}/${file}"
+    mkdir -p /storage/joypads /storage/.config/retroarch/autoconfig
+    cp -f "/tmp/tempconfig.cfg" "/storage/joypads/${file}"
+    cp -f "/tmp/tempconfig.cfg" "/storage/.config/retroarch/autoconfig/${file}"
+    rm -f "/tmp/tempconfig.cfg"
 }
 
 function onend_retroarch_keyboard() {

@@ -40,27 +40,21 @@ PKG_CMAKE_OPTS_TARGET=" -DENABLE_LTO=ON \
 pre_configure_target() {
   if [ "${DEVICE}" == "Amlogic-old" ]; then
     # Kernel 3.14 nao tem INPUT_PROP_ACCELEROMETER nos headers do sysroot.
-    # libevdev traz uma copia atualizada de input-event-codes.h — exponha
-    # temporariamente pro Dolphin compilar contra ela.
-    cp -rf $(get_build_dir libevdev)/include/linux/linux/input-event-codes.h \
-      ${SYSROOT_PREFIX}/usr/include/linux/ 2>/dev/null || true
-    # Tambem: linux/input.h do 3.14 nao puxa input-event-codes.h. Adiciona.
-    if ! grep -q "input-event-codes.h" ${SYSROOT_PREFIX}/usr/include/linux/input.h; then
-      cp -f ${SYSROOT_PREFIX}/usr/include/linux/input.h \
-            ${SYSROOT_PREFIX}/usr/include/linux/input.h.nextos-bak
-      sed -i '/^#include <linux\/types.h>$/a #include <linux/input-event-codes.h>' \
-        ${SYSROOT_PREFIX}/usr/include/linux/input.h
-    fi
-  fi
-}
-
-post_make_target() {
-  if [ "${DEVICE}" == "Amlogic-old" ]; then
-    rm -f ${SYSROOT_PREFIX}/usr/include/linux/input-event-codes.h
-    # restaura input.h original
-    if [ -f ${SYSROOT_PREFIX}/usr/include/linux/input.h.nextos-bak ]; then
-      mv -f ${SYSROOT_PREFIX}/usr/include/linux/input.h.nextos-bak \
-            ${SYSROOT_PREFIX}/usr/include/linux/input.h
+    # Coloco input-event-codes.h em PKG_BUILD/include/linux/ e adiciono -I
+    # no CXXFLAGS (apenas), patchando evdev.cpp pra incluir explicitamente.
+    # Evita conflito com KeyboardStatus.h (que tem KEY_A/KEY_B etc).
+    mkdir -p ${PKG_BUILD}/include/linux
+    cp -f $(get_build_dir libevdev)/include/linux/linux/input-event-codes.h \
+          ${PKG_BUILD}/include/linux/input-event-codes.h 2>/dev/null || true
+    export CFLAGS="${CFLAGS} -I${PKG_BUILD}/include"
+    export CXXFLAGS="${CXXFLAGS} -I${PKG_BUILD}/include"
+    # Patch evdev.cpp: adiciona include explicito antes do uso de
+    # INPUT_PROP_ACCELEROMETER. Sem isso, libevdev.h → linux/input.h do
+    # 3.14 nao tem o define.
+    EVDEV_CPP="${PKG_BUILD}/Source/Core/InputCommon/ControllerInterface/evdev/evdev.cpp"
+    if [ -f "${EVDEV_CPP}" ] && ! grep -q "input-event-codes.h" "${EVDEV_CPP}"; then
+      sed -i '0,/^#include <fcntl.h>$/{s|^#include <fcntl.h>$|#include <linux/input-event-codes.h>\n#include <fcntl.h>|}' \
+        "${EVDEV_CPP}"
     fi
   fi
 }
