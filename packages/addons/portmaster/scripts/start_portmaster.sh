@@ -110,12 +110,46 @@ if [ -f "/usr/bin/portmaster_compatibility.sh" ]; then
     /usr/bin/portmaster_compatibility.sh
 fi
 
+# 9.1 Hook: substitui o bgdi (interpretador BennuGD) dos ports pelo do
+# sistema. O bgdi do PortMaster é um build SDL2 antigo que renderiza em
+# 4:3 dentro do framebuffer Mali. O nosso /usr/bin/bgdi (lib32-bennugd-
+# monolithic) é SDL3-native com:
+#   - Mali FBDEV fullscreen forçado
+#   - SDL_LOGICAL_PRESENTATION_STRETCH (preenche 16:9 nativo)
+#   - Audio fix (Mix_OpenAudio bool check)
+#   - Funciona via lib32-SDL3 com patch de _TIME_BITS
+# Roda toda vez que o launcher do PortMaster é aberto, então ports
+# recém-instalados também ficam fullscreen.
+replace_bennugd_bgdi() {
+    [ -x /usr/bin/bgdi ] || return 0
+    local sysmd5
+    sysmd5=$(md5sum /usr/bin/bgdi | awk '{print $1}')
+    local found=0 replaced=0
+    for portbgdi in /storage/roms/ports/*/bgdi; do
+        [ -f "$portbgdi" ] || continue
+        found=$((found + 1))
+        local cmd5
+        cmd5=$(md5sum "$portbgdi" | awk '{print $1}')
+        if [ "$cmd5" = "$sysmd5" ]; then continue; fi
+        # backup primeira vez (preserva original)
+        [ -f "${portbgdi}.orig.sdl2" ] || cp -f "$portbgdi" "${portbgdi}.orig.sdl2"
+        cp -f /usr/bin/bgdi "$portbgdi"
+        chmod +x "$portbgdi"
+        replaced=$((replaced + 1))
+    done
+    [ $found -gt 0 ] && echo "[start_portmaster] bgdi: ${replaced}/${found} bennugd ports atualizados pro SDL3 fullscreen"
+}
+replace_bennugd_bgdi
+
 # 10. Execução final
 @LIBEGL@
 
 cd "$PM_DIR" || exit 1
 
 ./PortMaster.sh > /storage/portmaster.log 2>&1
+
+# 10.1 Roda novamente apos PortMaster fechar — pega ports recem-instalados
+replace_bennugd_bgdi
 
 sleep 1
 systemctl restart emustation 2>/dev/null || systemctl restart emulationstation 2>/dev/null
