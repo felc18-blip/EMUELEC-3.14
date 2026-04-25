@@ -2630,6 +2630,14 @@
               "name": "vba_next"
             }
           ]
+        },
+        {
+          "name": "NanoBoyAdvance",
+          "cores": [
+            {
+              "name": "nanoboyadvance"
+            }
+          ]
         }
       ]
     },
@@ -2669,6 +2677,14 @@
               "name": "vba_next"
             }
           ]
+        },
+        {
+          "name": "NanoBoyAdvance",
+          "cores": [
+            {
+              "name": "nanoboyadvance"
+            }
+          ]
         }
       ]
     },
@@ -2706,6 +2722,14 @@
             },
             {
               "name": "vba_next"
+            }
+          ]
+        },
+        {
+          "name": "NanoBoyAdvance",
+          "cores": [
+            {
+              "name": "nanoboyadvance"
             }
           ]
         }

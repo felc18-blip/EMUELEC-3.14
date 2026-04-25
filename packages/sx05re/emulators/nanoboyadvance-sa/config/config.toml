@@ -1,0 +1,33 @@
+[general]
+bios_path = "/storage/roms/bios/gba/gba_bios.bin"
+bios_skip = false
+sync_to_audio = true
+
+[cartridge]
+# Possible values: detect, none, sram, flash64, flash128, eeprom512, eeprom8192
+save_type = "detect"
+# Force-enable RTC emulation, otherwise rely on game database.
+force_rtc = true
+
+[video]
+fullscreen = true
+scale = 2
+# NextOS SDL frontend uses an embedded GLES2 shader (vertex passthrough +
+# fragment with .bgra swizzle). User-supplied shader paths are ignored
+# because they target desktop GLSL — leave both empty.
+shader_vs = ""
+shader_fs = ""
+
+[audio]
+# Possible values: cosine, cubic, sinc64, sinc128, sinc256
+# 'cosine' is the cheapest; on Amlogic-old A53 cores anything heavier
+# eats too much CPU per audio block.
+resampler = "cosine"
+# Filter FIFO audio before passing it to the mixer.
+# This will reduce the dirty high-frequency aliasing typical to the GBA.
+interpolate_fifo = true
+# Reimplementation of the popular MP2K/M4A audio mixer with higher quality.
+# This is experimental and may still have issues.
+mp2k_hle_enable = false
+# Use cubic interpolation in the MP2K reimplementation.
+mp2k_hle_cubic = false

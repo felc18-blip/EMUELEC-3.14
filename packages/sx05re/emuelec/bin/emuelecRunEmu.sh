@@ -233,6 +233,12 @@ case ${PLATFORM} in
                     RUNTHIS='sdl_interface "${ROMNAME}"'
                 fi
                 ;;
+        "gba")
+                if [ "${EMU}" = "nanoboyadvance" ]; then
+                    set_kill_keys "NanoBoyAdvance"
+                    RUNTHIS='${TBASH} start_nanoboyadvance.sh "${ROMNAME}" "${PLATFORM}"'
+                fi
+                ;;
         "n64")
                 if [ "${EMU}" = "daedalus" ]; then
                     set_kill_keys "daedalus"
