@@ -99,8 +99,17 @@ esac
 
 cd "${CONFIG_DIR}" || exit 1
 
+# --stabilize-virtual-cursor: smoothing 0.15 + 15px sticky radius.
+#   Compromisso entre cursor estavel e responsivo, validado em hardware
+#   com Twin USB PS2 clone (pad generico). Valores maiores (0.3,30)
+#   parecem "travado"; menores (0.1,10) deixam o cursor nervoso de novo.
+# --ignore-gl-errors: Mali-450 emite GL_INVALID_ENUM (0x500) com frequencia
+#   em apps que usam enums extras de GLES2 (ex: SMB, CNK2). O renderer
+#   continua funcionando — so sufoca o spam no log do guest.
 ${EMUPERF} /usr/bin/touchHLE \
   --fullscreen \
   --scale-hack="${UPSCALE}" \
   --device-family="${DEVICE}" \
+  --stabilize-virtual-cursor=0.15,15 \
+  --ignore-gl-errors \
   "${1}" >> "${EMUELECLOG}" 2>&1

@@ -31,7 +31,8 @@ PKG_EMUS="${LIBRETRO_CORES} beetle-saturn pico-8 drastic-advanced vircon32 mu \
           melonds advancemame amiberry amiberry-lite hatarisa openbor \
           dosbox-staging mupen64plus-nx mupen64plus-nx-alt scummvmsa stellasa \
           solarus dosbox-pure pcsx_rearmed potator freej2me flycastsa \
-          fmsx-libretro jzintv xroar x16 simcoupe ti99sim oricutron eka2l1"
+          fmsx-libretro jzintv xroar x16 simcoupe ti99sim oricutron eka2l1 \
+          touchhle-sa"
 
 PKG_COMPRESS="gzip minizip idtech lynx yamlcpp textviewer rapidxml libcroco \
               pugixml pyFDT cifs-utils libzip xash3d SDL3 love re3 reVC"
