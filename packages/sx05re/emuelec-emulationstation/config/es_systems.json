@@ -2015,7 +2015,7 @@
           "name": "libretro",
           "cores": [
             {
-              "name": "mednafen_pce_fast",
+              "name": "beetle_pce_fast",
               "default": true
             },
             {
@@ -2054,7 +2054,7 @@
           "name": "libretro",
           "cores": [
             {
-              "name": "mednafen_pce_fast",
+              "name": "beetle_pce_fast",
               "default": true
             },
             {
@@ -2124,7 +2124,7 @@
               "default": true
             },
             {
-              "name": "mednafen_pce_fast"
+              "name": "beetle_pce_fast"
             },
             {
               "name": "geargrafx"
@@ -2154,7 +2154,7 @@
           "name": "libretro",
           "cores": [
             {
-              "name": "mednafen_pce_fast",
+              "name": "beetle_pce_fast",
               "default": true
             },
             {
@@ -2193,7 +2193,7 @@
           "name": "libretro",
           "cores": [
             {
-              "name": "mednafen_pce_fast",
+              "name": "beetle_pce_fast",
               "default": true
             },
             {
@@ -2698,36 +2698,6 @@
             },
             {
               "name": "vba_next"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "xbox",
-      "fullname": "Microsoft Xbox",
-      "manufacturer": "Microsoft",
-      "release": "2001",
-      "hardware": "console",
-      "path": "/storage/roms/xbox",
-      "platform": "xbox",
-      "theme": "xbox",
-      "command": "default",
-      "extensions": [
-        ".iso",
-        ".ISO",
-        ".xiso",
-        ".XISO",
-        ".zip",
-        ".7z"
-      ],
-      "emulators": [
-        {
-          "name": "xemu-sa",
-          "cores": [
-            {
-              "name": "xemu",
-              "default": true
             }
           ]
         }
@@ -4623,9 +4593,6 @@
             {
               "name": "flycast",
               "default": true
-            },
-            {
-              "name": "flycast_32b"
             }
           ]
         },
@@ -4650,9 +4617,6 @@
           "cores": [
             {
               "name": "flycast"
-            },
-            {
-              "name": "flycast_32b"
             }
           ]
         }
@@ -4989,6 +4953,14 @@
               "name": "duckstation"
             }
           ]
+        },
+        {
+          "name": "Duckstation",
+          "cores": [
+            {
+              "name": "duckstation"
+            }
+          ]
         }
       ]
     },
@@ -5044,56 +5016,6 @@
           "cores": [
             {
               "name": "vircon32",
-              "default": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "quake2",
-      "fullname": "Quake II",
-      "manufacturer": "id Software",
-      "release": "1997",
-      "hardware": "computer",
-      "path": "/storage/roms/quake2",
-      "platform": "quake2",
-      "theme": "quake2",
-      "command": "default",
-      "extensions": [
-        ".pak"
-      ],
-      "emulators": [
-        {
-          "name": "libretro",
-          "cores": [
-            {
-              "name": "vitaquake2",
-              "default": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "quake3",
-      "fullname": "Quake III Arena",
-      "manufacturer": "id Software",
-      "release": "1999",
-      "hardware": "computer",
-      "path": "/storage/roms/quake3",
-      "platform": "quake3",
-      "theme": "quake3",
-      "command": "default",
-      "extensions": [
-        ".pk3"
-      ],
-      "emulators": [
-        {
-          "name": "libretro",
-          "cores": [
-            {
-              "name": "vitaquake3",
               "default": true
             }
           ]
