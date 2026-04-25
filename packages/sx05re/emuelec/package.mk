@@ -34,7 +34,7 @@ PKG_EMUS="${LIBRETRO_CORES} beetle-saturn pico-8 drastic-advanced vircon32 mu \
           solarus dosbox-pure pcsx_rearmed potator freej2me flycastsa \
           fmsx-libretro jzintv xroar x16 simcoupe ti99sim oricutron eka2l1 \
           touchhle-sa atari800sa dosbox-sdl2 dosbox-x fbneoSA mesen2 \
-          picodrivesa vector06sdl sundog \
+          picodrivesa vector06sdl sundog melonds-sa nanoboyadvance-sa \
           yabasanshiroSA_1_11"
 
 PKG_COMPRESS="gzip minizip idtech lynx yamlcpp textviewer rapidxml libcroco \

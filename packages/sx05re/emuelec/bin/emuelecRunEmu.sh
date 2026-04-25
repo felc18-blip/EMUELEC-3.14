@@ -222,6 +222,9 @@ case ${PLATFORM} in
                 if [ "${EMU}" = "drastic-advanced" ]; then
                     set_kill_keys "drastic"
                     RUNTHIS="/usr/bin/advancedrastic.sh \"${ROMNAME}\""
+                elif [ "${EMU}" = "melonds-sa" ]; then
+                    set_kill_keys "melonDS"
+                    RUNTHIS='${TBASH} start_melonds.sh "${ROMNAME}" "${PLATFORM}"'
                 else
                     set_kill_keys "drastic"
                     RUNTHIS="/usr/bin/start_drastic.sh \"${ROMNAME}\""

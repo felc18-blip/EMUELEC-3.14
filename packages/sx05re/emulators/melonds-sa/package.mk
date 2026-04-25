@@ -20,7 +20,7 @@
 # the 3D rasterizer runs entirely on CPU.
 
 PKG_NAME="melonds-sa"
-PKG_VERSION="6709c312057dbfafed50eaeab96424798cc6b0b5"
+PKG_VERSION="ff42de9a9f23af6cf8fdf5ffbd5ed97aa76562d7"
 PKG_ARCH="aarch64"
 PKG_LICENSE="GPLv3"
 PKG_SITE="https://github.com/felc18-blip/melonDS-nextos"

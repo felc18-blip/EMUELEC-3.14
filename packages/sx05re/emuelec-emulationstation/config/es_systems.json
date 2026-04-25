@@ -2351,6 +2351,14 @@
               "name": "desmume_32b"
             }
           ]
+        },
+        {
+          "name": "melonDS",
+          "cores": [
+            {
+              "name": "melonds-sa"
+            }
+          ]
         }
       ]
     },
