@@ -1,0 +1,58 @@
+NextOS Mali fbdev: force fullscreen window size on every SetWindowSize.
+
+Why:
+The mali-fbdev video driver has no window manager and only one display
+surface (the framebuffer itself). MALI_CreateWindow already pins
+window->w/h and window->flags to the native display, but
+MALI_SetWindowSize is a no-op — so when a game calls SDL_SetWindowSize()
+mid-run (Heaps/Dead Cells loading saved-config from another device,
+ports persisting 854x480, etc.), SDL3 stores the requested size in
+window->floating.{w,h} but the EGL surface is still bound to the native
+fb size. The result is a tiny game viewport drawn into a corner of a
+much larger framebuffer.
+
+Fix:
+Override MALI_SetWindowSize to clamp window->w/h and floating.{w,h}
+back to the native display, then synthesize an SDL_EVENT_WINDOW_RESIZED
+carrying the native size. Any engine that listens to resize events
+adapts; engines that just call SDL_GetWindowSize() will see the native
+size on the next query.
+
+Same logic applied at create-time: floating.{w,h} also pinned, so a
+later SetWindowSize triggered by SDL3 internals (aspect-ratio passes,
+etc.) cannot drift below native.
+
+--- a/src/video/mali-fbdev/SDL_malivideo.c
++++ b/src/video/mali-fbdev/SDL_malivideo.c
+@@ -383,6 +383,8 @@ bool MALI_CreateWindow(SDL_VideoDevice *_this,
+     /* Janela ocupa a tela inteira — fbdev não tem gerenciador de janelas. */
+     window->w = displaydata->native_display.width;
+     window->h = displaydata->native_display.height;
++    window->floating.w = window->w;
++    window->floating.h = window->h;
+     window->flags |= SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS;
+
+
+@@ -478,9 +480,21 @@ bool MALI_SetWindowPosition(SDL_VideoDevice *_this, SDL_Window *window)
+     return true;   /* posição fixa em fbdev; sucesso silencioso */
+ }
+
++/* NextOS: fbdev tem 1 surface = todo o display; ignorar pedidos de tamanho
++ * dos jogos (configs persistidos de outros devices etc.) e devolver sempre
++ * o tamanho nativo. Mantém window->floating.{w,h} sincronizado pra evitar
++ * que aspect-ratio passes do SDL3 voltem a "diminuir" depois. */
+ void MALI_SetWindowSize(SDL_VideoDevice *_this, SDL_Window *window)
+ {
+-    (void)_this; (void)window;
++    SDL_DisplayData *dd = MALI_GetDisplayData();
++    if (!dd) {
++        return;
++    }
++    window->w = dd->native_display.width;
++    window->h = dd->native_display.height;
++    window->floating.w = window->w;
++    window->floating.h = window->h;
++    SDL_SendWindowEvent(window, SDL_EVENT_WINDOW_RESIZED, window->w, window->h);
+ }
+
+ void MALI_ShowWindow(SDL_VideoDevice *_this, SDL_Window *window)
