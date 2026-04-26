@@ -3,28 +3,30 @@
 # NextOS Elite Edition — yabasanshiroSA_1_5
 # Saturn emulator (yabause/yabasanshiro v1.5 - retro_arena standalone port).
 #
-# Source: felc18-blip/yabasanshiro-1.5-nextos branch nextos-gles2 (fork de
-# devmiyax/yabause). NextOS-specific tweaks pra rodar em Mali-450 (GLES 2.0
-# only) ficam como commits no fork em vez de patches runtime.
+# Source: felc18-blip/yabasanshiro-1.5-nextos branch nextos-1_5 (fork de
+# devmiyax/yabause B2_1_5). 4 fixes do VIDSoft cherry-picked do 1.11.
 
 PKG_NAME="yabasanshiroSA_1_5"
-PKG_VERSION="3376b64723222dbbbecfcbd5e5c402d6537ff6b1"
+PKG_VERSION="55fd0704d009cee1a4addc6647fb19b654242bff"
 PKG_ARCH="aarch64"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/felc18-blip/yabasanshiro-1.5-nextos"
 PKG_URL="${PKG_SITE}.git"
-PKG_GIT_CLONE_BRANCH="nextos-gles2"
+PKG_GIT_CLONE_BRANCH="nextos-1_5"
 PKG_DEPENDS_TARGET="toolchain SDL2 boost openal-soft ${OPENGLES} zlib libpng"
 PKG_LONGDESC="Yabasanshiro v1.5 — Sega Saturn emulator (NextOS Mali-450 port)"
 PKG_TOOLCHAIN="cmake-make"
 PKG_SECTION="emuelec/emulators"
+PKG_BUILD_FLAGS="+speed"
 
-# Amlogic-old (kernel 3.14, Mali-450 GLES 2.0, Cortex-A53). Mesmo padrão
-# de quirks usado em duckstation/touchhle: ARMv8 syscall wrappers, no
-# stack protector, mtune Cortex-A53.
+# Amlogic-old (Mali-450 GLES 2.0, Cortex-A53). Mesmas quirks da 1.11.
+# -fno-strict-aliasing CRITICO: GCC15 strict-aliasing UB drops putpixel
+# writes em vidsoft.c (back_nonzero=0 mesmo com 10M+ wrote count).
 if [ "${DEVICE}" = "Amlogic-old" ]; then
   TARGET_CFLAGS+=" -D_GNU_SOURCE -fno-stack-protector -mtune=cortex-a53 -D__LINUX_ARM_ARCH__=8"
   TARGET_CXXFLAGS+=" -D_GNU_SOURCE -fno-stack-protector -mtune=cortex-a53 -D__LINUX_ARM_ARCH__=8"
+  TARGET_CFLAGS+=" -fno-strict-aliasing -fno-tree-vectorize -fno-tree-loop-vectorize"
+  TARGET_CXXFLAGS+=" -fno-strict-aliasing -fno-tree-vectorize -fno-tree-loop-vectorize"
 fi
 
 post_unpack() {
@@ -50,7 +52,7 @@ pre_configure_target() {
     -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
     -DYAB_PORTS=retro_arena \
     -DYAB_WANT_DYNAREC_DEVMIYAX=ON \
-    -DYAB_WANT_ARM7=OFF \
+    -DYAB_WANT_ARM7=ON \
     -DYAB_WANT_VULKAN=OFF \
     -DCMAKE_TOOLCHAIN_FILE=${PKG_BUILD}/yabause/src/retro_arena/n2.cmake \
     -DOPENGL_INCLUDE_DIR=${SYSROOT_PREFIX}/usr/include \

@@ -43,5 +43,10 @@ if [[ "${AUTOGP}" == "1" ]]; then
   set_yabasanshiro_joy1_5.sh
 fi
 
+# NextOS: -r 0 (resolucao Saturn nativa, menos pixels CPU); nice -19 +
+# ionice realtime pra prioridade max no S905W (Cortex-A53 1.5GHz).
+# YABA_SKIP_COUNT=2: skip 2 frames por evento (default 1) — mais CPU
+# livre pro SH2/SCSP rodar full speed; video chopa, audio mantém.
+export YABA_SKIP_COUNT=2
 # We use { } to avoid SIGUSR signal showing text and messing up with the error handling
-{ yabasanshiro1_5 -r 2 -i "${1}" ${BIOS}; } > /emuelec/logs/emuelec.log 2>&1
+{ nice -n -19 ionice -c 1 -n 0 yabasanshiro1_5 -r 0 -i "${1}" ${BIOS}; } > /emuelec/logs/emuelec.log 2>&1
