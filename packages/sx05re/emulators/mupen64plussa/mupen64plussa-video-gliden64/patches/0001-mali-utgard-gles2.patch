@@ -1,0 +1,391 @@
+diff --git a/src/DisplayWindow.cpp b/src/DisplayWindow.cpp
+index 59725f62..2db259e3 100644
+--- a/src/DisplayWindow.cpp
++++ b/src/DisplayWindow.cpp
+@@ -1,3 +1,4 @@
++#include <cstdio>
+ #include <assert.h>
+ #include <cstdlib>
+ #include "Config.h"
+@@ -10,16 +11,22 @@
+ 
+ bool DisplayWindow::start()
+ {
+-	if (!_start())
++	fprintf(stderr, "NextOS: DisplayWindow::start enter\n"); fflush(stderr);
++	if (!_start()) {
++		fprintf(stderr, "NextOS: _start FAILED\n"); fflush(stderr);
+ 		return false;
++	}
++	fprintf(stderr, "NextOS: _start OK\n"); fflush(stderr);
+ 
+ 	graphics::ObjectHandle::defaultFramebuffer = _getDefaultFramebuffer();
++	fprintf(stderr, "NextOS: defaultFramebuffer set\n"); fflush(stderr);
+ 
+ 	gfxContext.init();
++	fprintf(stderr, "NextOS: gfxContext.init done\n"); fflush(stderr);
+ 	m_drawer._initData();
++	fprintf(stderr, "NextOS: drawer._initData done\n"); fflush(stderr);
+ 	m_buffersSwapCount = 0;
+ 
+-	// only query max MSAA when needed
+ 	if (m_maxMsaa == 0) {
+ 		m_maxMsaa = gfxContext.getMaxMSAALevel();
+ 	}
+@@ -27,6 +34,7 @@ bool DisplayWindow::start()
+ 	if (m_maxAnisotropy == 0) {
+ 		m_maxAnisotropy = static_cast<u32>(gfxContext.getMaxAnisotropy());
+ 	}
++	fprintf(stderr, "NextOS: DisplayWindow::start return true\n"); fflush(stderr);
+ 
+ 	return true;
+ }
+diff --git a/src/Graphics/OpenGLContext/GLFunctions.cpp b/src/Graphics/OpenGLContext/GLFunctions.cpp
+index 1a6b8f68..ef61a64b 100644
+--- a/src/Graphics/OpenGLContext/GLFunctions.cpp
++++ b/src/Graphics/OpenGLContext/GLFunctions.cpp
+@@ -14,9 +14,30 @@
+ 
+ #elif defined(EGL)
+ 
+-#define glGetProcAddress eglGetProcAddress
++#include <dlfcn.h>
++// NextOS Mali-fbdev: eglGetProcAddress returns NULL for some core GLES2
++// functions (glGetString, glClear, etc) — spec only requires it for ext
++// functions. Try eglGetProcAddress first, fallback to dlsym from libGLESv2.so
++static void* nextos_gles2_lib = NULL;
++static void* nextos_get_gl_proc(const char* name) {
++	void* p = (void*) eglGetProcAddress(name);
++	if (p) return p;
++	if (!nextos_gles2_lib) {
++		nextos_gles2_lib = dlopen("libGLESv2.so.2", RTLD_NOW | RTLD_GLOBAL);
++		if (!nextos_gles2_lib) nextos_gles2_lib = dlopen("libGLESv2.so", RTLD_NOW | RTLD_GLOBAL);
++		if (!nextos_gles2_lib) {
++			fprintf(stderr, "NextOS GLideN64: failed to dlopen libGLESv2.so: %s\n", dlerror());
++			return NULL;
++		}
++		fprintf(stderr, "NextOS GLideN64: opened libGLESv2.so for fallback dlsym\n");
++	}
++	p = dlsym(nextos_gles2_lib, name);
++	if (!p) fprintf(stderr, "NextOS GLideN64: %s NOT in libGLESv2 nor eglGetProcAddress\n", name);
++	return p;
++}
++#define glGetProcAddress nextos_get_gl_proc
+ #define GL_GET_PROC_ADR(proc_type, proc_name) ptr##proc_name = (proc_type) glGetProcAddress("gl"#proc_name)
+-#define GL_GET_PROC_ADR_EGL(proc_type, proc_name) ptr##proc_name = (proc_type) glGetProcAddress("egl"#proc_name)
++#define GL_GET_PROC_ADR_EGL(proc_type, proc_name) ptr##proc_name = (proc_type) eglGetProcAddress("egl"#proc_name)
+ 
+ #elif defined(OS_LINUX)
+ 
+diff --git a/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramBuilder.cpp b/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramBuilder.cpp
+index f0552f9f..742d296f 100644
+--- a/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramBuilder.cpp
++++ b/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramBuilder.cpp
+@@ -496,6 +496,7 @@ graphics::CombinerProgram * CombinerProgramBuilder::buildCombinerProgram(Combine
+ 	const GLchar * strShaderData = strFragmentShader.data();
+ 	glShaderSource(fragmentShader, 1, &strShaderData, nullptr);
+ 	glCompileShader(fragmentShader);
++	Utils::nextosDumpShader(fragmentShader, GL_FRAGMENT_SHADER, strShaderData);
+ 	if (!Utils::checkShaderCompileStatus(fragmentShader))
+ 		Utils::logErrorShader(GL_FRAGMENT_SHADER, strFragmentShader);
+ 
+@@ -511,6 +512,7 @@ graphics::CombinerProgram * CombinerProgramBuilder::buildCombinerProgram(Combine
+ 			glProgramParameteri(program, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
+ 	}
+ 	glLinkProgram(program);
++	Utils::nextosDumpProgram(program, "CombinerProgram");
+ 	assert(Utils::checkProgramLinkStatus(program));
+ 	glDeleteShader(fragmentShader);
+ 
+diff --git a/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramBuilderCommon.cpp b/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramBuilderCommon.cpp
+index 35161d33..4c03c8b7 100644
+--- a/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramBuilderCommon.cpp
++++ b/src/Graphics/OpenGLContext/GLSL/glsl_CombinerProgramBuilderCommon.cpp
+@@ -29,6 +29,10 @@ public:
+ 				"#else						\n"
+ 				"# define IN attribute		\n"
+ 				"# define OUT varying		\n"
++				// NextOS Mali-Utgard: shim for vertex shaders that reference
++				// GLES3 builtins (rare but happens via shared code).
++				"# define texture texture2D \n"
++				"# define textureSize(t,l) ivec2(1,1)\n"
+ 	 			"#ifndef GL_FRAGMENT_PRECISION_HIGH \n"
+ 	 			"# define highp mediump		\n"
+ 	 			"#endif						\n"
+@@ -201,6 +205,14 @@ public:
+ 				"#else							\n"
+ 				"# define IN varying			\n"
+ 				"# define OUT					\n"
++				// NextOS Mali-Utgard: shim GLES3 builtins so shaders that
++				// reference texture()/texelFetch()/textureSize() still compile.
++				// texelFetch returns vec4(0.0) — usually inside dead branches
++				// (fbMonochrome != 0 etc) on GLES2 path.
++				"# define texture texture2D		\n"
++				"# define texelFetch(t,c,l) texture2D(t, vec2(0.0))\n"
++				"# define texelFetchOffset(t,c,l,o) texture2D(t, vec2(0.0))\n"
++				"# define textureSize(t,l) ivec2(1,1)\n"
+ 				"#ifndef GL_FRAGMENT_PRECISION_HIGH \n"
+ 				"# define highp mediump		\n"
+ 				"#endif						\n"
+@@ -1414,6 +1426,7 @@ GLuint _createVertexShader(const ShaderPart* _header, const ShaderPart* _body, c
+ 	GLuint shader_object = glCreateShader(GL_VERTEX_SHADER);
+ 	glShaderSource(shader_object, 1, &strShaderData, nullptr);
+ 	glCompileShader(shader_object);
++	Utils::nextosDumpShader(shader_object, GL_VERTEX_SHADER, strShaderData);
+ 	if (!Utils::checkShaderCompileStatus(shader_object))
+ 		Utils::logErrorShader(GL_VERTEX_SHADER, strShaderData);
+ 	return shader_object;
+diff --git a/src/Graphics/OpenGLContext/GLSL/glsl_Utils.cpp b/src/Graphics/OpenGLContext/GLSL/glsl_Utils.cpp
+index 6cca54e0..d363b411 100644
+--- a/src/Graphics/OpenGLContext/GLSL/glsl_Utils.cpp
++++ b/src/Graphics/OpenGLContext/GLSL/glsl_Utils.cpp
+@@ -1,10 +1,84 @@
+ #include <assert.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
+ #include <Log.h>
+ #include <Graphics/OpenGLContext/opengl_Attributes.h>
+ #include "glsl_Utils.h"
+ 
+ using namespace glsl;
+ 
++// ---- NextOS shader-dump harness ----
++// Always-on (until removed). Writes shader source + glGetShaderInfoLog to
++// /storage/gliden64-shaderlog.txt (override via env GLIDEN64_SHADER_DUMP).
++// One file per session: truncated on first call.
++static FILE * nextos_dumpfp()
++{
++	static FILE * fp = nullptr;
++	static bool tried = false;
++	if (!tried) {
++		tried = true;
++		const char * path = getenv("GLIDEN64_SHADER_DUMP");
++		if (!path || !*path) path = "/storage/gliden64-shaderlog.txt";
++		fp = fopen(path, "w");
++		if (fp) {
++			fprintf(fp, "=== NextOS GLideN64 shader dump ===\n");
++			fflush(fp);
++		}
++	}
++	return fp;
++}
++
++void Utils::nextosDumpShader(GLuint _shader, GLenum _type, const char * _src)
++{
++	FILE * fp = nextos_dumpfp();
++	if (!fp) return;
++	GLint status = GL_FALSE;
++	glGetShaderiv(_shader, GL_COMPILE_STATUS, &status);
++	GLint logLen = 0;
++	glGetShaderiv(_shader, GL_INFO_LOG_LENGTH, &logLen);
++	const char * tname = (_type == GL_VERTEX_SHADER) ? "VERTEX" :
++		(_type == GL_FRAGMENT_SHADER) ? "FRAGMENT" : "OTHER";
++	fprintf(fp, "\n----- %s shader id=%u status=%s -----\n",
++		tname, (unsigned)_shader, status == GL_TRUE ? "OK" : "FAIL");
++	if (_src) fprintf(fp, "%s\n", _src);
++	if (logLen > 1) {
++		char * buf = (char*) malloc(logLen + 1);
++		if (buf) {
++			GLsizei got = 0;
++			glGetShaderInfoLog(_shader, logLen, &got, buf);
++			buf[got < logLen ? got : logLen] = 0;
++			fprintf(fp, "----- infolog -----\n%s\n", buf);
++			free(buf);
++		}
++	}
++	fflush(fp);
++}
++
++void Utils::nextosDumpProgram(GLuint _program, const char * _label)
++{
++	FILE * fp = nextos_dumpfp();
++	if (!fp) return;
++	GLint status = GL_FALSE;
++	glGetProgramiv(_program, GL_LINK_STATUS, &status);
++	GLint logLen = 0;
++	glGetProgramiv(_program, GL_INFO_LOG_LENGTH, &logLen);
++	fprintf(fp, "\n===== PROGRAM id=%u label=%s status=%s =====\n",
++		(unsigned)_program, _label ? _label : "(none)",
++		status == GL_TRUE ? "OK" : "FAIL");
++	if (logLen > 1) {
++		char * buf = (char*) malloc(logLen + 1);
++		if (buf) {
++			GLsizei got = 0;
++			glGetProgramInfoLog(_program, logLen, &got, buf);
++			buf[got < logLen ? got : logLen] = 0;
++			fprintf(fp, "----- link infolog -----\n%s\n", buf);
++			free(buf);
++		}
++	}
++	fflush(fp);
++}
++
+ void Utils::locateAttributes(GLuint _program, bool _rect, bool _textures)
+ {
+ 	static GLint maxVertexAttribs = 0;
+@@ -102,6 +176,7 @@ GLuint Utils::createRectShaderProgram(const char * _strVertex, const char * _str
+ 	GLuint vertex_shader_object = glCreateShader(GL_VERTEX_SHADER);
+ 	glShaderSource(vertex_shader_object, 1, &_strVertex, nullptr);
+ 	glCompileShader(vertex_shader_object);
++	nextosDumpShader(vertex_shader_object, GL_VERTEX_SHADER, _strVertex);
+ 	assert(checkShaderCompileStatus(vertex_shader_object));
+ 
+ 	if (!checkShaderCompileStatus(vertex_shader_object))
+@@ -110,6 +185,7 @@ GLuint Utils::createRectShaderProgram(const char * _strVertex, const char * _str
+ 	GLuint fragment_shader_object = glCreateShader(GL_FRAGMENT_SHADER);
+ 	glShaderSource(fragment_shader_object, 1, &_strFragment, nullptr);
+ 	glCompileShader(fragment_shader_object);
++	nextosDumpShader(fragment_shader_object, GL_FRAGMENT_SHADER, _strFragment);
+ 	assert(checkShaderCompileStatus(fragment_shader_object));
+ 
+ 	if (!checkShaderCompileStatus(fragment_shader_object))
+@@ -120,6 +196,7 @@ GLuint Utils::createRectShaderProgram(const char * _strVertex, const char * _str
+ 	glAttachShader(program, vertex_shader_object);
+ 	glAttachShader(program, fragment_shader_object);
+ 	glLinkProgram(program);
++	nextosDumpProgram(program, "RectShader");
+ 	glDeleteShader(vertex_shader_object);
+ 	glDeleteShader(fragment_shader_object);
+ 	assert(checkProgramLinkStatus(program));
+diff --git a/src/Graphics/OpenGLContext/GLSL/glsl_Utils.h b/src/Graphics/OpenGLContext/GLSL/glsl_Utils.h
+index c74d1125..fcc74f09 100644
+--- a/src/Graphics/OpenGLContext/GLSL/glsl_Utils.h
++++ b/src/Graphics/OpenGLContext/GLSL/glsl_Utils.h
+@@ -11,6 +11,11 @@ namespace glsl {
+ 		static bool checkProgramLinkStatus(GLuint obj, bool _force = false);
+ 		static void logErrorShader(GLenum _shaderType, const std::string & _strShader);
+ 		static GLuint createRectShaderProgram(const char * _strVertex, const char * _strFragment);
++		// NextOS: shader-dump harness. Writes every shader source + compile/link
++		// infolog to a single file (path from $GLIDEN64_SHADER_DUMP, default
++		// /storage/gliden64-shaderlog.txt) so we can grep for compile errors.
++		static void nextosDumpShader(GLuint _shader, GLenum _type, const char * _src);
++		static void nextosDumpProgram(GLuint _program, const char * _label);
+ 
+ 		template <typename T>
+ 		static std::string to_string(T value)
+diff --git a/src/Graphics/OpenGLContext/opengl_GLInfo.cpp b/src/Graphics/OpenGLContext/opengl_GLInfo.cpp
+index 3f9bc3e0..5d940cf3 100644
+--- a/src/Graphics/OpenGLContext/opengl_GLInfo.cpp
++++ b/src/Graphics/OpenGLContext/opengl_GLInfo.cpp
+@@ -28,9 +28,43 @@ void APIENTRY on_gl_error(GLenum source,
+ }
+ 
+ void GLInfo::init() {
++	fprintf(stderr, "NextOS GLideN64: GLInfo::init enter, BEFORE glGetString\n");
++	fflush(stderr);
+ 	const char * strDriverVersion = reinterpret_cast<const char *>(glGetString(GL_VERSION));
++	fprintf(stderr, "NextOS GLideN64: glGetString(GL_VERSION)=%p\n",
++		(void*)strDriverVersion);
++	fflush(stderr);
++	if (strDriverVersion == nullptr) {
++		// NextOS: Mali-fbdev SDL2 sometimes doesn't make GL context current
++		// before plugin init runs. Default to GLES2 conservative path.
++		fprintf(stderr, "NextOS GLideN64: GL_VERSION is NULL — assuming GLES2 (Mali-Utgard fallback)\n");
++		fflush(stderr);
++		strDriverVersion = "OpenGL ES 2.0 (NextOS-fallback)";
++	}
+ 	isGLESX = strstr(strDriverVersion, "OpenGL ES") != nullptr;
+ 	isGLES2 = strstr(strDriverVersion, "OpenGL ES 2") != nullptr;
++
++	// NextOS: Mali-Utgard (Mali-400/450) reports GLES2 only, but some
++	// drivers/wrappers (gl4es) advertise GLES2 differently. Also force
++	// GLES2 path when GLIDEN64_FORCE_GLES2=1 env var is set, OR when the
++	// renderer string contains "Mali-4" (Utgard family).
++	{
++		const char * strRenderer0 = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
++		const char * envForce = getenv("GLIDEN64_FORCE_GLES2");
++		bool maliUtgard = strRenderer0 && (strstr(strRenderer0, "Mali-4") != nullptr);
++		fprintf(stderr, "NextOS GLideN64: GL_VERSION='%s' GL_RENDERER='%s' env=%s\n",
++			strDriverVersion ? strDriverVersion : "(null)",
++			strRenderer0 ? strRenderer0 : "(null)",
++			envForce ? envForce : "(unset)");
++		fflush(stderr);
++		if ((envForce && envForce[0] == '1') || maliUtgard) {
++			isGLES2 = true;
++			isGLESX = true;
++			fprintf(stderr, "NextOS GLideN64: FORCING GLES2 mode\n");
++			fflush(stderr);
++		}
++	}
++
+ 	if (isGLES2) {
+ 		majorVersion = 2;
+ 		minorVersion = 0;
+@@ -196,6 +230,22 @@ void GLInfo::init() {
+ 	dual_source_blending = !isGLESX || ((!isGLES2) && (Utils::isExtensionSupported(*this, "GL_EXT_blend_func_extended") && !isAnyAdreno));
+ 	anisotropic_filtering = Utils::isExtensionSupported(*this, "GL_EXT_texture_filter_anisotropic");
+ 
++	// NextOS Mali-Utgard (Mali-400/450): force off all advanced framebuffer-fetch /
++	// dual-source / image-texture paths that depend on GLES3 features, and force
++	// legacy blending so shaders skip lastFragColor / muxPM / muxB combiners that
++	// reference gl_LastFragColorARM (not actually supported on Utgard even when
++	// the extension string lies).
++	if (isGLES2) {
++		ext_fetch = false;
++		ext_fetch_arm = false;
++		n64DepthWithFbFetch = false;
++		dual_source_blending = false;
++		imageTextures = false;
++		config.generalEmulation.enableLegacyBlending = 1;
++		fprintf(stderr, "NextOS GLideN64: GLES2 — forced ext_fetch/ext_fetch_arm/n64DepthWithFbFetch/dual_source_blending=false, enableLegacyBlending=1\n");
++		fflush(stderr);
++	}
++
+ #ifdef OS_ANDROID
+ 	eglImage = eglImage &&
+ 	        ( (isGLES2 && GraphicBufferWrapper::isSupportAvailable()) || (isGLESX && GraphicBufferWrapper::isPublicSupportAvailable()) ) &&
+diff --git a/src/common/CommonAPIImpl_common.cpp b/src/common/CommonAPIImpl_common.cpp
+index 11ceec6a..b512ed52 100644
+--- a/src/common/CommonAPIImpl_common.cpp
++++ b/src/common/CommonAPIImpl_common.cpp
+@@ -198,21 +198,31 @@ void PluginAPI::RomClosed()
+ 
+ int PluginAPI::RomOpen()
+ {
++	fprintf(stderr, "NextOS: RomOpen entered\n"); fflush(stderr);
+ 	osal_keys_init();
++	fprintf(stderr, "NextOS: after osal_keys_init\n"); fflush(stderr);
+ 
+ 	LOG(LOG_APIFUNC, "RomOpen");
+ #ifdef RSPTHREAD
++	fprintf(stderr, "NextOS: RSPTHREAD path\n"); fflush(stderr);
+ 	m_pluginThreadMtx.lock();
+ 	m_pRspThread = new std::thread(RSP_ThreadProc, &m_rspThreadMtx, &m_pluginThreadMtx, &m_rspThreadCv, &m_pluginThreadCv, &m_pCommand);
+ 	m_pRspThread->detach();
+ 	m_pluginThreadCv.wait(m_pluginThreadMtx);
+ 	m_pluginThreadMtx.unlock();
+ #else
++	fprintf(stderr, "NextOS: non-threaded path, RSP_Init\n"); fflush(stderr);
+ 	RSP_Init();
++	fprintf(stderr, "NextOS: GBI.init\n"); fflush(stderr);
+ 	GBI.init();
++	fprintf(stderr, "NextOS: Config_LoadConfig\n"); fflush(stderr);
+ 	Config_LoadConfig();
+-	if (!dwnd().start())
++	fprintf(stderr, "NextOS: dwnd.start (display window)\n"); fflush(stderr);
++	if (!dwnd().start()) {
++		fprintf(stderr, "NextOS: dwnd.start FAILED\n"); fflush(stderr);
+ 		return 0;
++	}
++	fprintf(stderr, "NextOS: dwnd.start OK\n"); fflush(stderr);
+ #endif
+ 
+ 	m_bRomOpen = true;
+diff --git a/src/mupenplus/MupenPlusAPIImpl.cpp b/src/mupenplus/MupenPlusAPIImpl.cpp
+index f0595819..cbdbbde8 100644
+--- a/src/mupenplus/MupenPlusAPIImpl.cpp
++++ b/src/mupenplus/MupenPlusAPIImpl.cpp
+@@ -1,3 +1,4 @@
++#include <cstdio>
+ #include "GLideN64_mupenplus.h"
+ #include "../PluginAPI.h"
+ #include "../GLideN64.h"
+@@ -58,6 +59,7 @@ void (*renderCallback)(int) = nullptr;
+ 
+ m64p_error PluginAPI::PluginStartup(m64p_dynlib_handle _CoreLibHandle, void* Context, void (*DebugCallback)(void *, int, const char *))
+ {
++	fprintf(stderr, "NextOS GLideN64: PluginStartup() entered\n"); fflush(stderr);
+ 	CoreDebugCallbackContext = Context;
+ 	CoreDebugCallback = DebugCallback;
+ 

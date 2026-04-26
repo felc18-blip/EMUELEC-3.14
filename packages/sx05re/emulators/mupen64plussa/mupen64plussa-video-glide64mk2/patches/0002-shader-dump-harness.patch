@@ -1,0 +1,128 @@
+diff --git a/src/Glitch64/OGLEScombiner.cpp b/src/Glitch64/OGLEScombiner.cpp
+index 1d95f2e..991d52f 100644
+--- a/src/Glitch64/OGLEScombiner.cpp
++++ b/src/Glitch64/OGLEScombiner.cpp
+@@ -218,10 +218,62 @@ static char fragment_shader_texture0[1024];
+ static char fragment_shader_chroma[1024];
+ static char shader_log[2048];
+ 
++// NextOS: shader-dump harness. Writes source + infolog of every shader
++// to a single file (path from $GLIDE64MK2_SHADER_DUMP, default
++// /storage/glide64mk2-shaderlog.txt). Truncated on first call per process.
++static FILE * nextos_glmk2_dumpfp()
++{
++  static FILE * fp = NULL;
++  static int tried = 0;
++  if (!tried) {
++    tried = 1;
++    const char * path = getenv("GLIDE64MK2_SHADER_DUMP");
++    if (!path || !*path) path = "/storage/glide64mk2-shaderlog.txt";
++    fp = fopen(path, "w");
++    if (fp) {
++      fprintf(fp, "=== NextOS glide64mk2 shader dump ===\n");
++      fflush(fp);
++    }
++  }
++  return fp;
++}
++
+ void check_compile(GLuint shader)
+ {
+   GLint success;
+   glGetShaderiv(shader,GL_COMPILE_STATUS,&success);
++
++  FILE * dfp = nextos_glmk2_dumpfp();
++  if (dfp) {
++    GLint sLen = 0;
++    glGetShaderiv(shader, GL_SHADER_SOURCE_LENGTH, &sLen);
++    fprintf(dfp, "\n----- shader id=%u status=%s -----\n",
++      (unsigned)shader, success ? "OK" : "FAIL");
++    if (sLen > 1) {
++      char * src = (char*) malloc(sLen + 1);
++      if (src) {
++        GLsizei got = 0;
++        glGetShaderSource(shader, sLen, &got, src);
++        src[got < sLen ? got : sLen] = 0;
++        fprintf(dfp, "%s\n", src);
++        free(src);
++      }
++    }
++    GLint logLen = 0;
++    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLen);
++    if (logLen > 1) {
++      char * log = (char*) malloc(logLen + 1);
++      if (log) {
++        GLsizei got = 0;
++        glGetShaderInfoLog(shader, logLen, &got, log);
++        log[got < logLen ? got : logLen] = 0;
++        fprintf(dfp, "----- infolog -----\n%s\n", log);
++        free(log);
++      }
++    }
++    fflush(dfp);
++  }
++
+   if(!success)
+   {
+     char log[1024];
+@@ -234,6 +286,26 @@ void check_link(GLuint program)
+ {
+   GLint success;
+   glGetProgramiv(program,GL_LINK_STATUS,&success);
++
++  FILE * dfp = nextos_glmk2_dumpfp();
++  if (dfp) {
++    fprintf(dfp, "\n===== program id=%u status=%s =====\n",
++      (unsigned)program, success ? "OK" : "FAIL");
++    GLint logLen = 0;
++    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLen);
++    if (logLen > 1) {
++      char * log = (char*) malloc(logLen + 1);
++      if (log) {
++        GLsizei got = 0;
++        glGetProgramInfoLog(program, logLen, &got, log);
++        log[got < logLen ? got : logLen] = 0;
++        fprintf(dfp, "----- link infolog -----\n%s\n", log);
++        free(log);
++      }
++    }
++    fflush(dfp);
++  }
++
+   if(!success)
+ {
+     char log[1024];
+@@ -332,9 +404,15 @@ void init_combiner()
+   // depth shader
+   fragment_depth_shader_object = glCreateShader(GL_FRAGMENT_SHADER);
+ 
+-  char s[128];
++  char s[256];
+   // ZIGGY convert a 565 texture into depth component
+-  sprintf(s, "gl_FragDepth = dot(texture2D(texture0, vec2(gl_TexCoord[0])), vec4(31*64*32, 63*32, 31, 0))*%g + %g; \n", zscale/2/65535.0, 1-zscale/2);
++  // NextOS Mali-450: GL_EXT_frag_depth nao suportado. Stub o shader pra
++  // discard imediato — depth-buffer-render via shader nao funciona, mas
++  // o resto das combiner programs (que sao a maioria do render) compila ok.
++  // Efeito visivel: alguns jogos com depth-render-to-texture (raros)
++  // perdem aquele efeito especifico, mas nao tela preta no Mario Kart/64 etc.
++  (void)zscale;
++  strcpy(s, "discard;\n");
+   fragment_shader = (char*)malloc(strlen(fragment_shader_header)+
+     strlen(s)+
+     strlen(fragment_shader_end)+1);
+diff --git a/src/Glitch64/OGLESglitchmain.cpp b/src/Glitch64/OGLESglitchmain.cpp
+index f0aff64..5dd86f9 100644
+--- a/src/Glitch64/OGLESglitchmain.cpp
++++ b/src/Glitch64/OGLESglitchmain.cpp
+@@ -1039,7 +1039,10 @@ FX_ENTRY void FX_CALL grTextureBufferExt( GrChipID_t  		tmu,
+     glScissor(0,0,width,height);
+     glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+     glDepthMask(1);
+-    glClear( GL_DEPTH_BUFFER_BIT );
++    // NextOS Mali-450: limpa cor + depth no FBO criado. Desktop GL preserva
++    // buffer "undefined" como zeros mas Mali deixa lixo, causando flicker
++    // / cores invertidas / metade da tela preta dependendo do jogo.
++    glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+     CHECK_FRAMEBUFFER_STATUS();
+     curBufferAddr = pBufferAddress;
+     nb_fb++;
