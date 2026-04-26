@@ -40,6 +40,17 @@ if [ -z "${DEFE}" ]; then
   fi
 fi
 
+# 4th: NextOS — if nothing has been chosen by the user, take the EDID
+# preferred mode reported by the TV (the entry marked with '*' in
+# /sys/class/amhdmitx/amhdmitx0/disp_cap). Avoids booting at the kernel
+# default (often 720p) when the panel actually supports 1080p+.
+if [[ -z "${DEFE}" && -f /sys/class/amhdmitx/amhdmitx0/disp_cap ]]; then
+  EDID_PREF=$(grep -m1 '\*' /sys/class/amhdmitx/amhdmitx0/disp_cap 2>/dev/null | tr -d '*' | tr -d '[:space:]')
+  if [[ -n "${EDID_PREF}" ]]; then
+    DEFE="${EDID_PREF}"
+  fi
+fi
+
 # Set video mode, this has to be done before starting ES
 # finally we correct the FB according to video mode
 [[ ! -z "${DEFE}" ]] && [[ -f "${VIDEO_MODE}" ]] && setres.sh ${DEFE}

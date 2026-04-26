@@ -1,0 +1,121 @@
+NextOS Mali fbdev: auto-detect /sys/class/display/mode and promote fb0
+when the HDMI display is bigger than the kernel's default fb0.
+
+Why:
+On Amlogic-old (S905L/M etc.) the kernel sometimes brings up /dev/fb0
+at 1280x720 even when the connected TV is 1080p (preferred mode in
+EDID). EmuELEC's setres.sh fixes this on boot if EE_VIDEO_MODE /
+ee_videomode / flash config is set; if none is set, fb stays at the
+kernel default and every SDL3 game opens at the smaller size and the
+hw scaler stretches the smaller surface to the panel (blurry, often
+letterboxed).
+
+This patch reads /sys/class/display/mode at video init, parses the
+canonical Amlogic mode strings (480p/720p/1080p/4k2k/smpte/etc.) or a
+literal WxH form, and if it reports a larger size than fb0, calls
+FBIOPUT_VSCREENINFO to promote fb0 to that size before SDL records
+native_display.{w,h}. Failure to promote falls back gracefully — never
+worse than the previous behaviour.
+
+Combined with check_res.sh's EDID-preferred fallback at boot and patch
+0011 (force fullscreen window), every SDL3 game opens at the real
+display size automatically.
+
+--- a/src/video/mali-fbdev/SDL_malivideo.c
++++ b/src/video/mali-fbdev/SDL_malivideo.c
+@@ -68,6 +68,7 @@
+ #include <linux/fb.h>
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <string.h>
+ 
+ #ifdef SDL_INPUT_LINUXEV
+ #include "../../core/linux/SDL_evdev.h"
+@@ -137,6 +138,56 @@
+     return device;
+ }
+ 
++/*
++ * NextOS: parse /sys/class/display/mode (Amlogic) into pixel size. Returns
++ * true and fills *w/*h on success. Recognises the canonical Amlogic mode
++ * strings (480p/720p/1080p/2160p/4k2k/smpte/...) plus a literal "WxH"
++ * fallback. Lookup is by leading prefix so "1080p60hz", "1080p50hz",
++ * "1080p24hz" all match.
++ */
++static bool MALI_GetDisplayModeFromSysfs(int *out_w, int *out_h)
++{
++    FILE *f = fopen("/sys/class/display/mode", "r");
++    if (!f) {
++        return false;
++    }
++    char buf[64] = {0};
++    if (!fgets(buf, sizeof(buf), f)) {
++        fclose(f);
++        return false;
++    }
++    fclose(f);
++    char *nl = strchr(buf, '\n');
++    if (nl) *nl = 0;
++    if (buf[0] == 0) return false;
++
++    static const struct { const char *prefix; int w, h; } table[] = {
++        {"480cvbs", 720,  480},  {"576cvbs", 720,  576},
++        {"480p",    720,  480},  {"480i",    720,  480},
++        {"576p",    720,  576},  {"576i",    720,  576},
++        {"720p",   1280,  720},  {"720i",   1280,  720},
++        {"1080p",  1920, 1080},  {"1080i",  1920, 1080},
++        {"1440p",  2560, 1440},
++        {"2160p",  3840, 2160},  {"4k2k",   3840, 2160},
++        {"smpte",  4096, 2160},
++        {NULL, 0, 0}
++    };
++    for (int i = 0; table[i].prefix; i++) {
++        if (strncmp(buf, table[i].prefix, strlen(table[i].prefix)) == 0) {
++            *out_w = table[i].w;
++            *out_h = table[i].h;
++            return true;
++        }
++    }
++    int pw = 0, ph = 0;
++    if (sscanf(buf, "%dx%d", &pw, &ph) == 2 && pw > 0 && ph > 0) {
++        *out_w = pw;
++        *out_h = ph;
++        return true;
++    }
++    return false;
++}
++
+ /* =========================================================================
+  * VideoInit
+  *
+@@ -174,6 +225,30 @@
+             vinfo.xres = 640;
+             vinfo.yres = 480;
+         } else {
++            /*
++             * NextOS: if /sys/class/display/mode reports a panel bigger than
++             * what the kernel left in fb0, promote fb0 to match before we
++             * lock in native_display.{w,h}. Failure here is non-fatal — we
++             * just stick with the original (possibly smaller) fb size.
++             */
++            int sysfs_w = 0, sysfs_h = 0;
++            if (MALI_GetDisplayModeFromSysfs(&sysfs_w, &sysfs_h) &&
++                (sysfs_w > (int)vinfo.xres || sysfs_h > (int)vinfo.yres)) {
++                SDL_LogInfo(SDL_LOG_CATEGORY_VIDEO,
++                            "mali-fbdev: /sys/class/display/mode reports %dx%d > fb0 %dx%d, promoting",
++                            sysfs_w, sysfs_h, (int)vinfo.xres, (int)vinfo.yres);
++                struct fb_var_screeninfo promoted = vinfo;
++                promoted.xres         = (uint32_t)sysfs_w;
++                promoted.yres         = (uint32_t)sysfs_h;
++                promoted.xres_virtual = (uint32_t)sysfs_w;
++                promoted.yres_virtual = (uint32_t)sysfs_h * 2;
++                if (ioctl(fd, FBIOPUT_VSCREENINFO, &promoted) == 0) {
++                    ioctl(fd, FBIOGET_VSCREENINFO, &vinfo);
++                } else {
++                    SDL_LogWarn(SDL_LOG_CATEGORY_VIDEO,
++                                "mali-fbdev: FBIOPUT_VSCREENINFO refused panel size, keeping fb0 default");
++                }
++            }
+             /* Habilita double-buffering no fb */
+             vinfo.yres_virtual = vinfo.yres * 2;
+             if (ioctl(fd, FBIOPUT_VSCREENINFO, &vinfo) < 0) {
