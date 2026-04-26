@@ -3,7 +3,6 @@
 # Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="libcec"
-PKG_VERSION="7.1.1"
 PKG_VERSION="c7c4c82dc171c49decfbfe5d2959706d3e2ea47c"
 PKG_SHA256="1ea208bd6218d70102fead867c6c7ef92d5d9f6f78e5010bc0ce41312d24ccfd"
 PKG_LICENSE="GPL"

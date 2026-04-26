@@ -2,8 +2,8 @@
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="oscam"
-PKG_VERSION="11949"
-PKG_SHA256="c9d27f2d16829fd3a71dd0b2e10275fd4c212f72ebbbffa44c0ca62fbac56ca4"
+PKG_VERSION="11955"
+PKG_SHA256="57113f6044a85d2cd7146617780ba383dbb3ae2d62f12f587556a5d26c73bba5"
 PKG_REV="2"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
