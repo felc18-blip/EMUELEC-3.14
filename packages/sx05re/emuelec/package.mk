@@ -45,7 +45,7 @@ PKG_COMPRESS="gzip minizip idtech lynx yamlcpp textviewer rapidxml libcroco \
 # ---------------------------------------------------------------------------
 
 PKG_DEPENDS_TARGET="toolchain ${OPENGLES} emuelec-emulationstation retroarch \
-                    emuelec-tools ${PKG_EMUS} ${PKG_EXPERIMENTAL} ${PKG_COMPRESS}"
+                    emuelec-tools nextos-joymap ${PKG_EMUS} ${PKG_EXPERIMENTAL} ${PKG_COMPRESS}"
 
 # ---------------------------------------------------------------------------
 # Ajustes por DEVICE

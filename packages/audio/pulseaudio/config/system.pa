@@ -57,3 +57,16 @@ load-module module-suspend-on-idle
 .endif
 
 load-module module-switch-on-connect
+
+### NextOS: detect HW cards. Sem isso pulse system-mode iniciava com auto_null
+### sink (Dummy Output), áudio mudo / chiando em apps abrindo ALSA default.
+### tsched=0 = legacy timer-based scheduling, mais estável em HW antigo.
+.ifexists module-udev-detect.so
+load-module module-udev-detect tsched=0
+.else
+load-module module-detect
+.endif
+
+### NextOS: força HDMI como default sink quando aparece (evita cair em
+### auto_null). Apps que abrem ALSA default conectam direto no HDMI.
+set-default-sink alsa_output.0.hdmi-stereo
