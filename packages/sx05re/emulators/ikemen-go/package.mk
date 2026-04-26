@@ -7,7 +7,7 @@
 # 'pi4' que builda com tags=sdl,gles2 — encaixa em Mali-450.
 
 PKG_NAME="ikemen-go"
-PKG_VERSION="e3dc19d11e6333f7796a28f8b651394857a61a5e"
+PKG_VERSION="d5e3ab078576d1ea612bee7150680893dcc2ee81"
 PKG_REV="1"
 PKG_ARCH="aarch64"
 PKG_LICENSE="MIT"
@@ -58,6 +58,31 @@ pre_make_target() {
   if [ -f "${GL_BINDING}" ]; then
     chmod +w "${GL_BINDING}"
     sed -i 's|return errors\.New(|_ = errors.New(|g' "${GL_BINDING}"
+    # Mali-450 has no core 3.0 VAO functions but does have OES extension.
+    # After init, fallback core gpGenVertexArrays/etc to OES variants if
+    # core ones returned NULL. Inserts after the OES loads.
+    awk '
+      /gpGenVertexArraysOES = \(C\.GPGENVERTEXARRAYSOES\)\(getProcAddr/{print; print "\tif gpGenVertexArrays == nil { gpGenVertexArrays = (C.GPGENVERTEXARRAYS)(unsafe.Pointer(gpGenVertexArraysOES)) }"; next}
+      /gpBindVertexArrayOES = \(C\.GPBINDVERTEXARRAYOES\)\(getProcAddr/{print; print "\tif gpBindVertexArray == nil { gpBindVertexArray = (C.GPBINDVERTEXARRAY)(unsafe.Pointer(gpBindVertexArrayOES)) }"; next}
+      /gpDeleteVertexArraysOES = \(C\.GPDELETEVERTEXARRAYSOES\)\(getProcAddr/{print; print "\tif gpDeleteVertexArrays == nil { gpDeleteVertexArrays = (C.GPDELETEVERTEXARRAYS)(unsafe.Pointer(gpDeleteVertexArraysOES)) }"; next}
+      /gpIsVertexArrayOES = \(C\.GPISVERTEXARRAYOES\)\(getProcAddr/{print; print "\tif gpIsVertexArray == nil { gpIsVertexArray = (C.GPISVERTEXARRAY)(unsafe.Pointer(gpIsVertexArrayOES)) }"; next}
+      {print}
+    ' "${GL_BINDING}" > "${GL_BINDING}.new" && mv "${GL_BINDING}.new" "${GL_BINDING}"
+  fi
+
+  # NextOS: glfont's shader_gles.go prepends "#version %d es\n" to ALL
+  # shaders, but GLSL ES 1.00 (Mali-450's max) requires plain "#version 100"
+  # WITHOUT the "es" suffix. Compile fails with cryptic panic. Patch the
+  # version 100 case to omit "es".
+  GLFONT_SHADER="${PKG_BUILD}/.gopath/pkg/mod/github.com/leonkasovan/glfont@v0.0.0-20240116222114-fd1d8a52b71d/shader_gles.go"
+  if [ -f "${GLFONT_SHADER}" ]; then
+    chmod +w "${GLFONT_SHADER}"
+    # 1) #version 100 (sem 'es' suffix) — Mali-450 nao aceita 100 es
+    sed -i 's|fmt\.Sprintf("#version %d es\\n", GLSLVersion)|fmt.Sprintf("#version %d\\n", GLSLVersion)|g' "${GLFONT_SHADER}"
+    # 2) GLSL ES 1.00 fragment shader requer precision specifier. O else
+    # branch (legacy path) nao tem. Insere apos o '#define COMPAT_FRAGCOLOR
+    # gl_FragColor'. Awk evita escapes problematicos do sed.
+    awk 'BEGIN{ins=0} /#define COMPAT_FRAGCOLOR gl_FragColor/ && !ins {print; print "precision mediump float;"; ins=1; next} {print}' "${GLFONT_SHADER}" > "${GLFONT_SHADER}.new" && mv "${GLFONT_SHADER}.new" "${GLFONT_SHADER}"
   fi
 }
 
