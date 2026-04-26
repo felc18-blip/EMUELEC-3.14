@@ -17,7 +17,7 @@ PKG_EXPERIMENTAL="nestopiaCV flycast2021-lr skyemu-lr mesen tic-80 panda3ds-lr \
                   dolphin dosbox-core quicknes mesen-s easyrpg smsplus-gx wasm4 \
                   snes9x2005_plus snes9x2005 race ecwolf fileman portmaster \
                   quasi88 xmil np2kai hypseus-singe ikemen-go viceSA \
-                  doublecherrygb play mupen64plus-sa flycast \
+                  doublecherrygb play mupen64plussa flycast \
                   flycast-dojo same_cdi daedalusx64-sa"
 # yabasanshiro variants tirados temporariamente — outro terminal mexendo neles
 

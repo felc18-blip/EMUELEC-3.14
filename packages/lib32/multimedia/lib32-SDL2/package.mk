@@ -2,7 +2,7 @@
 #
 # lib32-SDL2: agora é sdl2-compat 32-bit rodando sobre lib32-SDL3.
 # Preserva o nome "lib32-SDL2" e SONAME "libSDL2-2.0.so.0"
-# para que os packages 32-bit (retroarch, mupen64plus-sa, etc) continuem funcionando.
+# para que os packages 32-bit (retroarch, mupen64plussa, etc) continuem funcionando.
 
 PKG_NAME="lib32-SDL2"
 PKG_VERSION="$(get_pkg_version SDL2)"
