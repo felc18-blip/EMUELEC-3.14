@@ -67,11 +67,15 @@ class ControllerInput:
                         if code == e.BTN_DPAD_DOWN:  return 'down'
                         if code == e.BTN_DPAD_LEFT:  return 'left'
                         if code == e.BTN_DPAD_RIGHT: return 'right'
-                        if code in (e.BTN_SOUTH, e.BTN_START): return 'a'
-                        if code == e.BTN_EAST:       return 'b'
-                        if code == e.BTN_NORTH:      return 'y'
-                        if code == e.BTN_WEST:       return 'x'
-                        if code in (e.BTN_SELECT, e.BTN_MODE): return 'select'
+                        # NextOS: also accept legacy USB Gamepad keycodes
+                        # (0x120-0x12F). Cheap USB joypads expose buttons as
+                        # BTN_TRIGGER..BTN_BASE6 (288-295) instead of the
+                        # modern BTN_SOUTH/EAST/NORTH/WEST (304-307) range.
+                        if code in (e.BTN_SOUTH, e.BTN_START, 0x120, 0x127): return 'a'   # 0x120 BTN_TRIGGER, 0x127 BTN_BASE3
+                        if code in (e.BTN_EAST, 0x121):                       return 'b'   # 0x121 BTN_THUMB
+                        if code in (e.BTN_NORTH, 0x123):                      return 'y'   # 0x123 BTN_TOP
+                        if code in (e.BTN_WEST, 0x122):                       return 'x'   # 0x122 BTN_THUMB2
+                        if code in (e.BTN_SELECT, e.BTN_MODE, 0x126):         return 'select'  # 0x126 BTN_BASE2
                         if code == e.KEY_UP:         return 'up'
                         if code == e.KEY_DOWN:       return 'down'
                         if code == e.KEY_LEFT:       return 'left'
@@ -131,14 +135,21 @@ def wait_for_controller(preferred_path: Optional[str] = None) -> InputDevice:
             caps = dev.capabilities()
             keys = caps.get(e.EV_KEY, [])
             abs_caps = caps.get(e.EV_ABS, [])
+            # NextOS: capabilities() returns ABS as [(code, AbsInfo)] tuples,
+            # so 'int in abs_caps' always evaluates False. Flatten to a plain
+            # list of axis codes so the HAT0 detection actually triggers on
+            # joypads whose D-pad rides on ABS_HAT0X/Y instead of BTN_DPAD_*.
+            abs_codes = [a[0] if isinstance(a, tuple) else a for a in abs_caps]
 
+            # Modern XInput-style face buttons + legacy USB Gamepad codes
+            # (0x120-0x12F) that cheap pads use instead of BTN_SOUTH/etc.
             has_face = any(btn in keys for btn in (
                 e.BTN_SOUTH, e.BTN_EAST, e.BTN_NORTH, e.BTN_WEST
-            ))
+            )) or any(0x120 <= b <= 0x12F for b in keys)
             has_dpad = any(btn in keys for btn in (
                 e.BTN_DPAD_UP, e.BTN_DPAD_DOWN, e.BTN_DPAD_LEFT, e.BTN_DPAD_RIGHT
             ))
-            has_hat = any(ax in abs_caps for ax in (e.ABS_HAT0X, e.ABS_HAT0Y))
+            has_hat = any(ax in abs_codes for ax in (e.ABS_HAT0X, e.ABS_HAT0Y))
 
             if has_face or has_dpad or has_hat:
                 print(f"Controller found: {dev.name} ({dev.path})", flush=True)
