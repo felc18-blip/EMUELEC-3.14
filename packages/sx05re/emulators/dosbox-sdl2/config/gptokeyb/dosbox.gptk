@@ -1,0 +1,22 @@
+# NextOS dosbox-sdl2 — gamepad → keyboard (DOS games espera input keyboard)
+# Select+Start = kill via gptokeyb -1 dosbox.
+# Layout: jump=A(Ctrl), shoot=B(Alt), action=X(Space), strafe=Y(Shift)
+back = esc
+start = enter
+guide = enter
+a = ctrl
+b = alt
+x = space
+y = shift
+l1 = q
+r1 = w
+l2 = home
+r2 = end
+up = up
+down = down
+left = left
+right = right
+left_analog_up = up
+left_analog_down = down
+left_analog_left = left
+left_analog_right = right

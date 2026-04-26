@@ -48,4 +48,11 @@ post_makeinstall_target() {
   mkdir -p ${INSTALL}/usr/config/dosbox
   cp -a ${PKG_DIR}/scripts/* ${INSTALL}/usr/bin/
   cp -a ${PKG_DIR}/config/*  ${INSTALL}/usr/config/dosbox/
+
+  # NextOS: gptokeyb config p/ Select+Start = kill dosbox + map gamepad
+  if [ -f "${PKG_DIR}/config/gptokeyb/dosbox.gptk" ]; then
+    mkdir -p ${INSTALL}/usr/config/emuelec/configs/gptokeyb
+    cp -f ${PKG_DIR}/config/gptokeyb/dosbox.gptk \
+          ${INSTALL}/usr/config/emuelec/configs/gptokeyb/dosbox.gptk
+  fi
 }

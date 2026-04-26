@@ -553,6 +553,9 @@
           ]
         },
         {
+          "name": "sundog"
+        },
+        {
           "name": "libretro",
           "cores": [
             {
@@ -1974,6 +1977,28 @@
               "name": "ffplay"
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "vector06",
+      "fullname": "Vector-06C",
+      "manufacturer": "USSR",
+      "release": "1987",
+      "hardware": "computer",
+      "path": "/storage/roms/vector06",
+      "platform": "vector06",
+      "theme": "vector06",
+      "command": "default",
+      "extensions": [
+        ".rom",
+        ".fdd",
+        ".bin",
+        ".zip"
+      ],
+      "emulators": [
+        {
+          "name": "vector06sdl"
         }
       ]
     },
@@ -4827,6 +4852,14 @@
             },
             {
               "name": "yabasanshiro"
+            }
+          ]
+        },
+        {
+          "name": "yabasanshiro1_5",
+          "cores": [
+            {
+              "name": "yabasanshiro1_5"
             }
           ]
         },

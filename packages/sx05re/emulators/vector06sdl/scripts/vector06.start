@@ -1,0 +1,34 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0-or-later
+# NextOS Elite Edition — vector06sdl launcher
+# - --opengl=disable: software rendering (Mali-fbdev SDL2_GL trava framebuffer)
+# - gptokeyb traduz gamepad → teclado (Vector-06C usa teclado p/ jogos)
+
+. /etc/profile
+
+ROM="$1"
+LOG=/emuelec/logs/vector06.log
+mkdir -p "$(dirname "$LOG")"
+echo "==== vector06sdl launch $(date) ====" >> "$LOG"
+echo "ROM=$ROM" >> "$LOG"
+
+export SDL_AUDIODRIVER=pulseaudio
+
+# gptokeyb: gamepad → teclado + Select+Start = kill v06x
+GPTK_CFG=/emuelec/configs/gptokeyb/vector06.gptk
+if [ -f "$GPTK_CFG" ] && [ -x /usr/bin/gptokeyb ]; then
+  /usr/bin/gptokeyb -1 v06x -c "$GPTK_CFG" &
+  GPTK_PID=$!
+  trap "kill $GPTK_PID 2>/dev/null" EXIT
+fi
+
+V06X_BIN=/usr/bin/v06x
+[ ! -x "$V06X_BIN" ] && [ -x /storage/v06x ] && V06X_BIN=/storage/v06x
+
+# Detect if .rom or .fdd
+case "$ROM" in
+  *.fdd|*.FDD)  ARG="--fdd $ROM" ;;
+  *)            ARG="--rom $ROM" ;;
+esac
+
+exec "$V06X_BIN" --opengl=disable $ARG >> "$LOG" 2>&1

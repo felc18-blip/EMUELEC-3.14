@@ -24,4 +24,13 @@ makeinstall_target() {
   mkdir -p ${INSTALL}/usr/bin
   cp -f ${PKG_BUILD}/.${TARGET_NAME}/src/sundog ${INSTALL}/usr/bin/sundog || \
     cp -f ${PKG_BUILD}/.${TARGET_NAME}/sundog ${INSTALL}/usr/bin/sundog
+
+  # NextOS: launcher c/ --renderer basic (Mali-450 GLES2) + gptokeyb wrapper
+  cp -f ${PKG_DIR}/scripts/sundog.start ${INSTALL}/usr/bin/sundog.start
+  chmod +x ${INSTALL}/usr/bin/sundog.start
+
+  # NextOS: gptokeyb config (gamepad → mouse, Select+Start = kill)
+  mkdir -p ${INSTALL}/usr/config/emuelec/configs/gptokeyb
+  cp -f ${PKG_DIR}/config/gptokeyb/sundog.gptk \
+        ${INSTALL}/usr/config/emuelec/configs/gptokeyb/sundog.gptk
 }

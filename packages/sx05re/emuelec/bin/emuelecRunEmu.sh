@@ -172,6 +172,10 @@ case ${PLATFORM} in
                 if [ "${EMU}" = "HATARISA" ]; then
             set_kill_keys "hatari"
             RUNTHIS='${TBASH} hatari.start "${ROMNAME}"'
+                elif [ "${EMU}" = "sundog" ]; then
+            set_audio pulseaudio
+            set_kill_keys "sundog"
+            RUNTHIS='${TBASH} /usr/bin/sundog.start "${ROMNAME}"'
                 fi
                 ;;
         "openbor")
@@ -423,6 +427,14 @@ case ${PLATFORM} in
             set_audio pulseaudio
             set_kill_keys "atari800"
             RUNTHIS='${TBASH} /usr/bin/atari800.start "${ROMNAME}"'
+        fi
+        ;;
+
+        "vector06"|"vector-06"|"vector06c")
+        if [ "${EMU}" = "vector06sdl" ]; then
+            set_audio pulseaudio
+            set_kill_keys "v06x"
+            RUNTHIS='${TBASH} /usr/bin/vector06.start "${ROMNAME}"'
         fi
         ;;
 

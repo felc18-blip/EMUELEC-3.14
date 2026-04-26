@@ -36,4 +36,13 @@ makeinstall_target() {
   # NextOS: CMakeLists upstream nao tem regra install — copiamos manualmente.
   mkdir -p ${INSTALL}/usr/bin
   cp -f ${PKG_BUILD}/.${TARGET_NAME}/v06x ${INSTALL}/usr/bin/v06x
+
+  # NextOS: launcher c/ --opengl=disable + gptokeyb wrapper
+  cp -f ${PKG_DIR}/scripts/vector06.start ${INSTALL}/usr/bin/vector06.start
+  chmod +x ${INSTALL}/usr/bin/vector06.start
+
+  # NextOS: gptokeyb config (Select+Start = kill v06x)
+  mkdir -p ${INSTALL}/usr/config/emuelec/configs/gptokeyb
+  cp -f ${PKG_DIR}/config/gptokeyb/vector06.gptk \
+        ${INSTALL}/usr/config/emuelec/configs/gptokeyb/vector06.gptk
 }

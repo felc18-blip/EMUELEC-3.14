@@ -20,7 +20,17 @@ if [ ! -L ${RR_DOSBOX_HOME} ]; then
   ln -sf ${RR_DOSBOX_HOME_CONFIG} ${RR_DOSBOX_HOME}
 fi
 
+# NextOS: gptokeyb traduz gamepad → teclado (DOS espera input keyboard).
+# Select+Start = kill (sai do jogo).
+GPTK_CFG=/emuelec/configs/gptokeyb/dosbox.gptk
+if [ -f "$GPTK_CFG" ] && [ -x /usr/bin/gptokeyb ]; then
+  /usr/bin/gptokeyb -1 dosbox -c "$GPTK_CFG" &
+  GPTK_PID=$!
+  trap "kill $GPTK_PID 2>/dev/null" EXIT
+fi
+
 # Run the emulator
 dosbox "$@" > /emuelec/logs/dosbox.log 2>&1
+[ -n "$GPTK_PID" ] && kill "$GPTK_PID" 2>/dev/null
 
 set_audio default

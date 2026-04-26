@@ -1,0 +1,32 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0-or-later
+# NextOS Elite Edition — sundog launcher (Mali-450 friendly)
+# - --renderer basic: Mali-450 e' GLES2-only, renderers hq4x/hqish precisam GLES3
+# - gptokeyb traduz gamepad → mouse + teclas (sundog usa mouse principalmente)
+# - precisa do disco sundog.st no mesmo dir do ROM ou no PWD do binario
+
+. /etc/profile
+
+ROM="$1"
+LOG=/emuelec/logs/sundog.log
+mkdir -p "$(dirname "$LOG")"
+echo "==== sundog launch $(date) ====" >> "$LOG"
+echo "ROM=$ROM" >> "$LOG"
+
+export SDL_AUDIODRIVER=pulseaudio
+
+# gptokeyb: gamepad → mouse + teclas; Select+Start = kill
+GPTK_CFG=/emuelec/configs/gptokeyb/sundog.gptk
+if [ -f "$GPTK_CFG" ] && [ -x /usr/bin/gptokeyb ]; then
+  /usr/bin/gptokeyb -1 sundog -c "$GPTK_CFG" &
+  GPTK_PID=$!
+  trap "kill $GPTK_PID 2>/dev/null" EXIT
+fi
+
+SUNDOG_BIN=/usr/bin/sundog
+[ ! -x "$SUNDOG_BIN" ] && [ -x /storage/sundog ] && SUNDOG_BIN=/storage/sundog
+
+# sundog precisa do .st no PWD se nao passar como arg
+cd "$(dirname "$ROM")" 2>/dev/null || cd /storage/roms/atarist
+
+exec "$SUNDOG_BIN" --fullscreen --renderer basic "$ROM" >> "$LOG" 2>&1
