@@ -29,7 +29,13 @@ make_target() {
 # Buildamos apenas `core` -> MesenCore.so (utilizavel como libretro core).
 # Override CC/CXX/HOST_* como argumentos posicionais (`make VAR=val`)
 # pra sobrescrever `:=` no Makefile.
+#
+# STATICLINK=false: o cross-toolchain LibreELEC nao tem libstdc++.a, so .so.
+# upstream default e -static-libstdc++ que falha com "cannot find -lstdc++".
+# FSLIB="": <filesystem> ja esta dentro de libstdc++.so desde GCC 9, nao
+# precisamos de -lstdc++fs separado (e a lib nem existe no sysroot).
 make core USE_GCC=true MESENPLATFORM=linux-arm64 MACHINE=aarch64 \
+  STATICLINK=false FSLIB="" \
   CC="${CC}" CXX="${CXX}" AR="${AR}" \
   HOST_CC="${CC}" HOST_CXX="${CXX}"
 }

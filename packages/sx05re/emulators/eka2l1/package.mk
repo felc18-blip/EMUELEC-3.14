@@ -8,7 +8,7 @@
 # fixes — merged into the source tree as proper commits).
 
 PKG_NAME="eka2l1"
-PKG_VERSION="d9457c5144da527ec3ebcb45b0ae99bdc2948582"
+PKG_VERSION="667774ab165162b9f8472bd7c4689412578927e3"
 PKG_ARCH="aarch64"
 PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/felc18-blip/eka2l1-nextos"
