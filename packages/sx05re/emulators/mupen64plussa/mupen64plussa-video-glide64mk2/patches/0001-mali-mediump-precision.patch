@@ -1,0 +1,27 @@
+From: NextOS Elite Edition
+Subject: [PATCH] Glitch64: bump fragment precision lowp -> mediump (Mali-450)
+
+Mali-450 (Utgard) lowp precision is 8-bit (-2..2 range). N64 combiners
+accumulate texture colors and modulators across multiple cycles —
+lowp truncation causes color quantization that shows as black or banded
+areas, especially in dark scenes / shadows / transparency.
+
+mediump (16-bit, -2^14..2^14) is the minimum safe precision for combiner
+math. Mali-450 implements mediump as fp16, GPU-native — same speed as lowp
+on modern Mali drivers.
+
+Reference: https://developer.arm.com/documentation/100614/0314/
+"Avoid lowp precision in fragment shaders — it provides only 9-bit
+precision, which is not enough for many modern visual effects."
+
+--- a/src/Glitch64/OGLEScombiner.cpp
++++ b/src/Glitch64/OGLEScombiner.cpp
+@@ -148,7 +148,7 @@ SHADER_VARYING
+ 
+ static const char* fragment_shader_header =
+ SHADER_HEADER
+-"precision lowp float;             \n"
++"precision mediump float;          \n"
+ "uniform sampler2D texture0;       \n"
+ "uniform sampler2D texture1;       \n"
+ "uniform sampler2D ditherTex;      \n"
