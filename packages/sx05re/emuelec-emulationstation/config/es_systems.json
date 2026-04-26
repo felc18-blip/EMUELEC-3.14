@@ -2304,13 +2304,11 @@
           "name": "mupen64plus",
           "cores": [
             {
-              "name": "rice"
+              "name": "rice",
+              "default": true
             },
             {
               "name": "gl64mk2"
-            },
-            {
-              "name": "gliden64"
             }
           ]
         },
