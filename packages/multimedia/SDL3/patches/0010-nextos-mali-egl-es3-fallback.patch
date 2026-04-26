@@ -1,0 +1,52 @@
+--- a/src/video/SDL_egl.c
++++ b/src/video/SDL_egl.c
+@@ -970,6 +970,36 @@
+         return true;
+     }
+ 
++    /* Mali-450 (Utgard) blob does not understand EGL_OPENGL_ES3_BIT_KHR and
++     * returns EGL_BAD_ATTRIBUTE for any RENDERABLE_TYPE that includes it,
++     * even though SDL advertised EGL_KHR_create_context. Retry once forcing
++     * ES2 so apps that requested an ES3 context still get *some* context;
++     * ES3-only call sites will fail later with a clearer GL error.
++     *
++     * Only do this for ES profile + version >= 3 to avoid masking real
++     * config-mismatch errors on capable hardware. */
++    if (_this->gl_config.profile_mask == SDL_GL_CONTEXT_PROFILE_ES &&
++        _this->gl_config.major_version >= 3) {
++        int saved_major = _this->gl_config.major_version;
++        int saved_minor = _this->gl_config.minor_version;
++
++        _this->gl_config.major_version = 2;
++        _this->gl_config.minor_version = 0;
++
++        if (SDL_EGL_PrivateChooseConfig(_this, true) ||
++            SDL_EGL_PrivateChooseConfig(_this, false)) {
++            SDL_LogWarn(SDL_LOG_CATEGORY_VIDEO,
++                        "SDL_EGL_ChooseConfig: requested ES%d.%d not available, "
++                        "fell back to ES2 (likely Mali-450 / Utgard blob)",
++                        saved_major, saved_minor);
++            return true;
++        }
++
++        // Restore so subsequent context-create errors look right
++        _this->gl_config.major_version = saved_major;
++        _this->gl_config.minor_version = saved_minor;
++    }
++
+     return SDL_EGL_SetError("Couldn't find matching EGL config", "eglChooseConfig");
+ }
+ 
+--- a/src/video/mali-fbdev/SDL_malivideo.c
++++ b/src/video/mali-fbdev/SDL_malivideo.c
+@@ -380,9 +380,7 @@
+      * acessa window->internal->egl_surface, então precisa ser setado. */
+     window->internal = windowdata;
+ 
+-    /* Janela ocupa a tela inteira — fbdev não tem gerenciador de janelas.
+-     * Sinalizar fullscreen+borderless deixa o app ciente de que não há
+-     * espaço pra decoração/resize e que a janela é o display inteiro. */
++    /* Janela ocupa a tela inteira — fbdev não tem gerenciador de janelas. */
+     window->w = displaydata->native_display.width;
+     window->h = displaydata->native_display.height;
+     window->flags |= SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS;
