@@ -28,10 +28,14 @@ fi
   # mas sdl2-compat reporta 2.32.x. Afrouxa pra >= 0.
   sed -i 's|(SDL_MINOR_VERSION == 0)|(SDL_MINOR_VERSION >= 0)|g' ${PKG_BUILD}/configure
 
+  # NextOS: bundled GLEW pulls GL/glxew.h (X11) which we don't ship on
+  # Amlogic-old (Mali fbdev, no X server). Disable OpenGL — dosbox falls
+  # back to the SDL2 software renderer which is what we want anyway.
   PKG_CONFIGURE_OPTS_TARGET="--prefix=/usr \
                              --enable-core-inline \
                              --enable-dynrec \
                              --enable-unaligned_memory \
+                             --disable-opengl \
                              --with-sdl-prefix=${SYSROOT_PREFIX}/usr"
 
    PKG_CONFIGURE_OPTS_TARGET+=" --host=${EE_ARCH}"
