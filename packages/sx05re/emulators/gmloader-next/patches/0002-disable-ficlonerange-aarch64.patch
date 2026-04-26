@@ -1,0 +1,13 @@
+NextOS Amlogic-old: glibc do toolchain (kernel old) nao define FICLONERANGE em <linux/fs.h>; disable na config aarch64 do libzip 3rdparty pra cair no portable copy fallback.
+
+--- a/3rdparty/libzip-config/libzip.aarch64-linux-gnu.h
++++ b/3rdparty/libzip-config/libzip.aarch64-linux-gnu.h
+@@ -26,7 +26,7 @@
+ /* #undef HAVE_CLONEFILE */
+ /* #undef HAVE_COMMONCRYPTO */
+ /* #undef HAVE_CRYPTO */
+-#define HAVE_FICLONERANGE
++/* #undef HAVE_FICLONERANGE */
+ #define HAVE_FILENO
+ #define HAVE_FCHMOD
+ #define HAVE_FSEEKO

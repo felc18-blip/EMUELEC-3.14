@@ -1,0 +1,82 @@
+NextOS: scripts/generate_libc.py usa node.kind e p.kind diretamente. python-clang 21 levanta ValueError em CursorKind ids novos do libclang ("Unknown template argument kind 437"). Wrap acessos em _safe_kind() que retorna None pra ids desconhecidos.
+
+--- a/scripts/generate_libc.py
++++ b/scripts/generate_libc.py
+@@ -11,6 +11,14 @@
+ import sys
+ import argparse
+ 
++def _safe_kind(_n):
++    """NextOS: tolerate libclang returning CursorKind ids unknown to python-clang."""
++    try:
++        return _n.kind
++    except ValueError:
++        return None
++
++
+ parser = argparse.ArgumentParser(
+     prog="generate_libc.py",
+     description="Generate the bionic export tables and headers")
+@@ -103,7 +111,7 @@
+ 
+ # Traverse the AST (Abstract Syntax Tree) to extract function signatures
+ def extract_function_signatures(node):
+-    if node.kind == clang.cindex.CursorKind.FUNCTION_DECL:
++    if _safe_kind(node) == clang.cindex.CursorKind.FUNCTION_DECL:
+         # Get the function name
+         function_name = node.spelling
+         if function_name in ambiguous:
+@@ -113,7 +121,7 @@
+         return_type = node.result_type.spelling
+ 
+         # Get and print function arguments
+-        arguments = [p for p in node.get_children() if p.kind == clang.cindex.CursorKind.PARM_DECL]
++        arguments = [p for p in node.get_children() if _safe_kind(p) == clang.cindex.CursorKind.PARM_DECL]
+         argument_list = ', '.join(["{}".format(arg.type.spelling) for arg in arguments])
+ 
+         var="// " if is_variadic(node) else ""
+@@ -140,7 +148,7 @@
+ def is_extern_c(func_decl):
+     node = func_decl
+     while node is not None:
+-        if node.kind == clang.cindex.CursorKind.LINKAGE_SPEC:
++        if _safe_kind(node) == clang.cindex.CursorKind.LINKAGE_SPEC:
+             print("found linkage {}".format(node))
+             if node.displayname == 'extern "C"':
+                 return True
+@@ -148,7 +156,7 @@
+     return False
+ 
+ def extract_impl_functions(node):
+-    if node.kind == clang.cindex.CursorKind.FUNCTION_DECL:
++    if _safe_kind(node) == clang.cindex.CursorKind.FUNCTION_DECL:
+         # Get the function signature and print it as an extern symbol
+         return_type = node.result_type.spelling
+ 
+@@ -156,7 +164,7 @@
+         function_name = node.spelling
+ 
+         # Get and print function arguments
+-        arguments = [p for p in node.get_children() if p.kind == clang.cindex.CursorKind.PARM_DECL]
++        arguments = [p for p in node.get_children() if _safe_kind(p) == clang.cindex.CursorKind.PARM_DECL]
+         argument_list = ', '.join(["{}".format(arg.type.spelling) for arg in arguments])
+ 
+         linkage = 'extern "C"' if function_name == node.mangled_name else "extern"
+@@ -176,7 +184,7 @@
+         extract_impl_functions(child)
+ 
+ def extract_c_impl_functions(node):
+-    if node.kind == clang.cindex.CursorKind.FUNCTION_DECL:
++    if _safe_kind(node) == clang.cindex.CursorKind.FUNCTION_DECL:
+         # Get the function signature and print it as an extern symbol
+         return_type = node.result_type.spelling
+ 
+@@ -184,7 +192,7 @@
+         function_name = node.spelling
+ 
+         # Get and print function arguments
+-        arguments = [p for p in node.get_children() if p.kind == clang.cindex.CursorKind.PARM_DECL]
++        arguments = [p for p in node.get_children() if _safe_kind(p) == clang.cindex.CursorKind.PARM_DECL]
+         argument_list = ', '.join(["{}".format(arg.type.spelling) for arg in arguments])
+ 
+         # Print the complete function signature

@@ -1,0 +1,14 @@
+NextOS: scripts/generate_libc.py imports clang.enumerations but never uses it.
+The module was removed from LLVM Python bindings in recent versions (>= 16),
+breaking build on hosts with newer python-clang. Drop the unused import.
+
+--- a/scripts/generate_libc.py
++++ b/scripts/generate_libc.py
+@@ -2,7 +2,6 @@
+ #But keep it working with python2 if possible please.
+ 
+ from ctypes import *
+-import clang.enumerations
+ import clang.cindex
+ import clang.cindex as cl
+ import sys

@@ -93,7 +93,8 @@ if [ "${ARCH}" = "aarch64" ]; then
                         lib32-droidports \
                         lib32-box86 \
                         lib32-libxcrypt \
-                        lib32-libusb"
+                        lib32-libusb \
+                        gmloader-next"
 fi
 
 # Dolphin standalone — devices potentes + Amlogic-old (testes do Felipe)

@@ -1,0 +1,85 @@
+NextOS: case 0x1B (ASTC 4x4) decode CPU via astcenc subprocess.
+
+--- a/gmloader/texture.cpp
++++ b/gmloader/texture.cpp
+@@ -36,6 +36,54 @@
+     uint8_t Data[];
+ } __attribute__((packed)) pvrtc_file;
+ 
++
++// NextOS: decode ASTC 4x4 CPU-side via astcenc (Mali-450 sem GL_KHR_astc_ldr)
++static unsigned char* nextos_decode_astc4x4(const void* payload, size_t payload_size,
++                                            int width, int height, int* out_w, int* out_h)
++{
++    char astc_path[80], png_path[80];
++    snprintf(astc_path, sizeof(astc_path), "/tmp/gmloader-%d-%lx.astc", getpid(), (long)payload);
++    snprintf(png_path,  sizeof(png_path),  "/tmp/gmloader-%d-%lx.png",  getpid(), (long)payload);
++    FILE* f = fopen(astc_path, "wb");
++    if (!f) return NULL;
++    unsigned char hdr[16] = {
++        0x13, 0xab, 0xa1, 0x5c,
++        4, 4, 1,
++        (unsigned char)(width & 0xff), (unsigned char)((width >> 8) & 0xff), (unsigned char)((width >> 16) & 0xff),
++        (unsigned char)(height & 0xff), (unsigned char)((height >> 8) & 0xff), (unsigned char)((height >> 16) & 0xff),
++        1, 0, 0,
++    };
++    fwrite(hdr, 1, 16, f);
++    fwrite(payload, 1, payload_size, f);
++    fclose(f);
++    char cmd[256];
++    const char* bin = getenv("ASTCENC_BIN");
++    if (!bin) {
++        if (access("/storage/roms/ports/PortMaster/astcenc.aarch64", X_OK) == 0)
++            bin = "/storage/roms/ports/PortMaster/astcenc.aarch64";
++        else if (access("/usr/bin/astcenc", X_OK) == 0)
++            bin = "/usr/bin/astcenc";
++        else bin = "astcenc";
++    }
++    snprintf(cmd, sizeof(cmd), "%s -dl %s %s >/dev/null 2>&1", bin, astc_path, png_path);
++    int ret = system(cmd);
++    unlink(astc_path);
++    if (ret != 0) { unlink(png_path); fprintf(stderr, "[ASTC] subprocess ret=%d cmd=%s\n", ret, cmd); return NULL; }
++    FILE* pf = fopen(png_path, "rb");
++    if (!pf) { unlink(png_path); return NULL; }
++    fseek(pf, 0, SEEK_END);
++    long pf_sz = ftell(pf);
++    fseek(pf, 0, SEEK_SET);
++    unsigned char* pf_buf = (unsigned char*)malloc(pf_sz);
++    fread(pf_buf, 1, pf_sz, pf);
++    fclose(pf);
++    unlink(png_path);
++    int n = 0;
++    unsigned char* rgba = stbi_load_from_memory(pf_buf, (int)pf_sz, out_w, out_h, &n, 4);
++    free(pf_buf);
++    return rgba;
++}
++
+ void LoadTextureFromPNG_generic(void *arg1, int arg2, uint32_t *flags, uint32_t *tex_id, uint32_t *texture) {
+     int width = 0, height = 0;
+     uint32_t *data = ReadPNGFile(arg1, arg2, &width, &height, (*flags & 2) == 0);
+@@ -104,10 +152,22 @@
+                     case 0x09:
+                         glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, width, height, 0, texture_data_size, (void*)texture_data);
+                         break;
+-                    case 0x18: /* FUCKS SAKE, THIS IS WRONG, BUT OLDER GMLOADER VERSIONS HAD THE WRONG FORMAT HERE. */
+-                    case 0x1B:
+-                        glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_ASTC_4x4_KHR, width, height, 0, texture_data_size, (void*)texture_data);
++                    case 0x18: /* FUCKS SAKE... */
++                    case 0x1B: {
++                        // NextOS: Mali-450 sem GL_KHR_astc_ldr — decode CPU-side
++                        int dw = 0, dh = 0;
++                        unsigned char* rgba = nextos_decode_astc4x4(
++                            (void*)texture_data, texture_data_size, width, height, &dw, &dh);
++                        if (rgba && dw > 0 && dh > 0) {
++                            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dw, dh, 0,
++                                         GL_RGBA, GL_UNSIGNED_BYTE, rgba);
++                            stbi_image_free(rgba);
++                        } else {
++                            fprintf(stderr, "[ASTC] decode failed sz=%zu %dx%d\n",
++                                    texture_data_size, width, height);
++                        }
+                         break;
++                    }
+                     case 0x1D:
+                         glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_ASTC_5x5_KHR, width, height, 0, texture_data_size, (void*)texture_data);
+                         break;

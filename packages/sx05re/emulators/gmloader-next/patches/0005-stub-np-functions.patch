@@ -1,0 +1,48 @@
+NextOS: Plants vs Zombies ND e ports GMS modernos chamam funcoes
+np_* (Discord/Switch presence), gamepad_* (force_focus, plant/zombie
+custom) e execute_shell_simple_* que nao tem stub no gmloader upstream.
+Lista extraida do game.droid (chunks GMS imports). Todas viram no-op
+via psn_stub — engine ignora trofeus, presence e shell exec mas nao
+crasha mais.
+
+--- a/gmloader/stubs/stubs_psn.cpp
++++ b/gmloader/stubs/stubs_psn.cpp
+@@ -23,6 +23,38 @@
+     "psn_name_for_user",
+     "psn_default_user",
+     "psn_user_for_pad",
++    "np_clearpresence",
++    "np_get_avatar_url",
++    "np_initdiscord",
++    "np_initdll",
++    "np_registergame",
++    "np_registergame_steam",
++    "np_respond",
++    "np_setpresence",
++    "np_setpresence_buttons",
++    "np_setpresence_more",
++    "np_setpresence_partyparams",
++    "np_setpresence_secrets",
++    "np_setpresence_timestamps",
++    "np_shutdown",
++    "np_update",
++    "np_init",
++    "np_exit",
++    "np_login",
++    "np_logout",
++    "np_check_availability",
++    "np_status",
++    "gamepad_anybutton",
++    "gamepad_force_focus",
++    "gamepad_force_focus_prepare_buffer",
++    "gamepad_force_focus_raw",
++    "gamepad_list",
++    "gamepad_pick_side",
++    "gamepad_plant",
++    "gamepad_zombie",
++    "execute_shell_simple",
++    "execute_shell_simple_ext",
++    "execute_shell_simple_raw",
+ };
+ 
+ ABI_ATTR void psn_stub(RValue *ret, void *self, void *other, int argc, RValue *args)

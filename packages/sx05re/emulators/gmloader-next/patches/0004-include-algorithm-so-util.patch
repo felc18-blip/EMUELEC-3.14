@@ -1,0 +1,13 @@
+NextOS: GCC 15.2 mais estrito que GCC 10 do CI Debian Bullseye,
+requer include explicito de <algorithm> pra std::find().
+
+--- a/loader/so_util.cpp
++++ b/loader/so_util.cpp
+@@ -28,6 +28,7 @@
+ #include <fcntl.h>
+ #include <string.h>
+ #include <stdint.h>
++#include <algorithm>
+ #include <leb128.h>
+ #include <signal.h>
+ #include <errno.h>
