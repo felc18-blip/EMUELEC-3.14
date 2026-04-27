@@ -168,15 +168,19 @@ makeinstall_target() {
   sed -i -e "s/# all_users_control_menu = false/all_users_control_menu = true/" ${INSTALL}/etc/retroarch.cfg
   sed -i -e "s/# menu_swap_ok_cancel_buttons = false/menu_swap_ok_cancel_buttons = false/" ${INSTALL}/etc/retroarch.cfg
 
-  # Hotkeys (SDL3 standard IDs: Back=4, Start=6, LS=7, RS=8, L1=9, R1=10)
-  # Works on any controller correctly mapped in SDL3 autoconfig; per-device
-  # autoconfig can override if a controller reports non-standard IDs.
-  sed -i -e "s/# input_enable_hotkey_btn =.*/input_enable_hotkey_btn = \"4\"/" ${INSTALL}/etc/retroarch.cfg
-  sed -i -e "s/# input_exit_emulator_btn =.*/input_exit_emulator_btn = \"6\"/" ${INSTALL}/etc/retroarch.cfg
-  sed -i -e "s/# input_save_state_btn =.*/input_save_state_btn = \"9\"/" ${INSTALL}/etc/retroarch.cfg
-  sed -i -e "s/# input_load_state_btn =.*/input_load_state_btn = \"10\"/" ${INSTALL}/etc/retroarch.cfg
-  # Fast forward by R2 trigger axis (analog triggers on most pads)
-  sed -i -e "s/# input_hold_fast_forward_axis =.*/input_hold_fast_forward_axis = \"+5\"/" ${INSTALL}/etc/retroarch.cfg
+  # Hotkeys: NÃO hardcode no etc/retroarch.cfg global. O autoconfig de cada
+  # pad já traz input_enable_hotkey_btn / input_select_btn próprios — quando
+  # forçávamos "4" aqui (assumindo SDL3 standard Back), pads que reportam o
+  # Select como "8" (style SDL2 / USB Gamepad legado) ficavam com hotkey
+  # quebrado: autoconfig dizia 8, global dizia 4 → RA usava 4 e o user nunca
+  # conseguia abrir menu pelo Select. Deixar comentado faz cada pad usar seu
+  # próprio mapeamento via autoconfig — solução universal.
+  #
+  # sed -i -e "s/# input_enable_hotkey_btn =.*/input_enable_hotkey_btn = \"4\"/" ${INSTALL}/etc/retroarch.cfg
+  # sed -i -e "s/# input_exit_emulator_btn =.*/input_exit_emulator_btn = \"6\"/" ${INSTALL}/etc/retroarch.cfg
+  # sed -i -e "s/# input_save_state_btn =.*/input_save_state_btn = \"9\"/" ${INSTALL}/etc/retroarch.cfg
+  # sed -i -e "s/# input_load_state_btn =.*/input_load_state_btn = \"10\"/" ${INSTALL}/etc/retroarch.cfg
+  # sed -i -e "s/# input_hold_fast_forward_axis =.*/input_hold_fast_forward_axis = \"+5\"/" ${INSTALL}/etc/retroarch.cfg
 
   # Menu
   sed -i -e "s/# menu_mouse_enable = false/menu_mouse_enable = false/" ${INSTALL}/etc/retroarch.cfg
