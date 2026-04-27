@@ -19,9 +19,22 @@ Conflicts=shutdown.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/wait-time-sync
-TimeoutStartSec=infinity
+# NextOS-Elite-Edition: hard 30s timeout instead of infinity. When the device
+# boots offline (no NTP source), wait-time-sync would loop forever calling
+# adjtimex() — blocking sysinit.target and (with console=tty0 in cmdline)
+# leaking error chatter onto /dev/fb0 over the EmulationStation UI on
+# Amlogic-old. The binary already supports --timeout, so use it.
+#
+# `-` prefix on ExecStart + SuccessExitStatus=0 1 makes systemd treat the
+# offline timeout (exit 1) as success — otherwise the boot screen shows a
+# red [FAILED] banner every offline boot.
+ExecStart=-/usr/bin/wait-time-sync --timeout 30
+TimeoutStartSec=45
+SuccessExitStatus=0 1
 RemainAfterExit=yes
+# Ensure no service output ever lands on the framebuffer console.
+StandardOutput=null
+StandardError=journal
 
 [Install]
 WantedBy=sysinit.target
