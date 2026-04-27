@@ -191,6 +191,7 @@ post_install() {
   enable_service emuelec-disable_small_cores.service
   enable_service emuelec-reboot.service
   enable_service emuelec-shutdown.service
+  enable_service disable-console-blank.service
 
   # Handhelds: tira scripts de setup que nao fazem sentido (wifi, scrapers)
   if [ "${DEVICE}" = "OdroidGoAdvance" ] || [ "${DEVICE}" = "GameForce" ]; then
