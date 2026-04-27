@@ -40,7 +40,11 @@ post_unpack() {
   find ${PKG_BUILD}/apps -type f | xargs -n 1 -t sed 's|./demoCA|/etc/ssl|' -i
 }
 
+# GCC 15 promoted -Wimplicit-int / -Wint-conversion to errors; openssl 3.6.2's
+# apps/speed.c trips them because of a header order issue around LHASH_OF.
+# Relax to warnings so the build completes (matches GCC 14 behaviour).
 pre_configure_host() {
+  export CFLAGS="${CFLAGS} -Wno-error=implicit-int -Wno-error=int-conversion -Wno-error=implicit-function-declaration"
   mkdir -p ${PKG_BUILD}/.${HOST_NAME}
   cp -a ${PKG_BUILD}/* ${PKG_BUILD}/.${HOST_NAME}/
 }
@@ -55,6 +59,7 @@ makeinstall_host() {
 }
 
 pre_configure_target() {
+  export CFLAGS="${CFLAGS} -Wno-error=implicit-int -Wno-error=int-conversion -Wno-error=implicit-function-declaration"
   mkdir -p ${PKG_BUILD}/.${TARGET_NAME}
   cp -a ${PKG_BUILD}/* ${PKG_BUILD}/.${TARGET_NAME}/
 

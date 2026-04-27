@@ -38,6 +38,17 @@ make_target() {
   # and the bundled openal-soft hits a C++ standard mismatch with our
   # cross GCC. Use --no-default-features so sdl2-sys uses pkg-config and
   # the openal wrapper just links -lopenal from the sysroot.
+  #
+  # Rust 1.91+ requires -Zunstable-options to accept custom target triples
+  # (aarch64-libreelec-linux-gnu is custom; the matching rustlib is built
+  # by our rust:host package). Combine RUSTC_BOOTSTRAP=1 (needed to use
+  # any -Z flag in stable rustc) + -Zunstable-options in RUSTFLAGS to let
+  # cargo and downstream rustc invocations accept the custom triple.
+  export RUSTC_BOOTSTRAP=1
+  # LLVM 22.1.4 hits an internal assertion in vectorizer when compiling
+  # ttf-parser with -C opt-level=3 (cargo's default for --release). Drop
+  # to opt-level=2 to dodge the upstream LLVM bug.
+  export RUSTFLAGS="-Zunstable-options -C opt-level=2 ${RUSTFLAGS}"
   cargo build \
     --target ${TARGET_NAME} \
     --release \

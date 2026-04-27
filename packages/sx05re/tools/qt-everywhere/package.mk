@@ -18,7 +18,9 @@ PKG_LONGDESC="A cross-platform application and UI framework"
 # the NoGUI Dolphin frontend depend on Qt there, and they don't need a
 # QPA platform plugin).
 if [ "${DEVICE}" = "Amlogic-old" ]; then
-  PKG_DEPENDS_TARGET+=" freetype libpng libjpeg-turbo libxkbcommon libevdev fontconfig"
+  # NextOS: ${OPENGLES} (libmali on Amlogic-old) provides libGLESv2/libEGL
+  # which Qt's configure tests for when -opengl es2 -eglfs are enabled.
+  PKG_DEPENDS_TARGET+=" ${OPENGLES} freetype libpng libjpeg-turbo libxkbcommon libevdev fontconfig"
 
   PKG_CONFIGURE_OPTS_TARGET="-prefix /usr
                              -sysroot "${SYSROOT_PREFIX}"

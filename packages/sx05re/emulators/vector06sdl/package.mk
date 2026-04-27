@@ -7,7 +7,7 @@ PKG_SHA256="553b018d9a45dc7fb7558583ddf7db12481c29b8ed00a56b22ef41df165ff65a"
 PKG_LICENSE="GPL"
 PKG_SITE="https://github.com/svofski/vector06sdl"
 PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain freetype slang alsa"
+PKG_DEPENDS_TARGET="toolchain freetype slang alsa boost SDL2 SDL2_image"
 PKG_LONGDESC="Opensource Vector-06C emulator in C++"
 
 pre_configure_target() {

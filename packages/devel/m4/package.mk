@@ -14,6 +14,14 @@ PKG_BUILD_FLAGS="-cfg-libs:host"
 
 PKG_CONFIGURE_OPTS_HOST="gl_cv_func_gettimeofday_clobber=no --target=${TARGET_NAME}"
 
+# GCC 15 promoted -Wimplicit-function-declaration / -Wint-conversion to errors
+# by default. m4 1.4.21's bundled gnulib references rawmemchr without picking
+# up its prototype, so the cast `dest = rawmemchr(...)` blows up. Relax the
+# host CFLAGS so the build matches the older GCC behaviour.
+pre_configure_host() {
+  export CFLAGS="${CFLAGS} -Wno-error=implicit-function-declaration -Wno-error=int-conversion"
+}
+
 post_makeinstall_host() {
   make prefix=${SYSROOT_PREFIX}/usr install
 }
