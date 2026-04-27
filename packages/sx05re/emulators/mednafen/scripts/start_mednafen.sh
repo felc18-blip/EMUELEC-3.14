@@ -120,20 +120,31 @@ USER_GPTK="$MEDNAFEN_HOME/mednafen.gptk"
 [ -f "$USER_GPTK" ] && GPTK_CFG="$USER_GPTK"
 
 cleanup() {
+    # Mata gptokeyb órfão + qualquer leftover do start_mednafen.
+    # Sem isso, gptokeyb fica vivo após Start+Select kill do mednafen,
+    # intercepta input do gamepad no ES e parece "travamento".
     pkill -9 -f "gptokeyb.*mednafen" 2>/dev/null
+    pkill -9 -f "gptokeyb 1 mednafen" 2>/dev/null
 }
 trap cleanup EXIT INT TERM HUP
 
 if [ -x /usr/bin/gptokeyb ] && [ -f "$GPTK_CFG" ]; then
     pkill -9 -f "gptokeyb.*mednafen" 2>/dev/null
     # IMPORTANTE: unset EMUELEC antes de spawnar gptokeyb. Quando essa env
-    # está set (e está sempre, vem de /etc/profile.d/99-emuelec.conf),
-    # o gptokeyb ativa internamente `emuelec_override = true` que
-    # DESATIVA a detecção de Select como hotkey de kill_mode 1 — então
-    # Select+Start nunca mata o mednafen. Removendo só pro processo
-    # filho não muda nada do resto do sistema.
+    # está set (sempre, via /etc/profile.d/99-emuelec.conf), o gptokeyb
+    # ativa emuelec_override=true e desativa o handler de BACK (Select)
+    # como hotkey de kill_mode — Start+Select nunca mata mednafen.
     env -u EMUELEC /usr/bin/gptokeyb 1 mednafen -c "$GPTK_CFG" &
+    GPTK_PID=$!
     sleep 0.5
 fi
 
-exec "$MEDNAFEN_BIN" "${ARGS[@]}" "$ROM"
+# NÃO usar exec aqui — o exec substitui o bash pai pelo mednafen e o
+# trap cleanup não dispara mais. Quando gptokeyb (kill_mode 1) mata
+# mednafen via Start+Select, o gptokeyb órfão + qualquer side-process
+# sobreviveriam, interceptando input do gamepad no ES = "tela travada".
+# Rodar como child + wait + trap garante cleanup completo.
+"$MEDNAFEN_BIN" "${ARGS[@]}" "$ROM"
+RC=$?
+cleanup
+exit ${RC}
