@@ -53,6 +53,41 @@ if [ ! -f "$PM_DIR/PortMaster.sh" ]; then
     chmod +x "$PM_DIR/PortMaster.sh"
 fi
 
+# 5.1. NextOS-Elite-Edition aliasing
+#
+# PortMaster identifies the OS by reading NAME= from /etc/os-release. NextOS
+# reports NAME="NextOS-Retro-Elite-Edition" so PortMaster falls back to the
+# generic PlatformBase (no gamelist_add, no GCD_PortMaster, ports baixados
+# nunca aparecem no ES). Patch hardware.py + platform.py to alias NextOS as
+# EmuELEC. Idempotent: re-applies after every PortMaster.zip extraction.
+HW_PY="$PM_DIR/pylibs/harbourmaster/hardware.py"
+PL_PY="$PM_DIR/pylibs/harbourmaster/platform.py"
+if [ -f "$HW_PY" ] && ! grep -q "NextOS-Elite-Edition is an EmuELEC fork" "$HW_PY"; then
+    python3 - "$HW_PY" <<'PY'
+import sys
+p = sys.argv[1]
+s = open(p).read()
+needle = "info.setdefault('name', 'Unknown')"
+add = ("    # NextOS-Elite-Edition is an EmuELEC fork — alias name so PortMaster\n"
+       "    # picks PlatformEmuELEC (gamelist_add, GCD_PortMaster, etc.).\n"
+       "    if info.get('name', '').lower().startswith('nextos'):\n"
+       "        info['name'] = 'EmuELEC'\n"
+       "\n    ")
+if needle in s:
+    open(p, 'w').write(s.replace(needle, add + needle))
+PY
+fi
+if [ -f "$PL_PY" ] && ! grep -q "NextOS-Elite-Edition fork" "$PL_PY"; then
+    sed -i "s|'emuelec':   PlatformEmuELEC,|'emuelec':   PlatformEmuELEC,\n    'nextos':    PlatformEmuELEC,  # NextOS-Elite-Edition fork|" "$PL_PY"
+fi
+rm -rf "$PM_DIR/pylibs/harbourmaster/__pycache__" 2>/dev/null
+
+# 5.2. .CUSTOM_DEVICE: PortMaster lê pra detectar o nome do device quando
+# CFW_NAME não bate com 'EmuELEC'. Sem isso, cai em /sys/firmware/devicetree/
+# base/model que pode reportar texto do DTB customizado (e.g. "RG Vita Pro").
+mkdir -p /storage/.config
+[ -f /storage/.config/.CUSTOM_DEVICE ] || echo "Amlogic-old" > /storage/.config/.CUSTOM_DEVICE
+
 # 🔥 CRIA LAUNCHER NO PORTS_SCRIPTS
 # 🔥 CRIA LAUNCHER COMPATÍVEL COM FAT
 if ! ln -sf "$PM_DIR/PortMaster.sh" "$PORTS_SCRIPTS_DIR/PortMaster.sh" 2>/dev/null; then

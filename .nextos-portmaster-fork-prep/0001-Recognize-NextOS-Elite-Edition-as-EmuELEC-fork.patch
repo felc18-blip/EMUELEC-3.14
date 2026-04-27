@@ -1,0 +1,50 @@
+From: NextOS-Elite-Edition <noreply@nextos>
+Subject: [PATCH] Recognize NextOS-Elite-Edition as EmuELEC fork
+
+NextOS-Retro-Elite-Edition is a downstream fork of EmuELEC targeting
+Amlogic-old TV boxes (S905X/W with Mali-450, kernel 3.14). It ships the
+same /etc/os-release schema as EmuELEC (COREELEC_DEVICE, COREELEC_PROJECT,
+LIBREELEC_*) but reports NAME="NextOS-Retro-Elite-Edition".
+
+Without recognition PortMaster falls through to PlatformBase, losing
+gamelist_add(), GCD_PortMaster compat helpers, and the EmuELEC bash
+detection branch. Ports install but never appear in EmulationStation.
+
+Two-line fix:
+- hardware.py: alias info['name'] to 'EmuELEC' when it starts with
+  'NextOS' (matches EmuELEC behavior including device='Amlogic-old' from
+  COREELEC_DEVICE in os-release).
+- platform.py: add 'nextos' explicit alias in HM_PLATFORMS dict pointing
+  to PlatformEmuELEC, so name='nextos' (via .CUSTOM_DEVICE for users
+  setting it directly) also resolves correctly.
+
+Tested on NextOS-Retro-Elite-Edition 4.8.2 / Amlogic-old / S905W: ports
+download → gamelist.xml entries created → ES sees ports immediately.
+
+Signed-off-by: Felipe felc18-blip <fel.c18@gmail.com>
+---
+ PortMaster/pylibs/harbourmaster/hardware.py | 5 +++++
+ PortMaster/pylibs/harbourmaster/platform.py | 1 +
+ 2 files changed, 6 insertions(+)
+
+diff --git a/PortMaster/pylibs/harbourmaster/hardware.py b/PortMaster/pylibs/harbourmaster/hardware.py
+--- a/PortMaster/pylibs/harbourmaster/hardware.py
++++ b/PortMaster/pylibs/harbourmaster/hardware.py
+@@ -X,Y +X,Y @@ def new_device_info():
+     info['device'] = info['device'].lower().replace(' ', '-')
+ 
++    # NextOS-Elite-Edition is an EmuELEC fork — alias name so PortMaster
++    # picks PlatformEmuELEC (gamelist_add, GCD_PortMaster, etc.).
++    if info.get('name', '').lower().startswith('nextos'):
++        info['name'] = 'EmuELEC'
++
+     info.setdefault('name', 'Unknown')
+     info.setdefault('version', '0.0.0')
+
+diff --git a/PortMaster/pylibs/harbourmaster/platform.py b/PortMaster/pylibs/harbourmaster/platform.py
+--- a/PortMaster/pylibs/harbourmaster/platform.py
++++ b/PortMaster/pylibs/harbourmaster/platform.py
+@@ -X,Y +X,Y @@ HM_PLATFORMS = {
+     'emuelec':   PlatformEmuELEC,
++    'nextos':    PlatformEmuELEC,  # NextOS-Elite-Edition fork
+     'unofficialos': PlatformUOS,
