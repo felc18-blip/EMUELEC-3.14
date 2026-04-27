@@ -22,6 +22,10 @@ MODE=`get_resolution`;
 declare -a RES=( ${MODE} )
 SIZE=" -x ${RES[0]} -y ${RES[1]}"
 
+	# NextOS-Elite-Edition: force SDL audio backend to pulse so audio
+	# actually plays — without this SDL falls back to dummy and
+	# mp3/videos-with-audio play silent.
+	export SDL_AUDIODRIVER=pulseaudio
 	player="ffplay -fs -autoexit -loglevel warning -hide_banner ${SIZE}"
 	;;
 	"vlc")
@@ -29,7 +33,13 @@ SIZE=" -x ${RES[0]} -y ${RES[1]}"
 	/usr/bin/vlc -I "dummy" --aout=alsa "${1}" vlc://quit < /dev/tty1 > /dev/null 2>&1
 	;;
 	"mpv")
-	player="mpv -fs --volume-max=200 --really-quiet"
+	# NextOS-Elite-Edition: mpv neste build não tem ao=pulse (só alsa/sdl/null/pcm).
+	# Default 'auto' tenta pulse, falha silenciosa, retorna sem audio.
+	# --ao=alsa abre device 'default' mas o sysroot não tem
+	# libasound_module_pcm_pulse.so — então default cai em hw e o pulse
+	# sink fica suspended. --ao=sdl rota via SDL2 (que SDL2 do nosso build
+	# detecta pulse) e som funciona em mp3 e vídeos com áudio.
+	player="mpv -fs --ao=sdl --volume-max=200 --really-quiet"
 	;;
 esac
 
