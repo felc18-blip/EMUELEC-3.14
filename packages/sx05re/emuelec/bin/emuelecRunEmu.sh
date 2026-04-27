@@ -160,6 +160,15 @@ if [ -z ${LIBRETRO} ] && [ -z ${RETRORUN} ]; then
 GPTOKEYB=$(get_ee_setting "gptokeyb" "${PLATFORM}" "${BASEROMNAME}")
 VIRTUAL_KB=
 
+# Universal handler: mednafen é multi-sistema (NES, SNES, GB, GBA, GG, SMS,
+# MD, PC Engine, NGP, WonderSwan, PSX, SS, Lynx, Virtual Boy, PC-FX, FDS).
+# start_mednafen.sh resolve PLATFORM → core internamente, então não duplicamos
+# o emulador nas branches per-platform abaixo.
+if [ "${EMU}" = "mednafen" ] || [ "${EMU}" = "MEDNAFEN" ]; then
+    set_kill_keys "mednafen"
+    RUNTHIS='${TBASH} start_mednafen.sh "${ROMNAME}" "" "${PLATFORM}"'
+fi
+
 # Read the first argument in order to set the right emulator
 case ${PLATFORM} in
         "atari2600")
@@ -339,6 +348,10 @@ case ${PLATFORM} in
             set_kill_keys "yabasanshiro1_11"
             RUNTHIS='${TBASH} yabasanshiro1_11.sh "${ROMNAME}"'
                 fi
+                if [ "${EMU}" = "kronos" ] || [ "${EMU}" = "KronosSA" ] || [ "${EMU}" = "kronos-sa" ]; then
+            set_kill_keys "kronos"
+            RUNTHIS='${TBASH} start_kronos.sh "${ROMNAME}"'
+                fi
                 ;;
         "neocd"|"neogeocd")
                 if [ "${EMU}" = "FbneoSA" ]; then
@@ -369,13 +382,6 @@ case ${PLATFORM} in
             set_kill_keys "gzdoom"
             CONTROLLERCONFIG="${arguments#*--controllers=*}"
             RUNTHIS='${TBASH} gzdoom.sh "${ROMNAME}" --controllers="${CONTROLLERCONFIG}"'
-        fi
-        ;;
-        "ecwolf")
-        if [ "${EMU}" = "ecwolf" ]; then
-            set_kill_keys "ecwolf"
-            CONTROLLERCONFIG="${arguments#*--controllers=*}"
-            RUNTHIS='${TBASH} ecwolf.sh "${ROMNAME}" --controllers="${CONTROLLERCONFIG}"'
         fi
         ;;
         "gmloader")
@@ -453,12 +459,15 @@ elif [ ${LIBRETRO} == "yes" ]; then
 set_audio alsa
 # We are running a Libretro emulator set all the settings that we chose on ES
 
+# mame_libretro first-run setup: seeds /storage/.config/retroarch/config/MAME/
+# and /storage/roms/bios/mame/{hash,ini}/ from the helper script installed by
+# the mame package (/usr/bin/mame.sh).
 case ${PLATFORM} in
 "arcade"|"mame"|"fmtmarty"|"pgm2"|"apple2")
 	if [ "$EMU" = "mame_libretro" ]; then
 		mame.sh
-    fi
-    ;;
+	fi
+	;;
 esac
 
 if [ "$EMU" = "mednafen_supafaust_libretro" ]; then
@@ -680,7 +689,7 @@ fi
 
 # These emus do not like to be killed by gptokeyb
 case "${EMU}" in
-    "dolphin" | "Chocolate-Doom" | "yabasanshiroSA" | "yabasanshiroSA1_5" | "yabasanshiroSA1_11" | "yabasanshiro1_5" | "yabasanshiro1_11" | *"scummvm_libretro"* | *"ikemen"* | *"jzintv"*)
+    "dolphin" | "Chocolate-Doom" | "yabasanshiroSA" | "yabasanshiroSA1_5" | "yabasanshiroSA1_11" | "yabasanshiro1_5" | "yabasanshiro1_11" | "kronos" | "KronosSA" | "kronos-sa" | *"scummvm_libretro"* | *"ikemen"* | *"jzintv"*)
         ret_error="0"
         ;;
 esac

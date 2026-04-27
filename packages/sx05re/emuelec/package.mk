@@ -35,7 +35,9 @@ PKG_EMUS="${LIBRETRO_CORES} beetle-saturn pico-8 drastic-advanced vircon32 mu \
           fmsx-libretro jzintv xroar x16 simcoupe ti99sim oricutron eka2l1 \
           touchhle-sa atari800sa dosbox-sdl2 fbneoSA mesen2 \
           picodrivesa vector06sdl sundog melonds-sa nanoboyadvance-sa \
-          yabasanshiroSA_1_11"
+          yabasanshiroSA_1_11 mednafen"
+# kronos-sa: removido temporariamente — port em desenvolvimento (segfault no
+# autostart com VIDSoft + Mali-450). Reativar quando Felipe autorizar.
 
 PKG_COMPRESS="gzip minizip idtech lynx yamlcpp textviewer rapidxml libcroco \
               pugixml pyFDT cifs-utils libzip xash3d SDL3 love re3 reVC"
