@@ -520,6 +520,14 @@
               "name": "gearlynx"
             }
           ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
+            }
+          ]
         }
       ]
     },
@@ -620,6 +628,14 @@
               "name": "mesen2"
             }
           ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
+            }
+          ]
         }
       ]
     },
@@ -648,6 +664,14 @@
             },
             {
               "name": "mesen2"
+            }
+          ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
             }
           ]
         }
@@ -2065,6 +2089,14 @@
               "name": "mesen2"
             }
           ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
+            }
+          ]
         }
       ]
     },
@@ -2107,6 +2139,14 @@
               "name": "mesen2"
             }
           ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
+            }
+          ]
         }
       ]
     },
@@ -2134,6 +2174,14 @@
             {
               "name": "mednafen_pcfx",
               "default": true
+            }
+          ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
             }
           ]
         }
@@ -2208,6 +2256,14 @@
             },
             {
               "name": "geargrafx"
+            }
+          ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
             }
           ]
         }
@@ -2424,6 +2480,14 @@
               "name": "mesen2"
             }
           ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
+            }
+          ]
         }
       ]
     },
@@ -2502,6 +2566,14 @@
               "name": "quicknes"
             }
           ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
+            }
+          ]
         }
       ]
     },
@@ -2539,6 +2611,14 @@
             },
             {
               "name": "mesen2"
+            }
+          ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
             }
           ]
         }
@@ -2596,6 +2676,14 @@
             },
             {
               "name": "mesen2"
+            }
+          ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
             }
           ]
         }
@@ -2700,6 +2788,14 @@
           "cores": [
             {
               "name": "nanoboyadvance"
+            }
+          ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
             }
           ]
         }
@@ -3183,6 +3279,14 @@
               "name": "mesen2"
             }
           ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
+            }
+          ]
         }
       ]
     },
@@ -3427,6 +3531,14 @@
               "name": "bsnes_mercury_accuracy"
             }
           ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
+            }
+          ]
         }
       ]
     },
@@ -3491,6 +3603,14 @@
               "name": "bsnes_mercury_accuracy"
             }
           ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
+            }
+          ]
         }
       ]
     },
@@ -3516,6 +3636,14 @@
             {
               "name": "mednafen_vb",
               "default": true
+            }
+          ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
             }
           ]
         }
@@ -3954,6 +4082,14 @@
               "name": "race"
             }
           ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
+            }
+          ]
         }
       ]
     },
@@ -3982,6 +4118,14 @@
             },
             {
               "name": "race"
+            }
+          ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
             }
           ]
         }
@@ -4270,6 +4414,14 @@
         },
         {
           "name": "picodrivesa"
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
+            }
+          ]
         }
       ]
     },
@@ -4349,6 +4501,14 @@
         },
         {
           "name": "picodrivesa"
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
+            }
+          ]
         }
       ]
     },
@@ -4434,6 +4594,14 @@
         },
         {
           "name": "picodrivesa"
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
+            }
+          ]
         }
       ]
     },
@@ -4550,6 +4718,14 @@
         },
         {
           "name": "picodrivesa"
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
+            }
+          ]
         }
       ]
     },
@@ -4868,6 +5044,14 @@
               "name": "yabasanshiro1_11"
             }
           ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
+            }
+          ]
         }
       ]
     },
@@ -5104,6 +5288,14 @@
           "cores": [
             {
               "name": "duckstation"
+            }
+          ]
+        },
+        {
+          "name": "MEDNAFEN",
+          "cores": [
+            {
+              "name": "mednafen"
             }
           ]
         }

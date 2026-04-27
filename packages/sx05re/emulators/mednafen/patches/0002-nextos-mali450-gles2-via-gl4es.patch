@@ -1,0 +1,166 @@
+From: NextOS Elite Edition
+Subject: [PATCH] Mali-450 GLES2 via gl4es
+
+Mednafen OpenGL renderer on Mali-450 + LD_PRELOAD'd gl4es:
+- ES2 context (Mali rejects compatibility profile)
+- dlsym-first proc resolve (gl4es wins over Mali eglGetProcAddress)
+- glPixelStorei wrapper: swallow GL_UNPACK_ROW_LENGTH
+- glTexSubImage2D wrapper: repack rows when source pitch != width
+  (SNES uses pitch=512 for 256-wide frames; gl4es doesn't emulate
+  ROW_LENGTH under GLES2 so we repack into a contiguous buffer)
+- direct GL_MAX_TEXTURE_SIZE query (no GL_PROXY_TEXTURE_2D in GLES)
+
+--- src/drivers/opengl.cpp	2025-11-19 15:46:09.000000000 -0300
++++ b/src/drivers/opengl.cpp	2026-04-27 02:21:08.332786702 -0300
+@@ -18,11 +18,72 @@
+ #include "main.h"
+ 
+ #include <trio/trio.h>
++#include <dlfcn.h>
++#include <vector>
+ 
+ #include "video.h"
+ #include "opengl.h"
+ #include "shader.h"
+ 
++// NextOS: dlsym FIRST so LD_PRELOAD'd gl4es wins.
++static inline void *NEXTOS_gl_resolve(const char *name) {
++    void *p = dlsym(RTLD_DEFAULT, name);
++    if (!p) p = (void *)SDL_GL_GetProcAddress(name);
++    return p;
++}
++
++// NextOS: gl4es+GLES2 doesn't accept GL_UNPACK_ROW_LENGTH. We swallow the
++// call but remember the requested stride; the texture-upload path uses it
++// to repack rows into a contiguous buffer before glTexSubImage2D.
++typedef void (*PFN_glPixelStorei)(unsigned int, int);
++static PFN_glPixelStorei nextos_real_glPixelStorei = NULL;
++static int nextos_unpack_row_length = 0;
++extern "C" void nextos_glPixelStorei(unsigned int pname, int param) {
++    if (pname == 0x0CF2) { nextos_unpack_row_length = param; return; }
++    if (nextos_real_glPixelStorei) nextos_real_glPixelStorei(pname, param);
++}
++
++// Map GL pixel format/type to bytes-per-pixel (only the ones mednafen uses).
++static inline int nextos_bpp(unsigned int format, unsigned int type) {
++    if (type == 0x1401) return (format == 0x1908 || format == 0x80E1) ? 4 : 1; // UNSIGNED_BYTE: RGBA/BGRA=4
++    if (type == 0x8367) return 4;  // UNSIGNED_INT_8_8_8_8_REV
++    if (type == 0x8033) return 2;  // UNSIGNED_SHORT_4_4_4_4
++    if (type == 0x8034) return 2;  // UNSIGNED_SHORT_5_5_5_1
++    if (type == 0x8363) return 2;  // UNSIGNED_SHORT_5_6_5
++    return 4; // safe default
++}
++
++// Wrapper around glTexSubImage2D that repacks rows when nextos_unpack_row_length
++// is set and != width.
++static thread_local std::vector<unsigned char> nextos_repack_buf;
++typedef void (*PFN_glTexSubImage2D)(unsigned int, int, int, int, int, int,
++                                    unsigned int, unsigned int, const void *);
++static PFN_glTexSubImage2D nextos_real_glTexSubImage2D = NULL;
++extern "C" void nextos_glTexSubImage2D(unsigned int target, int level,
++                                       int xoff, int yoff, int width, int height,
++                                       unsigned int format, unsigned int type,
++                                       const void *pixels)
++{
++    if (!nextos_real_glTexSubImage2D) return;
++    int row_len = nextos_unpack_row_length ? nextos_unpack_row_length : width;
++    if (row_len == width || pixels == NULL) {
++        nextos_real_glTexSubImage2D(target, level, xoff, yoff, width, height,
++                                    format, type, pixels);
++        return;
++    }
++    int bpp = nextos_bpp(format, type);
++    size_t need = (size_t)width * height * bpp;
++    if (nextos_repack_buf.size() < need) nextos_repack_buf.resize(need);
++    const char *src = (const char *)pixels;
++    char *dst = (char *)nextos_repack_buf.data();
++    int dst_row = width * bpp;
++    int src_row = row_len * bpp;
++    for (int y = 0; y < height; y++)
++        memcpy(dst + y * dst_row, src + y * src_row, dst_row);
++    nextos_real_glTexSubImage2D(target, level, xoff, yoff, width, height,
++                                format, type, dst);
++}
++
+ void OpenGL_Blitter::ReadPixels(MDFN_Surface *surface, const MDFN_Rect *rect)
+ {
+  p_glPixelStorei(GL_UNPACK_ROW_LENGTH, surface->pitchinpix);
+@@ -766,8 +827,8 @@
+  gl_screen_w = 0;
+  gl_screen_h = 0;
+ 
+- #define LFG(x) if(!(p_##x = (x##_Func) SDL_GL_GetProcAddress(#x))) { throw MDFN_Error(0, _("Error getting proc address for: %s\n"), #x); }
+- #define LFGN(x) p_##x = (x##_Func) SDL_GL_GetProcAddress(#x)
++ #define LFG(x) if(!(p_##x = (x##_Func) NEXTOS_gl_resolve(#x))) { throw MDFN_Error(0, _("Error getting proc address for: %s\n"), #x); }
++ #define LFGN(x) p_##x = (x##_Func) NEXTOS_gl_resolve(#x)
+ 
+  LFG(glGetError);
+  LFG(glBindTexture);
+@@ -790,7 +851,13 @@
+  LFG(glMatrixMode);
+  LFG(glDisable);
+  LFG(glPixelStorei);
++ // NextOS: route glPixelStorei through wrapper that captures UNPACK_ROW_LENGTH
++ nextos_real_glPixelStorei = (PFN_glPixelStorei) p_glPixelStorei;
++ p_glPixelStorei = (glPixelStorei_Func) nextos_glPixelStorei;
+  LFG(glTexSubImage2D);
++ // NextOS: route glTexSubImage2D through wrapper that repacks rows
++ nextos_real_glTexSubImage2D = (PFN_glTexSubImage2D) p_glTexSubImage2D;
++ p_glTexSubImage2D = (glTexSubImage2D_Func) nextos_glTexSubImage2D;
+  LFG(glFinish);
+  LFG(glOrtho);
+  LFG(glPixelTransferf);
+@@ -1002,20 +1069,12 @@
+  MDFN_printf(_("Checking maximum texture size...\n"));
+  MDFN_indent(1);
+  p_glBindTexture(GL_TEXTURE_2D, textures[0]);
+- // Assume maximum texture width is the same as maximum texture height to greatly simplify things
+- MaxTextureSize = 32768;
+- 
+- while(MaxTextureSize)
++ // NextOS Mali-450/GLES2: GL_PROXY_TEXTURE_2D doesn't exist in GLES.
+  {
+-  GLint width_test = 0;
+-
+-  p_glTexImage2D(GL_PROXY_TEXTURE_2D, 0, GL_RGBA, MaxTextureSize, MaxTextureSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+-  p_glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width_test);
+-
+-  if((unsigned int)width_test == MaxTextureSize)
+-   break;
+-
+-  MaxTextureSize >>= 1;
++  GLint max_ts = 0;
++  p_glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_ts);
++  if(max_ts <= 0) max_ts = 2048;
++  MaxTextureSize = (unsigned int)max_ts;
+  }
+  MDFN_printf(_("Apparently it is at least: %d x %d\n"), MaxTextureSize, MaxTextureSize);
+ 
+
+--- src/drivers/video.cpp	2025-11-19 15:46:09.000000000 -0300
++++ b/src/drivers/video.cpp	2026-04-27 02:21:08.333179719 -0300
+@@ -942,12 +942,20 @@
+   {
+    SDL_GL_ResetAttributes();
+    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+-   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+-   //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
+-   //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
++   // NextOS Mali-450: ES2 profile (Mali rejects compatibility); fallback to compat for desktop.
++   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
++   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
++   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+ 
+-   if(!(glcontext = SDL_GL_CreateContext(window)))
++   glcontext = SDL_GL_CreateContext(window);
++   if(!glcontext) {
++    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
++    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
++    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
++    glcontext = SDL_GL_CreateContext(window);
++   }
++   if(!glcontext)
+    {
+     MDFN_Notify(MDFN_NOTICE_WARNING, _("Reverting to soft SDL driver because of error creating OpenGL context: %s"), SDL_GetError());
+     goto TryNonGL;

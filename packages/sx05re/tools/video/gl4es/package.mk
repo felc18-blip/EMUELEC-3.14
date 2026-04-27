@@ -15,9 +15,13 @@ PKG_TOOLCHAIN="cmake-make"
 pre_configure_target() {
 
 if [[ "${DEVICE}" == "Amlogic"* ]]; then
-    PKG_CMAKE_OPTS_TARGET=" -DNOX11=1 -DODROID=1 -DGBM=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+    # NextOS: also build the EGL wrapper (libEGL.so.1) so apps that need
+    # fixed-pipeline emulation can LD_PRELOAD it WITHOUT replacing the
+    # system /usr/lib/libEGL.so.1 -> libMali.so symlink. We rename the
+    # gl4es libEGL to libEGL_gl4es.so.1 (alternative path).
+    PKG_CMAKE_OPTS_TARGET=" -DNOX11=1 -DODROID=1 -DGBM=OFF -DEGL_WRAPPER=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5"
 else
-    PKG_CMAKE_OPTS_TARGET=" -DNOX11=1 -DODROID=1 -DGBM=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+    PKG_CMAKE_OPTS_TARGET=" -DNOX11=1 -DODROID=1 -DGBM=ON -DEGL_WRAPPER=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5"
 fi
 
 }
@@ -26,6 +30,10 @@ makeinstall_target(){
 mkdir -p ${INSTALL}/usr/lib/
 cp ${PKG_BUILD}/lib/libGL.so.1 ${INSTALL}/usr/lib/libGL.so
 ln -sf libGL.so ${INSTALL}/usr/lib/libGL.so.1
+# NextOS: gl4es EGL wrapper as alternative path (NOT replacing Mali libEGL)
+if [ -f ${PKG_BUILD}/lib/libEGL.so.1 ]; then
+  cp ${PKG_BUILD}/lib/libEGL.so.1 ${INSTALL}/usr/lib/libEGL_gl4es.so.1
+fi
 }
 
 

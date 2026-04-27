@@ -1,0 +1,43 @@
+# NextOS-Elite-Edition: gptokeyb config for mednafen.
+# Maps a standard gamepad to the keyboard scancodes mednafen.cfg expects.
+# USB HID scancode reference:
+#   X=27 Z=29 S=22 A=4 Q=20 W=26 E=8 R=21
+#   Up=82 Down=81 Left=80 Right=79
+#   Enter=40 Tab=43 Backspace=42 Esc=41 Space=44
+#
+# No hotkey/combo logic: gptokeyb's "hotkey = X" mode delays plain X presses
+# (debouncing for combo detection) and we lost Start-to-pause because of it.
+# Exit is the Guide/Home button (or Select+Start handled by gptokeyb's built-in
+# "kill_mode = 1 -k start+select" via the daemon, not the config).
+
+a = x
+b = z
+x = s
+y = a
+
+l1 = q
+r1 = w
+l2 = e
+r2 = r
+
+start = enter
+back  = backspace
+guide = esc
+
+up    = up
+down  = down
+left  = left
+right = right
+
+left_analog_up    = up
+left_analog_down  = down
+left_analog_left  = left
+left_analog_right = right
+
+right_analog_up    = up
+right_analog_down  = down
+right_analog_left  = left
+right_analog_right = right
+
+deadzone_y = 4500
+deadzone_x = 4500
