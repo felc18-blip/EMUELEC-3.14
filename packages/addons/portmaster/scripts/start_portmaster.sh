@@ -134,6 +134,10 @@ else
         -s "/gameList" -t elem -n "gameTMP" -v "" \
         -s "/gameList/gameTMP" -t elem -n "path" -v "./PortMaster.sh" \
         -s "/gameList/gameTMP" -t elem -n "name" -v "PortMaster" \
+        -s "/gameList/gameTMP" -t elem -n "desc" -v "Browse and install ports — game source ports curated for handheld retro Linux distros. Built-in to NextOS-Elite-Edition." \
+        -s "/gameList/gameTMP" -t elem -n "developer" -v "PortsMaster Team" \
+        -s "/gameList/gameTMP" -t elem -n "publisher" -v "NextOS-Elite-Edition" \
+        -s "/gameList/gameTMP" -t elem -n "genre" -v "Launcher" \
         -s "/gameList/gameTMP" -t elem -n "image" -v "/usr/bin/scripts/setup/setup_images/LaunchPortMaster.png" \
         -s "/gameList/gameTMP" -t elem -n "rating" -v "10" \
         -r "//gameTMP" -v "game" \
