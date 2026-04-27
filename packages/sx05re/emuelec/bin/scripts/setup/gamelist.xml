@@ -28,11 +28,20 @@
 	<game>
 		<path>./Port_Master.sh</path>
 		<name>PortMaster</name>
-		<desc>Install latest PortMaster</desc>
+		<desc>Launch PortMaster — browse and install ports.</desc>
 		<developer>RetroElite</developer>
 		<publisher>Emuelec</publisher>
 		<genre>script</genre>
 		<image>./setup_images/portmaster.png</image>
+	</game>
+	<game>
+		<path>./install_portmaster.sh</path>
+		<name>Install/Reinstall PortMaster</name>
+		<desc>Reinstala PortMaster a partir do bundle local NextOS — útil para resetar instalação corrompida ou reaplicar patches NextOS após atualização. Funciona offline (não baixa do GitHub).</desc>
+		<developer>NextOS-Elite-Edition</developer>
+		<publisher>NextOS</publisher>
+		<genre>script</genre>
+		<image>./setup_images/LaunchPortMaster.png</image>
 	</game>
   <game>
     <path>./eka-install.sh</path>
