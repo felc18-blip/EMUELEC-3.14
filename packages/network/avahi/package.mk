@@ -57,7 +57,9 @@ PKG_CONFIGURE_OPTS_TARGET="py_cv_mod_gtk_=yes \
                            --disable-nls"
 
 pre_configure_target() {
-  NOCONFIGURE=1 ./autogen.sh
+  # Build framework cd's into .${TARGET_NAME}/ before pre_configure_target,
+  # but autogen.sh lives in PKG_BUILD root — explicit cd fixes "No such file".
+  cd ${PKG_BUILD} && NOCONFIGURE=1 ./autogen.sh
 }
 
 post_configure_target() {

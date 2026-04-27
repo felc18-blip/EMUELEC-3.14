@@ -41,10 +41,14 @@ make core USE_GCC=true MESENPLATFORM=linux-arm64 MACHINE=aarch64 \
 }
 
 post_make_target() {
-# Restaura headers originais do sysroot
+# Restaura headers originais do sysroot. Pattern `[ -f X ] && mv` morre com
+# set -e quando o backup nao existe (sysroot nao tinha o header original);
+# usa if/then/fi pra ser tolerante a esse caso.
 for h in input.h input-event-codes.h; do
   SYSROOT_HDR="${SYSROOT_PREFIX}/usr/include/linux/${h}"
-  [ -f "${SYSROOT_HDR}.nextos-bak" ] && mv -f "${SYSROOT_HDR}.nextos-bak" "$SYSROOT_HDR"
+  if [ -f "${SYSROOT_HDR}.nextos-bak" ]; then
+    mv -f "${SYSROOT_HDR}.nextos-bak" "$SYSROOT_HDR"
+  fi
 done
 }
 

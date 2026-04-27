@@ -1,0 +1,34 @@
+From: NextOS-Elite-Edition <noreply@nextos>
+Subject: [PATCH] loader.h: align eglGetPlatformDisplay_PTR with EGL 1.5 spec
+
+EGL 1.5 spec defines eglGetPlatformDisplay's third arg as
+'const EGLAttrib *' (long int *), not 'const EGLint *' (int *).
+The wrapper in src/egl/egl.c already uses EGLAttrib *, but the
+function-pointer typedef in loader.h still uses EGLint *.
+
+GCC 15 promoted -Wincompatible-pointer-types from a warning to a
+compile error, so the mismatch now breaks the build:
+
+  egl.c:170:68: error: passing argument 3 of 'egl_eglGetPlatformDisplay'
+                       from incompatible pointer type
+    note: expected 'const EGLint *' but argument is of type
+                       'const EGLAttrib *'
+
+Fix: switch the typedef to EGLAttrib so it matches both the spec
+and the caller signature.
+---
+ src/gl/loader.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/gl/loader.h b/src/gl/loader.h
+--- a/src/gl/loader.h
++++ b/src/gl/loader.h
+@@ -29,7 +29,7 @@ typedef EGLContext (*eglGetCurrentContext_PTR)();
+ typedef EGLDisplay (*eglGetCurrentDisplay_PTR)();
+ typedef EGLSurface (*eglGetCurrentSurface_PTR)(EGLint readdraw);
+ typedef EGLDisplay (*eglGetDisplay_PTR)(EGLNativeDisplayType display_id);
+-typedef EGLDisplay (*eglGetPlatformDisplay_PTR)(EGLenum platform, void * native_display, const EGLint * attrib_list);
++typedef EGLDisplay (*eglGetPlatformDisplay_PTR)(EGLenum platform, void * native_display, const EGLAttrib * attrib_list);
+ typedef EGLint (*eglGetError_PTR)();
+ typedef __eglMustCastToProperFunctionPointerType (*eglGetProcAddress_PTR)(const char * procname);
+ typedef EGLBoolean (*eglInitialize_PTR)(EGLDisplay dpy, EGLint * major, EGLint * minor);
