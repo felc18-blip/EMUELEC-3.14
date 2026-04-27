@@ -126,7 +126,13 @@ trap cleanup EXIT INT TERM HUP
 
 if [ -x /usr/bin/gptokeyb ] && [ -f "$GPTK_CFG" ]; then
     pkill -9 -f "gptokeyb.*mednafen" 2>/dev/null
-    /usr/bin/gptokeyb 1 mednafen -c "$GPTK_CFG" &
+    # IMPORTANTE: unset EMUELEC antes de spawnar gptokeyb. Quando essa env
+    # está set (e está sempre, vem de /etc/profile.d/99-emuelec.conf),
+    # o gptokeyb ativa internamente `emuelec_override = true` que
+    # DESATIVA a detecção de Select como hotkey de kill_mode 1 — então
+    # Select+Start nunca mata o mednafen. Removendo só pro processo
+    # filho não muda nada do resto do sistema.
+    env -u EMUELEC /usr/bin/gptokeyb 1 mednafen -c "$GPTK_CFG" &
     sleep 0.5
 fi
 
