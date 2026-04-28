@@ -1,0 +1,33 @@
+From: NextOS-Elite-Edition <felipe@nextos>
+Subject: [PATCH] sdl3-events: guard ImGui::GetIO() with GetCurrentContext()
+
+scummvm 2026.2.0 sdl3-events.cpp esqueceu de envolver o bloco USE_IMGUI
+com um guard de "imgui ja inicializado". O equivalente sdl2-events.cpp
+faz `if (ImGui_ImplSDL2_Ready())`. Sem o guard, engines que nao usam
+ImGui debug overlay (Grim, SCUMM classic) crashm com SIGSEGV no primeiro
+event poll: ImGui::GetIO() retorna ponteiro invalido (~0x30) e o deref
+do .WantTextInput segfault.
+
+Fix: usar ImGui::GetCurrentContext() como guard universal — API padrao
+do ImGui que retorna nullptr se nenhum contexto foi criado. Identico em
+intencao ao ImGui_ImplSDL2_Ready() que so existe pra SDL2 no scummvm.
+
+--- a/backends/events/sdl/sdl3-events.cpp
++++ b/backends/events/sdl/sdl3-events.cpp
+@@ -669,10 +669,12 @@
+ 		}
+
+ #if defined(USE_IMGUI)
+-		ImGui_ImplSDL3_ProcessEvent(&ev);
+-		ImGuiIO &io = ImGui::GetIO();
+-		if (io.WantTextInput || io.WantCaptureMouse)
+-			continue;
++		if (ImGui::GetCurrentContext() != nullptr) {
++			ImGui_ImplSDL3_ProcessEvent(&ev);
++			ImGuiIO &io = ImGui::GetIO();
++			if (io.WantTextInput || io.WantCaptureMouse)
++				continue;
++		}
+ #endif
+ 		if (dispatchSDLEvent(ev, event))
+ 			return true;
