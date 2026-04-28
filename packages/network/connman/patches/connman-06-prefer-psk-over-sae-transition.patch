@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NextOS-Elite-Edition <noreply@nextos>
+Date: Mon, 27 Apr 2026 23:30:00 -0300
+Subject: [PATCH] gsupplicant: prefer WPA-PSK over SAE for transition-mode APs
+
+Upstream connman 2.0 sends key_mgmt="SAE WPA-PSK WPA-PSK-SHA256" for any
+PSK-capable AP, which causes wpa_supplicant to attempt SAE first. On APs
+running WPA2/WPA3 transition mode (Authentication suites: PSK SAE, MFP
+optional), wpa connects with SAE momentarily but connman re-evaluates
+and disconnects on key_mgmt mismatch — yielding "invalid-key" errors
+even though credentials are correct.
+
+Reorder so PSK is tried first, with SAE retained as fallback. This
+preserves WPA3-only AP support while fixing transition-mode connectivity
+on common consumer routers (TP-Link, Mercusys, ASUS, etc.).
+
+Symptom without patch: WiFi connects briefly, gets IP, then drops with
+"invalid-key" — only fixable per-network via /var/lib/connman/wifi.config
+with explicit Security=psk.
+
+diff --git a/gsupplicant/supplicant.c b/gsupplicant/supplicant.c
+--- a/gsupplicant/supplicant.c
++++ b/gsupplicant/supplicant.c
+@@ -4955,7 +4955,7 @@ static void add_network_security(DBusMessageIter *dict, GSupplicantSSID *ssid)
+ 		add_network_security_ciphers(dict, ssid);
+ 		break;
+ 	case G_SUPPLICANT_SECURITY_PSK:
+-		key_mgmt = "SAE WPA-PSK WPA-PSK-SHA256";
++		key_mgmt = "WPA-PSK WPA-PSK-SHA256 SAE";
+ 		ieee80211w = G_SUPPLICANT_MFP_OPTIONAL;
+ 		add_network_ieee80211w(dict, ssid, ieee80211w);
+ 		add_network_security_psk(dict, ssid);
