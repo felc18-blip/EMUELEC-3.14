@@ -171,8 +171,6 @@ cd NextOS-Elite-Edition
 PROJECT=Amlogic-ce DEVICE=Amlogic-old ARCH=aarch64 make image
 ```
 
-> **Importante**: NÃO passe `DISTRO=` no comando — defaulta pra EmuELEC corretamente. Passar explícito sobrescreve `DISTRO_BOOTLABEL=RETROELITE` e a partição sai com label errado.
-
 Output em `target/NextOS-Retro-Elite-Edition-Amlogic-old.aarch64-VERSION-{Generic,LePotato,Odroid_C2}.img.gz`.
 
 ### Build de pacote único
