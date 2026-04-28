@@ -173,6 +173,10 @@ makeinstall_target() {
 
   mkdir -p ${INSTALL}/usr/share/libretro-database
   touch ${INSTALL}/usr/share/libretro-database/dummy
+
+  # sysctl: silencia kernel-3.14 register dumps em syscalls modernos (-ENOSYS)
+  mkdir -p ${INSTALL}/usr/lib/sysctl.d
+  cp -f ${PKG_DIR}/sysctl.d/*.conf ${INSTALL}/usr/lib/sysctl.d/
 }
 
 post_install() {
