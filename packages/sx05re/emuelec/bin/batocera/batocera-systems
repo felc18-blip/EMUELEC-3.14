@@ -836,13 +836,31 @@ def checkBios(systems, prefix):
 def displayMissingBios(systems, missingBios):
     sortedMissingBios = OrderedDict(sorted(missingBios.items()))
     if sortedMissingBios:
+        # NextOS fix: ES GuiBios compara o header com sys->getName() do
+        # es_systems.cfg (system id em lowercase). Tambem agrupamos ports
+        # individuais (cannonball, cavestory, diablo, etc.) sob 'ports' —
+        # batocera lista cada port separado mas no EmuELEC todos pertencem
+        # ao system 'ports' do es_systems.cfg.
+        regrouped = OrderedDict()
         for system in sortedMissingBios:
-            print("> {}".format(systems[system]["name"]))
-            for file in sortedMissingBios[system].keys():
+            display = system.lower()
+            # Detecta port pelo prefixo 'ports/' nos paths
+            files = sortedMissingBios[system]
+            is_port = any(str(f).startswith("ports/") for f in files.keys())
+            if is_port:
+                display = "ports"
+            if display not in regrouped:
+                regrouped[display] = OrderedDict()
+            for f, data in files.items():
+                regrouped[display][f] = data
+
+        for system in regrouped:
+            print("> {}".format(system))
+            for file in regrouped[system].keys():
                 md5str = "-"
-                if sortedMissingBios[system][file]["md5"] != "":
-                    md5str = sortedMissingBios[system][file]["md5"]
-                print("{} {} {}".format(sortedMissingBios[system][file]["status"], md5str, sortedMissingBios[system][file]["file"]))
+                if regrouped[system][file]["md5"] != "":
+                    md5str = regrouped[system][file]["md5"]
+                print("{} {} {}".format(regrouped[system][file]["status"], md5str, regrouped[system][file]["file"]))
         return True
     else:
         print("No missing bios")
