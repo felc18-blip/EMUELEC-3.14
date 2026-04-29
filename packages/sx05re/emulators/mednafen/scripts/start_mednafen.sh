@@ -125,6 +125,11 @@ cleanup() {
     # intercepta input do gamepad no ES e parece "travamento".
     pkill -9 -f "gptokeyb.*mednafen" 2>/dev/null
     pkill -9 -f "gptokeyb 1 mednafen" 2>/dev/null
+    # show_splash.sh exit órfãos do EmuELEC acumulam quando emulador morre
+    # via kill_mode (ES não consegue limpar porque o splash fica em fork).
+    # Mata só os "exit" mode (não interrompe splash de outros emus rodando).
+    pkill -9 -f "show_splash.sh exit" 2>/dev/null
+    true  # garantir exit code 0 (pkill sem matches retorna 1)
 }
 trap cleanup EXIT INT TERM HUP
 
