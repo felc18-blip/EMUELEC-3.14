@@ -1,0 +1,56 @@
+From: NextOS
+Subject: Add bundled linux/time_types.h for kernel < 5.1 compat
+
+strace 7.0 bundled headers include <linux/time_types.h> which was
+introduced in Linux 5.1. NextOS Amlogic-old (kernel 3.14) sysroot
+doesn't ship it and also lacks __kernel_time64_t / __kernel_old_time_t
+typedefs. Provide a self-contained compat header with raw fallbacks.
+
+--- /dev/null	2026-04-26 03:48:42.311119301 -0300
++++ b/bundled/linux/include/uapi/linux/time_types.h	2026-04-29 00:16:48.241144881 -0300
+@@ -0,0 +1,45 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef _UAPI_LINUX_TIME_TYPES_H
++#define _UAPI_LINUX_TIME_TYPES_H
++
++#include <linux/types.h>
++
++#ifndef __kernel_time64_t
++typedef long long __kernel_time64_t;
++#endif
++
++#ifndef __kernel_old_time_t
++typedef long __kernel_old_time_t;
++#endif
++
++struct __kernel_timespec {
++	__kernel_time64_t       tv_sec;
++	long long               tv_nsec;
++};
++
++struct __kernel_itimerspec {
++	struct __kernel_timespec it_interval;
++	struct __kernel_timespec it_value;
++};
++
++struct __kernel_old_timeval {
++	long tv_sec;
++	long tv_usec;
++};
++
++struct __kernel_old_timespec {
++	__kernel_old_time_t     tv_sec;
++	long                    tv_nsec;
++};
++
++struct __kernel_old_itimerval {
++	struct __kernel_old_timeval it_interval;
++	struct __kernel_old_timeval it_value;
++};
++
++struct __kernel_sock_timeval {
++	__s64 tv_sec;
++	__s64 tv_usec;
++};
++
++#endif /* _UAPI_LINUX_TIME_TYPES_H */
