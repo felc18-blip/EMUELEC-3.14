@@ -10,7 +10,7 @@
 # pra Mali-450 / GLES2 como commits propriamente reviewable.
 
 PKG_NAME="kronos-sa"
-PKG_VERSION="e74b8a7136926125620b91708a315bb2a3e8c64c"
+PKG_VERSION="4982c87ed36270247633ac0acc04569dea9708c9"
 PKG_ARCH="aarch64"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/felc18-blip/kronos-nextos"

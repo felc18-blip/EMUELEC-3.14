@@ -39,9 +39,10 @@ USE_SKIP=$(get_ee_setting use_autoskip saturn "${GAME}")
 AUTOSKIP=""
 [ "${USE_SKIP}" = "1" ] && AUTOSKIP="-autoframeskip 1"
 
-# Em Mali-450 só VideoCore=2 (VIDSoft) é viável. Ignoramos qualquer
-# tentativa de habilitar opengl pelas opções do EmuStation.
-sed -i 's~Video\\VideoCore=.*$~Video\\VideoCore=2~g' "${KRONOS_CFG_DIR}/kronos.ini"
+# Em Mali-450 só VideoCore=3 (VIDSoft) é viável.
+# IDs Kronos: VIDCORE_OGL=1, VIDCORE_CS=2 (compute shader), VIDCORE_SOFT=3.
+# VIDOGL/VIDCS são stubs no-op no NextOS (Mali blob não tem GLES3+/compute).
+sed -i 's~Video\\VideoCore=.*$~Video\\VideoCore=3~g' "${KRONOS_CFG_DIR}/kronos.ini"
 # Sem Vulkan, sem compute shader, sem tessellation GPU.
 sed -i 's~Video\\compute_shader_mode=.*$~Video\\compute_shader_mode=0~g' "${KRONOS_CFG_DIR}/kronos.ini"
 sed -i 's~Video\\polygon_generation_mode=.*$~Video\\polygon_generation_mode=1~g' "${KRONOS_CFG_DIR}/kronos.ini"
