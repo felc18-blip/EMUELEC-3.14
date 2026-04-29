@@ -4,11 +4,15 @@
 # Copyright (C) 2023 JELOS (https://github.com/JustEnoughLinuxOS)
 #
 PKG_NAME="es-theme-art-book-next"
-PKG_VERSION="9a50ef366e750aabfab29e6915a2867607212971"
+# NextOS fork: branch 'nextos' adiciona 33 artwork-noir + 30 logos ausentes
+# do upstream (castlevania, crashbandicoot, freej2me, gbabr, mariohack,
+# pokemon, sonic, streetfighter, zelda etc). Atualizar PKG_VERSION pra
+# pegar novos commits do fork.
+PKG_VERSION="c32333af2a44a4149e095b658294637068d9f720"
 PKG_LICENSE="CUSTOM"
-PKG_SITE="https://github.com/anthonycaccese/art-book-next-es"
-PKG_URL="https://github.com/anthonycaccese/art-book-next-es/archive/${PKG_VERSION}.tar.gz"
-PKG_LONGDESC="Art Book Next"
+PKG_SITE="https://github.com/felc18-blip/art-book-next-es-nextos"
+PKG_URL="${PKG_SITE}/archive/${PKG_VERSION}.tar.gz"
+PKG_LONGDESC="Art Book Next (NextOS fork — extra system art)"
 PKG_TOOLCHAIN="manual"
 
 makeinstall_target() {
