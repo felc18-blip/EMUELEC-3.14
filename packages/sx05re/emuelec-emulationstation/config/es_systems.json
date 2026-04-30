@@ -4197,35 +4197,6 @@
       ]
     },
     {
-      "name": "sega32xh",
-      "fullname": "Sega 32X HACK",
-      "manufacturer": "Sega",
-      "release": "1991",
-      "hardware": "console",
-      "path": "/storage/roms/sega32xh",
-      "platform": "sega32x",
-      "theme": "sega32xh",
-      "command": "default",
-      "extensions": [
-        ".32x",
-        ".7z",
-        ".bin",
-        ".md",
-        ".smd",
-        ".zip"
-      ],
-      "emulators": [
-        {
-          "name": "libretro",
-          "cores": [
-            {
-              "name": "picodrive"
-            }
-          ]
-        }
-      ]
-    },
-    {
       "name": "segacd",
       "fullname": "Sega CD",
       "manufacturer": "Sega",
@@ -5816,19 +5787,11 @@
       ],
       "emulators": [
         {
-          "name": "libretro",
+          "name": "jm",
           "cores": [
             {
-              "name": "freej2me",
+              "name": "jm",
               "default": true
-            }
-          ]
-        },
-        {
-          "name": "freej2mesa",
-          "cores": [
-            {
-              "name": "freej2mesa"
             }
           ]
         }
