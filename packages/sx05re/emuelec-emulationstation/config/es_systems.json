@@ -4577,43 +4577,6 @@
       ]
     },
     {
-      "name": "mastersystemh",
-      "fullname": "Sega Master System HACK",
-      "manufacturer": "Sega",
-      "release": "1985",
-      "hardware": "console",
-      "path": "/storage/roms/mastersystemh",
-      "platform": "mastersystem",
-      "theme": "mastersystemh",
-      "command": "default",
-      "extensions": [
-        ".7z",
-        ".bin",
-        ".sms",
-        ".zip"
-      ],
-      "emulators": [
-        {
-          "name": "libretro",
-          "cores": [
-            {
-              "name": "gearsystem",
-              "default": true
-            },
-            {
-              "name": "genesis_plus_gx"
-            },
-            {
-              "name": "picodrive"
-            },
-            {
-              "name": "smsplus"
-            }
-          ]
-        }
-      ]
-    },
-    {
       "name": "mastersystem MARK III",
       "fullname": "Sega Master System MARK III",
       "manufacturer": "Sega",
